@@ -1,0 +1,36 @@
+.login-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background: linear-gradient(135deg, #850000 0%, #4b0000 100%) !important;
+
+  mat-card {
+    min-width: 350px;
+    padding: 24px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  mat-card-header {
+    margin-bottom: 16px;
+    justify-content: center;
+  }
+
+  mat-form-field {
+    width: 100%;
+    margin-bottom: 16px;
+  }
+
+  .actions {
+    display: flex;
+    justify-content: center;
+    margin-top: 16px;
+
+    button {
+      width: 100%;
+      padding: 20px 0;
+      color: #ffffff !important; // Fonte em branco para contraste
+      font-weight: 500;
+    }
+  }
+}

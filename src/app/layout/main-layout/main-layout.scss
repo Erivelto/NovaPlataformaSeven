@@ -1,0 +1,247 @@
+.sidenav-container {
+  height: 100%;
+}
+
+.sidenav {
+  width: 250px;
+  background-color: white;
+  border-right: 1px solid rgba(0,0,0,0.12);
+  display: flex;
+  flex-direction: column;
+  transition: width 0.5s ease-in-out;
+  overflow-x: hidden;
+
+  // Animação de textos
+  .name, .role, [matListItemTitle], .logout-btn span {
+    transition: opacity 0.5s ease-in-out, transform 0.5s ease-in-out;
+    opacity: 1;
+    transform: translateX(0);
+    white-space: nowrap;
+  }
+
+  // HEADER PADRÃO
+  .sidenav-header {
+    padding: 24px 16px;
+    background: linear-gradient(135deg, #850000 0%, #4b0000 100%);
+    color: white;
+    position: relative;
+    min-height: 35px;
+    display: flex;
+    align-items: center;
+    transition: all 0.5s ease-in-out;
+
+    .user-profile {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex: 1;
+
+      .avatar-circle {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background-color: rgba(255,255,255,0.2);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+      }
+
+      .user-info {
+        display: flex;
+        flex-direction: column;
+        .name { font-weight: 500; font-size: 14px; }
+        .role { font-size: 12px; opacity: 0.8; }
+      }
+    }
+
+    .toggle-btn {
+      position: absolute;
+      top: 50%;
+      right: 4px;
+      transform: translateY(-50%);
+      color: white;
+      mat-icon { font-size: 20px; }
+    }
+  }
+
+  // LISTA E ACCORDION
+  mat-nav-list {
+    padding-top: 8px;
+    flex: 1;
+
+    ::ng-deep .mat-expansion-panel {
+      background: transparent !important;
+      
+      &.nested-panel {
+        .mat-expansion-panel-header {
+          height: 40px !important;
+          margin: 0 8px 0 12px !important; // Reduzido de 20px
+          padding: 0 8px !important;
+          border-radius: 0; // Removido
+          
+          .mat-expansion-panel-header-title {
+             font-size: 13px;
+             color: #555;
+             mat-icon { font-size: 18px; width: 18px; height: 18px; }
+          }
+        }
+      }
+
+      .mat-expansion-panel-header {
+        height: 44px !important;
+        padding: 0 12px;
+        border-radius: 0; // Removido
+        margin: 0 8px; // Removido margem vertical maior
+        &:hover { background-color: transparent !important; }
+        
+        // Estilo para quando o accordion está aberto (ativo)
+        .mat-expansion-panel.mat-expanded > & {
+          background-color: #eeeeee !important; // Cinza mais escuro
+        }
+
+        .mat-expansion-panel-header-title {
+          align-items: center;
+          gap: 10px;
+          color: #444;
+          font-size: 13.5px;
+          font-weight: 500;
+          .menu-icon { color: #666; font-size: 20px; width: 20px; height: 20px; }
+        }
+      }
+      .mat-expansion-panel-body { padding: 0 0 0 8px; }
+    }
+
+    .nested-list {
+      padding: 0 !important;
+      margin-bottom: 8px !important; // Adicionado para separação visual
+      a {
+        padding-left: 12px !important; // Reduzido de 52px para ganhar espaço
+        height: 36px !important;
+        border-radius: 0 !important;
+        background: transparent !important;
+        
+        ::ng-deep .mat-mdc-list-item-icon {
+          font-size: 16px !important;
+          width: 16px !important;
+          height: 16px !important;
+          margin-right: 8px !important;
+          color: #888;
+        }
+
+        span { font-size: 12px !important; color: #666; }
+
+        &:hover { background-color: transparent !important; }
+        
+        &.active-link {
+          background-color: rgba(197, 0, 0, 0.08) !important;
+          span { color: #c50000 !important; font-weight: 500; }
+        }
+      }
+    }
+
+    // Regra Global para garantir transparência no hover
+    .mat-mdc-list-item:hover, 
+    .mat-expansion-panel-header:hover,
+    a:hover {
+      background-color: transparent !important;
+    }
+
+    // Override para remover o fundo cinza automático do Material em itens desabilitados
+    ::ng-deep .mdc-list-item.mdc-list-item--disabled::before {
+      background-color: transparent !important;
+    }
+
+    .sub-item {
+      height: 40px !important;
+      margin: 0 8px !important;
+      border-radius: 0; // Removido border-radius
+      ::ng-deep .mat-mdc-list-item-icon {
+        font-size: 18px !important;
+        width: 18px !important;
+        height: 18px !important;
+        margin-right: 12px !important;
+      }
+      span { font-size: 13px !important; }
+      &.active-link {
+        background-color: rgba(197, 0, 0, 0.08);
+        color: #c50000;
+        mat-icon { color: #c50000; }
+      }
+    }
+  }
+
+  // MODO COLAPSADO (FINAL)
+  &.collapsed {
+    width: 80px;
+
+    .name, .role, [matListItemTitle], .logout-btn span {
+      opacity: 0;
+      transform: translateX(-10px);
+      pointer-events: none;
+    }
+
+    .sidenav-header {
+      padding: 10px 0;
+      justify-content: center;
+      .user-profile { justify-content: center; .avatar-circle { width: 32px; height: 32px; } }
+      .toggle-btn { display: none; }
+    }
+
+    ::ng-deep {
+        .mat-expansion-panel-header {
+        padding: 0 !important;
+        margin: 4px 0 !important;
+        justify-content: center !important;
+        border-radius: 0 !important;
+        .mat-expansion-panel-header-title { justify-content: center; gap: 0; width: 100%; }
+        
+        // Indicador pequeno para não quebrar o layout mini
+        .mat-expansion-indicator { 
+          position: absolute;
+          right: 4px;
+          scale: 0.7;
+        }
+      }
+      .mat-expansion-panel-body { 
+        padding: 0 !important; 
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+      
+      // Aplicando especificamente o que o usuário pediu
+      .mat-mdc-list-item, .mat-mdc-list-option {
+        width: 59% !important;
+        box-sizing: border-box !important;
+        -webkit-tap-highlight-color: rgba(0, 0, 0, 0) !important;
+        margin-left: 14px !important;
+        padding: 0 9px 0 5px !important;
+        display: flex !important;
+        justify-content: center !important;
+        
+        .mat-mdc-list-item-icon { margin-right: 0 !important; }
+      }
+    }
+  }
+}
+
+.sidenav-footer {
+  padding: 16px;
+  border-top: 1px solid rgba(0,0,0,0.08);
+  display: flex;
+  justify-content: center;
+}
+
+// .logout-btn removido override bordô
+.content-wrapper { padding: 0; height: 100%; box-sizing: border-box; }
+mat-sidenav-content { display: flex; flex-direction: column; }
+
+// Estilo para os botões de ação do sistema seguirem o padrão solicitado
+::ng-deep .mat-mdc-raised-button.mat-primary,
+::ng-deep .mat-mdc-unelevated-button.mat-primary {
+    .mdc-button__label {
+        color: #4b0000 !important;
+        font-weight: 500;
+    }
+}

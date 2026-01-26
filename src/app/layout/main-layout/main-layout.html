@@ -1,0 +1,161 @@
+<mat-sidenav-container class="sidenav-container" autosize [class.container-collapsed]="isCollapsed && !isHandset()">
+  <mat-sidenav #drawer class="sidenav" fixedInViewport
+      [attr.role]="isHandset() ? 'dialog' : 'navigation'"
+      [mode]="isHandset() ? 'over' : 'side'"
+      [opened]="isHandset() === false"
+      [class.collapsed]="isCollapsed && !isHandset()">
+    
+    <div class="sidenav-header" [class.collapsed-header]="isCollapsed && !isHandset()">
+      <div class="user-profile" (click)="isCollapsed && !isHandset() ? toggleCollapse() : null" [style.cursor]="isCollapsed && !isHandset() ? 'pointer' : 'default'">
+        <div class="avatar-circle">
+          <mat-icon>person</mat-icon>
+        </div>
+        <div class="user-info" *ngIf="!isCollapsed || isHandset()">
+          <span class="name">Admin User</span>
+          <span class="role">Administrador</span>
+        </div>
+      </div>
+      
+      <!-- Toggle Button (Desktop only, visible only when expanded) -->
+      <button mat-icon-button class="toggle-btn" *ngIf="!isCollapsed && !isHandset()" (click)="toggleCollapse()">
+        <mat-icon>chevron_left</mat-icon>
+      </button>
+    </div>
+
+    <mat-accordion [multi]="false" class="menu-accordion">
+      <!-- Nível 1: Gestão -->
+      <mat-expansion-panel [expanded]="!isCollapsed" class="mat-elevation-z0">
+        <mat-expansion-panel-header>
+          <mat-panel-title>
+            <mat-icon class="menu-icon">analytics</mat-icon>
+            <span *ngIf="!isCollapsed || isHandset()">Gestão</span>
+          </mat-panel-title>
+        </mat-expansion-panel-header>
+
+        <!-- Nível 2: Lista de categorias sob Gestão -->
+        <mat-nav-list class="sub-menu-list">
+          
+          <!-- Colaborador (Agora com 3º nível) -->
+          <mat-expansion-panel class="mat-elevation-z0 nested-panel" [disabled]="isCollapsed && !isHandset()">
+            <mat-expansion-panel-header class="nested-header">
+              <mat-panel-title>
+                <mat-icon matListItemIcon>people</mat-icon>
+                <span *ngIf="!isCollapsed || isHandset()">Colaborador</span>
+              </mat-panel-title>
+            </mat-expansion-panel-header>
+            
+            <mat-nav-list class="nested-list">
+              <a mat-list-item routerLink="/colaboradores" routerLinkActive="active-link" 
+                 (click)="drawer.mode === 'over' ? drawer.close() : null" 
+                 [matTooltip]="isCollapsed ? 'Lista Colaboradores' : ''" matTooltipPosition="right">
+                <mat-icon matListItemIcon>list</mat-icon>
+                <span matListItemTitle *ngIf="!isCollapsed || isHandset()">Lista Colaboradores</span>
+              </a>
+              <a mat-list-item routerLink="/adicionar-diaria" routerLinkActive="active-link" [matTooltip]="isCollapsed ? 'Adicionar Diária' : ''" matTooltipPosition="right">
+                <mat-icon matListItemIcon>today</mat-icon>
+                <span matListItemTitle *ngIf="!isCollapsed || isHandset()">Adicionar Diária</span>
+              </a>
+              <a mat-list-item routerLink="/adicionar-unica-diaria" routerLinkActive="active-link" [matTooltip]="isCollapsed ? 'Adicionar Única Diária' : ''" matTooltipPosition="right">
+                <mat-icon matListItemIcon>event</mat-icon>
+                <span matListItemTitle *ngIf="!isCollapsed || isHandset()">Adicionar Única Diária</span>
+              </a>
+              <a mat-list-item routerLink="/lista-diarias" routerLinkActive="active-link" [matTooltip]="isCollapsed ? 'Lista de Diárias' : ''" matTooltipPosition="right">
+                <mat-icon matListItemIcon>history</mat-icon>
+                <span matListItemTitle *ngIf="!isCollapsed || isHandset()">Lista de Diárias</span>
+              </a>
+            </mat-nav-list>
+          </mat-expansion-panel>
+
+          <!-- Cadastro (Agora com 3º nível) -->
+          <mat-expansion-panel class="mat-elevation-z0 nested-panel" [disabled]="isCollapsed && !isHandset()">
+            <mat-expansion-panel-header class="nested-header">
+              <mat-panel-title>
+                <mat-icon matListItemIcon>add_circle_outline</mat-icon>
+                <span *ngIf="!isCollapsed || isHandset()">Cadastro</span>
+              </mat-panel-title>
+            </mat-expansion-panel-header>
+            
+            <mat-nav-list class="nested-list">
+              <a mat-list-item routerLink="/cadastro-posto" routerLinkActive="active-link" [matTooltip]="isCollapsed ? 'Cadastro Posto' : ''" matTooltipPosition="right">
+                <mat-icon matListItemIcon>location_on</mat-icon>
+                <span matListItemTitle *ngIf="!isCollapsed || isHandset()">Cadastro Posto</span>
+              </a>
+              <a mat-list-item [disabled]="true" [matTooltip]="isCollapsed ? 'Cadastro Supervisor' : ''" matTooltipPosition="right">
+                <mat-icon matListItemIcon>supervisor_account</mat-icon>
+                <span matListItemTitle *ngIf="!isCollapsed || isHandset()">Cadastro Supervisor</span>
+              </a>
+              <a mat-list-item [disabled]="true" [matTooltip]="isCollapsed ? 'Cadastro Função' : ''" matTooltipPosition="right">
+                <mat-icon matListItemIcon>work_outline</mat-icon>
+                <span matListItemTitle *ngIf="!isCollapsed || isHandset()">Cadastro Função</span>
+              </a>
+              <a mat-list-item [disabled]="true" [matTooltip]="isCollapsed ? 'Cadastro Usuário' : ''" matTooltipPosition="right">
+                <mat-icon matListItemIcon>person_add_alt</mat-icon>
+                <span matListItemTitle *ngIf="!isCollapsed || isHandset()">Cadastro Usuário</span>
+              </a>
+            </mat-nav-list>
+          </mat-expansion-panel>
+
+          <!-- Relatórios (Agora com 3º nível) -->
+          <mat-expansion-panel class="mat-elevation-z0 nested-panel" [disabled]="isCollapsed && !isHandset()">
+            <mat-expansion-panel-header class="nested-header">
+              <mat-panel-title>
+                <mat-icon matListItemIcon>assessment</mat-icon>
+                <span *ngIf="!isCollapsed || isHandset()">Relatórios</span>
+              </mat-panel-title>
+            </mat-expansion-panel-header>
+            
+            <mat-nav-list class="nested-list">
+              <a mat-list-item [disabled]="true" [matTooltip]="isCollapsed ? 'DashBoard' : ''" matTooltipPosition="right">
+                <mat-icon matListItemIcon>dashboard</mat-icon>
+                <span matListItemTitle *ngIf="!isCollapsed || isHandset()">DashBoard</span>
+              </a>
+              <a mat-list-item [disabled]="true" [matTooltip]="isCollapsed ? 'Lista Curriculos' : ''" matTooltipPosition="right">
+                <mat-icon matListItemIcon>description</mat-icon>
+                <span matListItemTitle *ngIf="!isCollapsed || isHandset()">Lista Curriculos</span>
+              </a>
+              <a mat-list-item [disabled]="true" [matTooltip]="isCollapsed ? 'Lista de Diárias' : ''" matTooltipPosition="right">
+                <mat-icon matListItemIcon>receipt_long</mat-icon>
+                <span matListItemTitle *ngIf="!isCollapsed || isHandset()">Lista de Diárias</span>
+              </a>
+              <a mat-list-item [disabled]="true" [matTooltip]="isCollapsed ? 'Lista de Consolidado' : ''" matTooltipPosition="right">
+                <mat-icon matListItemIcon>summarize</mat-icon>
+                <span matListItemTitle *ngIf="!isCollapsed || isHandset()">Lista de Consolidado</span>
+              </a>
+              <a mat-list-item [disabled]="true" [matTooltip]="isCollapsed ? 'Lista de Consolidado por Data' : ''" matTooltipPosition="right">
+                <mat-icon matListItemIcon>calendar_month</mat-icon>
+                <span matListItemTitle *ngIf="!isCollapsed || isHandset()">Lista de Consolidado por Data</span>
+              </a>
+            </mat-nav-list>
+          </mat-expansion-panel>
+        </mat-nav-list>
+      </mat-expansion-panel>
+    </mat-accordion>
+
+    <div class="sidenav-footer">
+      <button mat-button color="warn" class="logout-btn" (click)="logout()" *ngIf="!isCollapsed || isHandset()">
+        <mat-icon>logout</mat-icon>
+        Sair
+      </button>
+      <button mat-icon-button color="warn" (click)="logout()" *ngIf="isCollapsed && !isHandset()" matTooltip="Sair">
+        <mat-icon>logout</mat-icon>
+      </button>
+    </div>
+  </mat-sidenav>
+
+  <mat-sidenav-content>
+    <mat-toolbar color="primary" *ngIf="isHandset()">
+      <button
+        type="button"
+        aria-label="Toggle sidenav"
+        mat-icon-button
+        (click)="drawer.toggle()">
+        <mat-icon aria-label="Side nav toggle icon">menu</mat-icon>
+      </button>
+      <span>NovaPlataformaSeven</span>
+    </mat-toolbar>
+    
+    <div class="content-wrapper">
+      <router-outlet></router-outlet>
+    </div>
+  </mat-sidenav-content>
+</mat-sidenav-container>

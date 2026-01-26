@@ -1,0 +1,75 @@
+<div class="station-registration-container">
+  <mat-card class="form-card">
+    <div class="header">
+      <div class="title">
+        <h2>Cadastro de Posto</h2>
+        <p>Insira o nome do novo posto de trabalho</p>
+      </div>
+    </div>
+
+    <div class="registration-form">
+      <mat-form-field appearance="outline" class="flex-grow">
+        <mat-label>Nome do Posto</mat-label>
+        <input matInput [(ngModel)]="novoPosto" placeholder="Ex: Posto Central">
+        <mat-icon matPrefix>location_on</mat-icon>
+      </mat-form-field>
+      
+      <button mat-raised-button color="primary" class="add-btn" (click)="addStation()">
+        <mat-icon>add</mat-icon>
+        Adicionar
+      </button>
+    </div>
+  </mat-card>
+
+  <mat-card class="list-card">
+    <div class="header">
+      <div class="title">
+        <h2>Lista de Postos</h2>
+      </div>
+      
+      <mat-form-field appearance="outline" class="search-field">
+        <mat-label>Filtrar postos</mat-label>
+        <input matInput (keyup)="applyFilter($event)" placeholder="Ex: Central..." #input>
+        <mat-icon matSuffix>search</mat-icon>
+      </mat-form-field>
+    </div>
+
+    <div class="table-container">
+      <table mat-table [dataSource]="dataSource" matSort>
+
+        <!-- Código Column -->
+        <ng-container matColumnDef="codigo">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header> Código </th>
+          <td mat-cell *matCellDef="let row"> {{row.codigo}} </td>
+        </ng-container>
+
+        <!-- Posto Column -->
+        <ng-container matColumnDef="nome">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header> Posto </th>
+          <td mat-cell *matCellDef="let row"> {{row.nome}} </td>
+        </ng-container>
+
+        <!-- Actions Column -->
+        <ng-container matColumnDef="actions">
+          <th mat-header-cell *matHeaderCellDef> Ações </th>
+          <td mat-cell *matCellDef="let row">
+            <div class="action-container">
+                <button mat-icon-button color="primary" (click)="viewStation(row)" matTooltip="Visualizar">
+                    <mat-icon>visibility</mat-icon>
+                </button>
+            </div>
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+
+        <tr class="mat-row" *matNoDataRow>
+          <td class="mat-cell" colspan="3">Nenhum posto encontrado para o filtro "{{input.value}}"</td>
+        </tr>
+      </table>
+
+      <mat-paginator [pageSizeOptions]="[5, 10, 25]" aria-label="Selecionar página"></mat-paginator>
+    </div>
+  </mat-card>
+</div>

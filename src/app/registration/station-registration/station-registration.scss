@@ -1,0 +1,69 @@
+.station-registration-container {
+  padding: 24px;
+  width: 100%;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+
+  mat-card {
+    padding: 24px;
+  }
+
+  .header {
+    margin-bottom: 24px;
+    .title {
+      h2 { margin: 0; font-size: 20px; }
+      p { margin: 4px 0 0; color: #666; font-size: 14px; }
+    }
+  }
+
+  .registration-form {
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+
+    .flex-grow {
+      flex: 1;
+    }
+
+    .add-btn {
+      height: 52px;
+      min-width: 150px;
+    }
+  }
+
+  .list-card {
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+
+      .search-field {
+         min-width: 300px;
+         margin-bottom: 0;
+      }
+    }
+  }
+
+  .table-container {
+    overflow: auto;
+    table { width: 100%; }
+  }
+}
+
+/* Responsividade Mobile */
+@media (max-width: 600px) {
+  .station-registration-container {
+    padding: 16px;
+    .registration-form {
+      flex-direction: column;
+      .add-btn { width: 100%; }
+    }
+    .list-card .header .search-field {
+      min-width: 100%;
+    }
+  }
+}

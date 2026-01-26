@@ -1,0 +1,42 @@
+.dailies-list-container {
+  padding: 24px;
+  width: 100%;
+  box-sizing: border-box;
+
+  mat-card {
+    padding: 24px;
+  }
+
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+
+    .title {
+      h2 { margin: 0; font-size: 24px; color: #333; }
+      p { margin: 4px 0 0; color: #666; }
+    }
+  }
+
+  .search-field {
+    width: 100%;
+    margin-bottom: 16px;
+  }
+
+  .table-container {
+    overflow: auto;
+    
+    table {
+      width: 100%;
+    }
+  }
+}
+
+/* Responsividade Mobile */
+@media (max-width: 600px) {
+  .dailies-list-container {
+    padding: 16px;
+    mat-card { padding: 16px; }
+  }
+}

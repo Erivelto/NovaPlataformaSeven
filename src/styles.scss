@@ -1,0 +1,176 @@
+
+// Include theming for Angular Material with `mat.theme()`.
+// This Sass mixin will define CSS variables that are used for styling Angular Material
+// components according to the Material 3 design spec.
+// Learn more about theming and how to use it for your application's
+// custom components at https://material.angular.dev/guide/theming
+@use '@angular/material' as mat;
+
+html {
+  height: 100%;
+  @include mat.theme((
+    color: (
+      primary: mat.$azure-palette,
+      tertiary: mat.$blue-palette,
+    ),
+    typography: Roboto,
+    density: 0,
+  ));
+}
+
+body {
+  background-color: var(--mat-sys-surface);
+  color: var(--mat-sys-on-surface);
+  font: var(--mat-sys-body-medium);
+  margin: 0;
+  height: 100%;
+}
+
+// Global: Cor Branca para escrita em botões primários
+.mat-mdc-raised-button.mat-primary,
+.mat-mdc-unelevated-button.mat-primary,
+.mat-mdc-button.mat-primary,
+.mat-mdc-outlined-button.mat-primary {
+  background-color: #850000 !important;
+  border-radius: 4px !important; // Reduzido conforme solicitado
+  
+  // MDC Custom Properties para as cores de texto
+  --mdc-filled-button-label-text-color: #ffffff !important;
+  --mdc-outlined-button-label-text-color: #ffffff !important;
+  --mdc-text-button-label-text-color: #ffffff !important;
+  
+  // Seletores diretos para garantir que a escrita fique branca
+  span.mdc-button__label, 
+  .mat-mdc-button-touch-target + .mdc-button__label,
+  .mdc-button__label {
+    color: #ffffff !important;
+  }
+  
+  color: #ffffff !important;
+  font-weight: 400 !important; // Removido bold (médio/regular)
+  font-size: 13px !important; // Reduzido em aproximadamente 2px
+}
+
+// Redução de Ícones em Grids e Tabelas (UX mais limpa)
+.mat-mdc-table mat-icon,
+.mat-mdc-tab-body mat-icon,
+.footer-actions mat-icon {
+  font-size: 18px !important;
+  width: 18px !important;
+  height: 18px !important;
+  line-height: 18px !important;
+}
+
+// Global: Forçar Vermelho Escuro como cor de destaque absoluta do sistema
+:root {
+  --mat-sys-primary: #850000 !important;
+  --mdc-outlined-text-field-focus-outline-color: #850000 !important;
+  --mdc-outlined-text-field-focus-label-text-color: #850000 !important;
+  --mdc-filled-text-field-focus-active-indicator-color: #850000 !important;
+  --mdc-filled-text-field-focus-label-text-color: #850000 !important;
+  --mat-form-field-focus-color: #850000 !important;
+  --mat-table-header-color: #850000 !important;
+}
+
+// Garantir que a escrita e cursor sigam o padrão nos formulários
+.mat-mdc-form-field {
+  // Fundo branco como padrão nos inputs
+  .mdc-text-field {
+    background-color: #ffffff !important;
+  }
+  
+  // Bordas brancas por padrão
+  .mdc-notched-outline__leading,
+  .mdc-notched-outline__notch,
+  .mdc-notched-outline__trailing {
+    border-color: #ffffff !important;
+  }
+}
+
+.mat-mdc-form-field.mat-focused {
+  .mat-mdc-floating-label { color: #850000 !important; }
+  .mdc-line-ripple::after { border-bottom-color: #850000 !important; }
+  
+  // Reforçando para inputs outline (outra forma de seletor)
+  .mdc-notched-outline__leading,
+  .mdc-notched-outline__notch,
+  .mdc-notched-outline__trailing {
+    border-color: #850000 !important;
+    border-width: 2px !important; // Aumentando levemente a espessura no foco para dar o "efeito"
+  }
+}
+
+// Opções de seleção com fundo branco
+.mat-mdc-option {
+  background-color: #ffffff !important;
+  &:hover:not(.mdc-list-item--disabled) {
+    background-color: rgba(0, 0, 0, 0.04) !important;
+  }
+  &.mdc-list-item--selected:not(.mdc-list-item--disabled) {
+    background-color: rgba(133, 0, 0, 0.08) !important;
+  }
+}
+
+// Estilização de Tabelas (Grids) e Títulos
+.mat-mdc-table, .header, .title, mat-card-header {
+  // Remover qualquer sombra de texto de forma agressiva
+  &, *, *::before, *::after {
+    text-shadow: none !important;
+    box-shadow: none !important; // Aproveitando para limpar sombras de caixa se houver em textos
+  }
+
+  // Títulos das colunas em cinza médio
+  .mat-mdc-header-cell {
+    color: #666666 !important;
+    font-weight: 500 !important;
+  }
+
+  // Linhas das grids em cinza mais leve
+  .mat-mdc-row .mat-mdc-cell {
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05) !important;
+  }
+
+  // Garantir que ícones em grids fiquem sempre lado a lado
+  .mat-mdc-cell, 
+  .mat-mdc-header-cell {
+    &.mat-column-actions {
+      white-space: nowrap !important;
+      text-align: right !important; // Título à direita
+      
+      .mdc-button-base { 
+        display: inline-flex !important; 
+      }
+      // Container flex para múltiplos botões
+      .action-container {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: flex-end; // Botões à direita
+        gap: 4px;
+      }
+    }
+  }
+}
+
+// Global Clean: Padronização de Títulos do sistema
+h1, h2, h3, h4, h5, h6, 
+.mat-headline, .mat-title, 
+.mat-mdc-card-title, 
+.header h2, 
+.title h2 {
+  font-family: 'Roboto', sans-serif !important;
+  text-shadow: none !important;
+  font-weight: 500 !important;
+  color: #333333 !important; // Cor padrão para títulos internos
+  margin: 0 !important;
+}
+
+h2, .mat-mdc-card-title, .header h2 {
+  font-size: 20px !important;
+  margin-bottom: 8px !important;
+}
+
+h1 { font-size: 24px !important; }
+h3 { font-size: 18px !important; }
+
+/* You can add global styles to this file, and also import other style files */

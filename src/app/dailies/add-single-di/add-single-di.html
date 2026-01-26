@@ -1,0 +1,37 @@
+<div class="add-single-di-container">
+  <mat-card>
+    <div class="header">
+      <div class="title">
+        <h2>Adicionar Única Diária</h2>
+        <p>Preencha os campos abaixo para registrar uma nova diária avulsa</p>
+      </div>
+    </div>
+
+    <div class="form-container">
+      <div class="row">
+        <!-- Campo Data -->
+        <mat-form-field appearance="outline">
+          <mat-label>Data da Diária</mat-label>
+          <input matInput [matDatepicker]="dataPicker" [(ngModel)]="data">
+          <mat-hint>DD/MM/AAAA</mat-hint>
+          <mat-datepicker-toggle matIconSuffix [for]="dataPicker"></mat-datepicker-toggle>
+          <mat-datepicker #dataPicker></mat-datepicker>
+        </mat-form-field>
+
+        <!-- Campo Pesquisar por Nome -->
+        <mat-form-field appearance="outline" class="flex-grow">
+          <mat-label>Pesquisar por Nome</mat-label>
+          <input matInput [(ngModel)]="nomePesquisa" placeholder="Digite o nome do colaborador...">
+          <mat-icon matSuffix>search</mat-icon>
+        </mat-form-field>
+      </div>
+
+      <div class="actions-row">
+        <button mat-raised-button color="primary" class="add-btn" (click)="save()">
+          <mat-icon>add</mat-icon>
+          Adicionar
+        </button>
+      </div>
+    </div>
+  </mat-card>
+</div>
