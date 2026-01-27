@@ -14,7 +14,7 @@ html {
       tertiary: mat.$blue-palette,
     ),
     typography: Roboto,
-    density: 0,
+    density: -3,
   ));
 }
 
@@ -32,7 +32,10 @@ body {
 .mat-mdc-button.mat-primary,
 .mat-mdc-outlined-button.mat-primary {
   background-color: #850000 !important;
-  border-radius: 4px !important; // Reduzido conforme solicitado
+  border-radius: 4px !important; 
+  height: 36px !important; // Aumentado para nivelar com inputs
+  line-height: 36px !important;
+  padding: 0 16px !important; // Padding lateral padrão
   
   // MDC Custom Properties para as cores de texto
   --mdc-filled-button-label-text-color: #ffffff !important;
@@ -47,14 +50,16 @@ body {
   }
   
   color: #ffffff !important;
-  font-weight: 400 !important; // Removido bold (médio/regular)
-  font-size: 13px !important; // Reduzido em aproximadamente 2px
+  font-weight: 500 !important; 
+  font-size: 12px !important; // Sincronizado com inputs
 }
 
-// Redução de Ícones em Grids e Tabelas (UX mais limpa)
+// Redução de Ícones em Grids, Tabelas e Painéis de Busca (UX mais limpa)
 .mat-mdc-table mat-icon,
 .mat-mdc-tab-body mat-icon,
-.footer-actions mat-icon {
+.footer-actions mat-icon,
+.filter-row mat-icon,
+.registration-form mat-icon {
   font-size: 18px !important;
   width: 18px !important;
   height: 18px !important;
@@ -74,9 +79,27 @@ body {
 
 // Garantir que a escrita e cursor sigam o padrão nos formulários
 .mat-mdc-form-field {
+  font-size: 12px !important; // Redução adicional para harmonia com 32px
+  
   // Fundo branco como padrão nos inputs
   .mdc-text-field {
     background-color: #ffffff !important;
+    padding: 0 8px !important; // Padding lateral mais estreito
+    min-height: 32px !important; // Altura ultra compacta
+  }
+  
+  // Ajuste de paddings internos para altura 32px
+  .mdc-text-field--outlined .mdc-text-field__input {
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+    height: 32px !important;
+  }
+
+  // Ajustar posição da label para não sumir na altura pequena
+  .mat-mdc-form-field-infix {
+    min-height: 32px !important;
+    padding-top: 4px !important;
+    padding-bottom: 4px !important;
   }
   
   // Bordas brancas por padrão
@@ -100,15 +123,41 @@ body {
   }
 }
 
-// Opções de seleção com fundo branco
+// Ajuste de alinhamento para botões ao lado de inputs
+.registration-form, .filter-row, .form-row {
+  display: flex !important;
+  align-items: flex-start !important; // Nivelar por cima
+  
+  .btn-col, .add-btn-container {
+    align-self: flex-start !important;
+    margin-top: 0 !important;
+  }
+}
+
+// Opções de seleção com fundo branco e altura sincronizada
 .mat-mdc-option {
+  min-height: 32px !important; // Mesma altura dos inputs
+  font-size: 12px !important;
   background-color: #ffffff !important;
+  
+  .mdc-list-item__primary-text {
+    font-size: 12px !important;
+  }
+
   &:hover:not(.mdc-list-item--disabled) {
     background-color: rgba(0, 0, 0, 0.04) !important;
   }
   &.mdc-list-item--selected:not(.mdc-list-item--disabled) {
     background-color: rgba(133, 0, 0, 0.08) !important;
   }
+}
+
+// Sincronizar o trigger do select (o que aparece no campo)
+.mat-mdc-select {
+  font-size: 12px !important;
+  display: flex !important;
+  align-items: center !important;
+  height: 32px !important;
 }
 
 // Estilização de Tabelas (Grids) e Títulos
@@ -172,5 +221,17 @@ h2, .mat-mdc-card-title, .header h2 {
 
 h1 { font-size: 24px !important; }
 h3 { font-size: 18px !important; }
+
+// Ajuste Global para Cabeçalhos e Separadores
+.header {
+  margin-bottom: 0 !important;
+}
+
+hr {
+  border: 0;
+  border-top: 1px solid rgba(0, 0, 0, 0.08); 
+  margin: 16px 0 35px !important; // Aumento do respiro inferior conforme solicitado
+  width: 100%;
+}
 
 /* You can add global styles to this file, and also import other style files */

@@ -1,4 +1,4 @@
-.station-registration-container {
+.supervisor-registration-container {
   padding: 24px;
   width: 100%;
   box-sizing: border-box;
@@ -55,7 +55,7 @@
 
 /* Responsividade Mobile */
 @media (max-width: 600px) {
-  .station-registration-container {
+  .supervisor-registration-container {
     padding: 16px;
     .registration-form {
       flex-direction: column;

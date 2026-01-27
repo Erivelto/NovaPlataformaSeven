@@ -1,0 +1,51 @@
+.report-container {
+  padding: 24px;
+  width: 100%;
+  box-sizing: border-box;
+
+  mat-card { padding: 24px; }
+  .header {
+    // margin-bottom global: 0
+    .title {
+      h2 { margin: 0; font-size: 20px; }
+      p { margin: 4px 0 0; color: #666; font-size: 14px; }
+    }
+  }
+  .filter-row {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 24px;
+    align-items: flex-start;
+    flex-wrap: wrap;
+
+    .filter-col {
+      flex: 1;
+      min-width: 180px;
+      mat-form-field { width: 100%; }
+    }
+
+    .btn-col {
+      flex: 0 0 auto;
+      align-self: flex-start; // Alinhar pelo topo
+      margin-left: 8px; 
+      margin-top: 0; // Alinhamento nivelado com o topo do outline
+    }
+
+    .add-btn {
+      height: 32px !important;
+      border-radius: 4px !important;
+      font-size: 12px !important;
+      padding: 20px 17px !important; // Valor base fornecido pelo usuário para ajuste de preenchimento
+    }
+  }
+
+  .table-container { overflow: auto; table { width: 100%; } }
+}
+
+@media (max-width: 992px) {
+  .filter-row {
+    .filter-col { min-width: calc(50% - 16px); }
+    .btn-col { width: 100%; }
+    .consult-btn { width: 100%; }
+  }
+}

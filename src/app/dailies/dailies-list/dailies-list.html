@@ -6,6 +6,7 @@
         <p>Consulte e gerencie o histórico de diárias cadastradas</p>
       </div>
     </div>
+    <hr>
 
     <mat-form-field appearance="outline" class="search-field">
       <mat-label>Pesquisar diárias</mat-label>
@@ -42,12 +43,10 @@
 
         <!-- Actions Column -->
         <ng-container matColumnDef="actions">
-          <th mat-header-cell *matHeaderCellDef> Ações </th>
-          <td mat-cell *matCellDef="let row">
+          <th mat-header-cell *matHeaderCellDef class="mat-column-actions"> Ações </th>
+          <td mat-cell *matCellDef="let row" class="mat-column-actions">
             <div class="action-container">
-                <button mat-icon-button color="warn" (click)="deleteDaily(row)" matTooltip="Excluir Diária">
-                    <mat-icon>delete</mat-icon>
-                </button>
+                <mat-icon color="warn" (click)="deleteDaily(row)" matTooltip="Excluir Diária" style="cursor: pointer;">delete</mat-icon>
             </div>
           </td>
         </ng-container>

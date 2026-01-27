@@ -1,0 +1,30 @@
+<div class="dashboard-container">
+  <div class="header">
+    <div class="title">
+      <h2>DashBoard</h2>
+      <p>Visão geral dos indicadores do sistema</p>
+    </div>
+  </div>
+  <hr>
+
+  <div class="stats-grid">
+    <mat-card *ngFor="let stat of stats" class="stat-card">
+      <div class="stat-content">
+        <div class="stat-icon" [style.color]="stat.color">
+          <mat-icon>{{stat.icon}}</mat-icon>
+        </div>
+        <div class="stat-info">
+          <span class="stat-value">{{stat.value}}</span>
+          <span class="stat-label">{{stat.label}}</span>
+        </div>
+      </div>
+    </mat-card>
+  </div>
+
+  <mat-card class="main-card">
+    <div class="chart-placeholder">
+       <mat-icon>leaderboard</mat-icon>
+       <span>Área reservada para gráficos e indicadores detalhados</span>
+    </div>
+  </mat-card>
+</div>

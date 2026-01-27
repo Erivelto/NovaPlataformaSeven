@@ -1,21 +1,21 @@
-<div class="station-registration-container">
+<div class="role-registration-container">
   <mat-card class="form-card">
     <div class="header">
       <div class="title">
-        <h2>Cadastro de Posto</h2>
-        <p>Insira o nome do novo posto de trabalho</p>
+        <h2>Cadastro de Função</h2>
+        <p>Insira o nome da nova função/cargo</p>
       </div>
     </div>
     <hr>
 
     <div class="registration-form">
       <mat-form-field appearance="outline" class="flex-grow">
-        <mat-label>Nome do Posto</mat-label>
-        <input matInput [(ngModel)]="novoPosto" placeholder="Ex: Posto Central">
-        <mat-icon matPrefix>location_on</mat-icon>
+        <mat-label>Nome da Função</mat-label>
+        <input matInput [(ngModel)]="novaFuncao" placeholder="Ex: Vigilante">
+        <mat-icon matPrefix>work_outline</mat-icon>
       </mat-form-field>
       
-      <button mat-raised-button color="primary" class="add-btn" (click)="addStation()">
+      <button mat-raised-button color="primary" class="add-btn" (click)="addRole()">
         <mat-icon>add</mat-icon>
         Adicionar
       </button>
@@ -25,12 +25,12 @@
   <mat-card class="list-card">
     <div class="header">
       <div class="title">
-        <h2>Lista de Postos</h2>
+        <h2>Lista de Funções</h2>
       </div>
       
       <mat-form-field appearance="outline" class="search-field">
-        <mat-label>Filtrar postos</mat-label>
-        <input matInput (keyup)="applyFilter($event)" placeholder="Ex: Central..." #input>
+        <mat-label>Filtrar funções</mat-label>
+        <input matInput (keyup)="applyFilter($event)" placeholder="Ex: Vigilante..." #input>
         <mat-icon matSuffix>search</mat-icon>
       </mat-form-field>
     </div>
@@ -44,9 +44,9 @@
           <td mat-cell *matCellDef="let row"> {{row.codigo}} </td>
         </ng-container>
 
-        <!-- Posto Column -->
+        <!-- Função Column -->
         <ng-container matColumnDef="nome">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header> Posto </th>
+          <th mat-header-cell *matHeaderCellDef mat-sort-header> Função </th>
           <td mat-cell *matCellDef="let row"> {{row.nome}} </td>
         </ng-container>
 
@@ -55,7 +55,7 @@
           <th mat-header-cell *matHeaderCellDef class="mat-column-actions"> Ações </th>
           <td mat-cell *matCellDef="let row" class="mat-column-actions">
             <div class="action-container">
-                <mat-icon color="primary" (click)="viewStation(row)" matTooltip="Visualizar" style="cursor: pointer;">visibility</mat-icon>
+                <mat-icon color="warn" (click)="deleteRole(row)" matTooltip="Excluir" style="cursor: pointer;">delete</mat-icon>
             </div>
           </td>
         </ng-container>
@@ -64,7 +64,7 @@
         <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
 
         <tr class="mat-row" *matNoDataRow>
-          <td class="mat-cell" colspan="3">Nenhum posto encontrado para o filtro "{{input.value}}"</td>
+          <td class="mat-cell" colspan="3">Nenhuma função encontrada para o filtro "{{input.value}}"</td>
         </tr>
       </table>
 

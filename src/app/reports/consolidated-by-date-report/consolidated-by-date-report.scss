@@ -1,0 +1,27 @@
+.report-container {
+  padding: 24px;
+  width: 100%;
+  box-sizing: border-box;
+
+  mat-card { padding: 24px; }
+  .header {
+    margin-bottom: 24px;
+    .title {
+      h2 { margin: 0; font-size: 20px; }
+      p { margin: 4px 0 0; color: #666; font-size: 14px; }
+    }
+  }
+
+  .filter-row {
+     display: flex;
+     gap: 16px;
+     margin-bottom: 24px;
+     align-items: flex-start;
+     flex-wrap: wrap;
+
+     mat-form-field { flex: 1; min-width: 200px; }
+     .filter-btn { height: 52px; min-width: 120px; }
+  }
+
+  .table-container { overflow: auto; table { width: 100%; } }
+}

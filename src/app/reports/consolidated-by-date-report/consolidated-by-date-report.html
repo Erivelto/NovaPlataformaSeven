@@ -1,0 +1,62 @@
+<div class="report-container">
+  <mat-card>
+    <div class="header">
+      <div class="title">
+        <h2>Lista de Consolidado por Data</h2>
+        <p>Resumo financeiro e operacional em um período selecionado</p>
+      </div>
+    </div>
+    <hr>
+
+    <div class="filter-row">
+      <mat-form-field appearance="outline">
+        <mat-label>Data Início</mat-label>
+        <input matInput [matDatepicker]="startPicker" [(ngModel)]="dataInicio">
+        <mat-datepicker-toggle matIconSuffix [for]="startPicker"></mat-datepicker-toggle>
+        <mat-datepicker #startPicker></mat-datepicker>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Data Fim</mat-label>
+        <input matInput [matDatepicker]="endPicker" [(ngModel)]="dataFim">
+        <mat-datepicker-toggle matIconSuffix [for]="endPicker"></mat-datepicker-toggle>
+        <mat-datepicker #endPicker></mat-datepicker>
+      </mat-form-field>
+
+      <button mat-raised-button color="primary" class="filter-btn" (click)="filtrar()">
+        <mat-icon>filter_alt</mat-icon>
+        Filtrar
+      </button>
+    </div>
+
+    <div class="table-container">
+      <table mat-table [dataSource]="dataSource" matSort>
+        <ng-container matColumnDef="data">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header> Data Referência </th>
+          <td mat-cell *matCellDef="let row"> {{row.data | date:'dd/MM/yyyy'}} </td>
+        </ng-container>
+        <ng-container matColumnDef="totalDiarias">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header> Qtd. Diárias </th>
+          <td mat-cell *matCellDef="let row"> {{row.totalDiarias}} </td>
+        </ng-container>
+        <ng-container matColumnDef="totalValor">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header> Valor Total (R$) </th>
+          <td mat-cell *matCellDef="let row"> {{row.totalValor | number:'1.2-2'}} </td>
+        </ng-container>
+
+        <ng-container matColumnDef="actions">
+          <th mat-header-cell *matHeaderCellDef class="mat-column-actions"> Ações </th>
+          <td mat-cell *matCellDef="let row" class="mat-column-actions">
+            <div class="action-container">
+                <mat-icon color="primary" style="cursor: pointer;">calendar_month</mat-icon>
+            </div>
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+      </table>
+      <mat-paginator [pageSizeOptions]="[10, 25, 50]"></mat-paginator>
+    </div>
+  </mat-card>
+</div>

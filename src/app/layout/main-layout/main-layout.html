@@ -80,15 +80,15 @@
                 <mat-icon matListItemIcon>location_on</mat-icon>
                 <span matListItemTitle *ngIf="!isCollapsed || isHandset()">Cadastro Posto</span>
               </a>
-              <a mat-list-item [disabled]="true" [matTooltip]="isCollapsed ? 'Cadastro Supervisor' : ''" matTooltipPosition="right">
+              <a mat-list-item routerLink="/cadastro-supervisor" routerLinkActive="active-link" [matTooltip]="isCollapsed ? 'Cadastro Supervisor' : ''" matTooltipPosition="right">
                 <mat-icon matListItemIcon>supervisor_account</mat-icon>
                 <span matListItemTitle *ngIf="!isCollapsed || isHandset()">Cadastro Supervisor</span>
               </a>
-              <a mat-list-item [disabled]="true" [matTooltip]="isCollapsed ? 'Cadastro Função' : ''" matTooltipPosition="right">
+              <a mat-list-item routerLink="/cadastro-funcao" routerLinkActive="active-link" [matTooltip]="isCollapsed ? 'Cadastro Função' : ''" matTooltipPosition="right">
                 <mat-icon matListItemIcon>work_outline</mat-icon>
                 <span matListItemTitle *ngIf="!isCollapsed || isHandset()">Cadastro Função</span>
               </a>
-              <a mat-list-item [disabled]="true" [matTooltip]="isCollapsed ? 'Cadastro Usuário' : ''" matTooltipPosition="right">
+              <a mat-list-item routerLink="/cadastro-usuario" routerLinkActive="active-link" [matTooltip]="isCollapsed ? 'Cadastro Usuário' : ''" matTooltipPosition="right">
                 <mat-icon matListItemIcon>person_add_alt</mat-icon>
                 <span matListItemTitle *ngIf="!isCollapsed || isHandset()">Cadastro Usuário</span>
               </a>
@@ -105,23 +105,23 @@
             </mat-expansion-panel-header>
             
             <mat-nav-list class="nested-list">
-              <a mat-list-item [disabled]="true" [matTooltip]="isCollapsed ? 'DashBoard' : ''" matTooltipPosition="right">
+              <a mat-list-item routerLink="/relatorio-dashboard" routerLinkActive="active-link" [matTooltip]="isCollapsed ? 'DashBoard' : ''" matTooltipPosition="right">
                 <mat-icon matListItemIcon>dashboard</mat-icon>
                 <span matListItemTitle *ngIf="!isCollapsed || isHandset()">DashBoard</span>
               </a>
-              <a mat-list-item [disabled]="true" [matTooltip]="isCollapsed ? 'Lista Curriculos' : ''" matTooltipPosition="right">
+              <a mat-list-item routerLink="/relatorio-curriculos" routerLinkActive="active-link" [matTooltip]="isCollapsed ? 'Lista Curriculos' : ''" matTooltipPosition="right">
                 <mat-icon matListItemIcon>description</mat-icon>
                 <span matListItemTitle *ngIf="!isCollapsed || isHandset()">Lista Curriculos</span>
               </a>
-              <a mat-list-item [disabled]="true" [matTooltip]="isCollapsed ? 'Lista de Diárias' : ''" matTooltipPosition="right">
+              <a mat-list-item routerLink="/relatorio-diarias" routerLinkActive="active-link" [matTooltip]="isCollapsed ? 'Lista de Diárias' : ''" matTooltipPosition="right">
                 <mat-icon matListItemIcon>receipt_long</mat-icon>
                 <span matListItemTitle *ngIf="!isCollapsed || isHandset()">Lista de Diárias</span>
               </a>
-              <a mat-list-item [disabled]="true" [matTooltip]="isCollapsed ? 'Lista de Consolidado' : ''" matTooltipPosition="right">
+              <a mat-list-item routerLink="/relatorio-consolidado" routerLinkActive="active-link" [matTooltip]="isCollapsed ? 'Lista de Consolidado' : ''" matTooltipPosition="right">
                 <mat-icon matListItemIcon>summarize</mat-icon>
                 <span matListItemTitle *ngIf="!isCollapsed || isHandset()">Lista de Consolidado</span>
               </a>
-              <a mat-list-item [disabled]="true" [matTooltip]="isCollapsed ? 'Lista de Consolidado por Data' : ''" matTooltipPosition="right">
+              <a mat-list-item routerLink="/relatorio-consolidado-data" routerLinkActive="active-link" [matTooltip]="isCollapsed ? 'Lista de Consolidado por Data' : ''" matTooltipPosition="right">
                 <mat-icon matListItemIcon>calendar_month</mat-icon>
                 <span matListItemTitle *ngIf="!isCollapsed || isHandset()">Lista de Consolidado por Data</span>
               </a>
