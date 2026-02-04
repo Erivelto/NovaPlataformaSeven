@@ -8,7 +8,7 @@ frontend:
       commands:
         - npm run build -- --configuration production
   artifacts:
-    baseDirectory: dist/NovaPlataformaSeven
+    baseDirectory: dist/NovaPlataformaSeven/browser
     files:
       - '**/*'
   redirects:
