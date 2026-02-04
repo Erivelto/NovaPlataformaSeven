@@ -79,14 +79,28 @@
           <h4>Tendência de diárias</h4>
           <span class="trend-note">Últimos 6 meses</span>
         </div>
-        <div class="trend-bars">
-          @for (item of monthlyTrend; track item.month) {
-            <div class="trend-bar">
-              <span class="bar" [style.height]="item.percent"></span>
-              <span class="label">{{ item.month }}</span>
-              <span class="value">{{ item.value }}</span>
-            </div>
-          }
+        <div class="trend-chart">
+          <div class="chart-grid">
+            <span></span>
+            <span></span>
+            <span></span>
+            <span></span>
+          </div>
+          <svg viewBox="0 0 520 180" class="chart-svg" aria-hidden="true">
+            <path class="chart-area" [attr.d]="lineChart.area"></path>
+            <path class="chart-line" [attr.d]="lineChart.line"></path>
+            @for (point of lineChartPoints; track point.label) {
+              <circle class="chart-point" [attr.cx]="point.x" [attr.cy]="point.y" r="5"></circle>
+            }
+          </svg>
+          <div class="chart-axis">
+            @for (point of lineChartPoints; track point.label) {
+              <div class="axis-item">
+                <span class="axis-label">{{ point.label }}</span>
+                <span class="axis-value">{{ point.value }}</span>
+              </div>
+            }
+          </div>
         </div>
       </div>
     </mat-card>
