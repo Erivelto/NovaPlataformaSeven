@@ -31,16 +31,16 @@
     </div>
 
     <mat-accordion [multi]="false" class="menu-accordion">
-      <!-- Nível 1: Gestão -->
+      <!-- Nível 1: Operacional -->
       <mat-expansion-panel [expanded]="!isCollapsed" class="mat-elevation-z0">
         <mat-expansion-panel-header>
           <mat-panel-title>
-            <mat-icon class="menu-icon">analytics</mat-icon>
-            <span *ngIf="!isCollapsed || isHandset()">Gestão</span>
+            <mat-icon class="menu-icon">settings</mat-icon>
+            <span *ngIf="!isCollapsed || isHandset()">Operacional</span>
           </mat-panel-title>
         </mat-expansion-panel-header>
 
-        <!-- Nível 2: Lista de categorias sob Gestão -->
+        <!-- Nível 2: Lista de categorias sob Operacional -->
         <mat-nav-list class="sub-menu-list">
           
           <!-- Colaborador (Agora com 3º nível) -->
