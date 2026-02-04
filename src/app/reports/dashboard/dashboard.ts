@@ -55,6 +55,20 @@ export class Dashboard implements OnInit, OnDestroy {
     { month: 'Fev', value: 132, percent: '78%' }
   ];
 
+  readonly lineChart = {
+    line: 'M20 130 L100 110 L200 90 L300 70 L400 80 L500 55',
+    area: 'M20 130 L100 110 L200 90 L300 70 L400 80 L500 55 L500 160 L20 160 Z'
+  };
+
+  readonly lineChartPoints = [
+    { label: 'Set', value: 82, x: 20, y: 130 },
+    { label: 'Out', value: 96, x: 100, y: 110 },
+    { label: 'Nov', value: 108, x: 200, y: 90 },
+    { label: 'Dez', value: 121, x: 300, y: 70 },
+    { label: 'Jan', value: 114, x: 400, y: 80 },
+    { label: 'Fev', value: 132, x: 500, y: 55 }
+  ];
+
   readonly mockAlerts = [
     { title: '5 diárias aguardando validação', description: 'Equipe Norte - prazos até amanhã', icon: 'warning', color: '#ed6c02' },
     { title: '2 postos com cobertura parcial', description: 'Revisar escala das próximas 24h', icon: 'error_outline', color: '#d32f2f' },
