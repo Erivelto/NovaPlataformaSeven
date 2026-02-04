@@ -1,4 +1,12 @@
 <mat-sidenav-container class="sidenav-container" autosize [class.container-collapsed]="isCollapsed && !isHandset()">
+  <!-- Barra de Loading Global -->
+  <mat-progress-bar 
+    *ngIf="loadingService.isLoading()" 
+    mode="indeterminate" 
+    color="warn"
+    class="global-loading-bar">
+  </mat-progress-bar>
+
   <mat-sidenav #drawer class="sidenav" fixedInViewport
       [attr.role]="isHandset() ? 'dialog' : 'navigation'"
       [mode]="isHandset() ? 'over' : 'side'"
@@ -11,8 +19,8 @@
           <mat-icon>person</mat-icon>
         </div>
         <div class="user-info" *ngIf="!isCollapsed || isHandset()">
-          <span class="name">Admin User</span>
-          <span class="role">Administrador</span>
+          <span class="name">{{userName}}</span>
+          <span class="role">{{userRole}}</span>
         </div>
       </div>
       

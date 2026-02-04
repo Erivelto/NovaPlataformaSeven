@@ -21,6 +21,23 @@
     margin-bottom: 16px;
   }
 
+  form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-top: 16px;
+  }
+
+  .login-error {
+    background-color: #ffebee;
+    color: #c62828;
+    padding: 10px;
+    border-radius: 4px;
+    font-size: 13px;
+    text-align: center;
+    border: 1px solid rgba(198, 40, 40, 0.1);
+  }
+
   .actions {
     display: flex;
     justify-content: center;

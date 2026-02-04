@@ -12,6 +12,7 @@
       <mat-form-field appearance="outline">
         <mat-label>Data Início</mat-label>
         <input matInput [matDatepicker]="startPicker" [(ngModel)]="dataInicio">
+        <mat-hint>DD/MM/AAAA</mat-hint>
         <mat-datepicker-toggle matIconSuffix [for]="startPicker"></mat-datepicker-toggle>
         <mat-datepicker #startPicker></mat-datepicker>
       </mat-form-field>
@@ -19,38 +20,53 @@
       <mat-form-field appearance="outline">
         <mat-label>Data Fim</mat-label>
         <input matInput [matDatepicker]="endPicker" [(ngModel)]="dataFim">
+        <mat-hint>DD/MM/AAAA</mat-hint>
         <mat-datepicker-toggle matIconSuffix [for]="endPicker"></mat-datepicker-toggle>
         <mat-datepicker #endPicker></mat-datepicker>
       </mat-form-field>
 
-      <button mat-raised-button color="primary" class="filter-btn" (click)="filtrar()">
-        <mat-icon>filter_alt</mat-icon>
-        Filtrar
+      <button mat-raised-button color="primary" class="filter-btn" (click)="filtrar()" [disabled]="loading">
+        <mat-icon *ngIf="!loading">filter_alt</mat-icon>
+        <mat-icon *ngIf="loading" class="spinner">hourglass_empty</mat-icon>
+        {{ loading ? 'Filtrando...' : 'Filtrar' }}
       </button>
     </div>
 
-    <div class="table-container">
+    <div class="table-container" *ngIf="showResults">
       <table mat-table [dataSource]="dataSource" matSort>
-        <ng-container matColumnDef="data">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header> Data Referência </th>
-          <td mat-cell *matCellDef="let row"> {{row.data | date:'dd/MM/yyyy'}} </td>
+        <ng-container matColumnDef="codigo">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header> Código </th>
+          <td mat-cell *matCellDef="let row"> {{row.codigo}} </td>
         </ng-container>
-        <ng-container matColumnDef="totalDiarias">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header> Qtd. Diárias </th>
-          <td mat-cell *matCellDef="let row"> {{row.totalDiarias}} </td>
+        
+        <ng-container matColumnDef="nome">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header> Nome </th>
+          <td mat-cell *matCellDef="let row"> {{row.nome}} </td>
         </ng-container>
-        <ng-container matColumnDef="totalValor">
+        
+        <ng-container matColumnDef="valorTotal">
           <th mat-header-cell *matHeaderCellDef mat-sort-header> Valor Total (R$) </th>
-          <td mat-cell *matCellDef="let row"> {{row.totalValor | number:'1.2-2'}} </td>
+          <td mat-cell *matCellDef="let row"> {{row.valorTotal | number:'1.2-2'}} </td>
         </ng-container>
-
-        <ng-container matColumnDef="actions">
-          <th mat-header-cell *matHeaderCellDef class="mat-column-actions"> Ações </th>
-          <td mat-cell *matCellDef="let row" class="mat-column-actions">
-            <div class="action-container">
-                <mat-icon color="primary" style="cursor: pointer;">calendar_month</mat-icon>
-            </div>
-          </td>
+        
+        <ng-container matColumnDef="adiantamento">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header> Adiantamento (R$) </th>
+          <td mat-cell *matCellDef="let row"> {{row.adiantamento | number:'1.2-2'}} </td>
+        </ng-container>
+        
+        <ng-container matColumnDef="valorDiaria">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header> Valor da Diária (R$) </th>
+          <td mat-cell *matCellDef="let row"> {{row.valorDiaria | number:'1.2-2'}} </td>
+        </ng-container>
+        
+        <ng-container matColumnDef="quantidade">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header> Quantidade </th>
+          <td mat-cell *matCellDef="let row"> {{row.quantidade}} </td>
+        </ng-container>
+        
+        <ng-container matColumnDef="pix">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header> PIX </th>
+          <td mat-cell *matCellDef="let row"> {{row.pix}} </td>
         </ng-container>
 
         <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>

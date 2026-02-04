@@ -7,8 +7,47 @@
       </div>
     </div>
     <hr>
+    
+    <div class="stats-grid">
+      <mat-card class="stat-card">
+        <div class="stat-content">
+          <div class="stat-icon collaborators">
+            <mat-icon>people</mat-icon>
+          </div>
+          <div class="stat-info">
+            <span class="stat-value">{{totalColaboradores}}</span>
+            <span class="stat-label">Colaboradores</span>
+          </div>
+        </div>
+      </mat-card>
 
-    <mat-form-field appearance="outline" class="search-field">
+      <mat-card class="stat-card">
+        <div class="stat-content">
+          <div class="stat-icon dailies">
+            <mat-icon>event_note</mat-icon>
+          </div>
+          <div class="stat-info">
+            <span class="stat-value">{{totalDiarias}}</span>
+            <span class="stat-label">Total de Diárias</span>
+          </div>
+        </div>
+      </mat-card>
+
+      <mat-card class="stat-card">
+        <div class="stat-content">
+          <div class="stat-icon value">
+            <mat-icon>payments</mat-icon>
+          </div>
+          <div class="stat-info">
+            <span class="stat-value">R$ {{valorGeral | number:'1.2-2'}}</span>
+            <span class="stat-label">Valor Total</span>
+          </div>
+        </div>
+      </mat-card>
+    </div>
+
+    <div class="table-section">
+      <mat-form-field appearance="outline" class="search-field">
       <mat-label>Filtrar consolidados</mat-label>
       <input matInput (keyup)="applyFilter($event)" placeholder="Ex. Ricardo..." #input>
       <mat-icon matSuffix>search</mat-icon>
@@ -16,17 +55,39 @@
 
     <div class="table-container">
       <table mat-table [dataSource]="dataSource" matSort>
-        <ng-container matColumnDef="colaborador">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header> Colaborador </th>
-          <td mat-cell *matCellDef="let row"> {{row.colaborador}} </td>
+        <ng-container matColumnDef="codigo">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header> Código </th>
+          <td mat-cell *matCellDef="let row"> {{row.codigo}} </td>
         </ng-container>
-        <ng-container matColumnDef="totalDiarias">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header> Qtd. Diárias </th>
-          <td mat-cell *matCellDef="let row"> {{row.totalDiarias}} </td>
+
+        <ng-container matColumnDef="nome">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header> Nome </th>
+          <td mat-cell *matCellDef="let row"> {{row.nome}} </td>
         </ng-container>
-        <ng-container matColumnDef="totalValor">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header> Valor Total (R$) </th>
-          <td mat-cell *matCellDef="let row"> {{row.totalValor | number:'1.2-2'}} </td>
+
+        <ng-container matColumnDef="valorTotal">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header> Valor Total </th>
+          <td mat-cell *matCellDef="let row"> {{row.valorTotal | currency:'BRL':'symbol':'1.2-2':'pt-BR'}} </td>
+        </ng-container>
+
+        <ng-container matColumnDef="adiantamento">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header> Adiantamento </th>
+          <td mat-cell *matCellDef="let row"> {{row.adiantamento | currency:'BRL':'symbol':'1.2-2':'pt-BR'}} </td>
+        </ng-container>
+
+        <ng-container matColumnDef="valorDiaria">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header> Valor Diária </th>
+          <td mat-cell *matCellDef="let row"> {{row.valorDiaria | currency:'BRL':'symbol':'1.2-2':'pt-BR'}} </td>
+        </ng-container>
+
+        <ng-container matColumnDef="quantidade">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header> Quantidade </th>
+          <td mat-cell *matCellDef="let row" style="text-align: center;"> {{row.quantidade}} </td>
+        </ng-container>
+
+        <ng-container matColumnDef="pix">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header> Chave PIX </th>
+          <td mat-cell *matCellDef="let row"> {{row.pix}} </td>
         </ng-container>
 
         <ng-container matColumnDef="actions">
@@ -43,5 +104,6 @@
       </table>
       <mat-paginator [pageSizeOptions]="[10, 25, 50]"></mat-paginator>
     </div>
+  </div>
   </mat-card>
 </div>

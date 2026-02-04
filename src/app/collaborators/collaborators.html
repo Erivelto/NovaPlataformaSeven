@@ -19,12 +19,12 @@
     </mat-form-field>
 
     <div class="table-container">
-      <table mat-table [dataSource]="dataSource" matSort>
+      <table mat-table [dataSource]="dataSource" matSort multiTemplateDataRows>
 
         <!-- Codigo Column -->
         <ng-container matColumnDef="codigo">
           <th mat-header-cell *matHeaderCellDef mat-sort-header> Código </th>
-          <td mat-cell *matCellDef="let row"> {{row.codigo}} </td>
+          <td mat-cell *matCellDef="let row"> {{row.id}} </td>
         </ng-container>
 
         <!-- Nome Column -->
@@ -36,31 +36,31 @@
         <!-- Data Cadastro Column -->
         <ng-container matColumnDef="dataCadastro">
           <th mat-header-cell *matHeaderCellDef mat-sort-header> Data do Cadastro </th>
-          <td mat-cell *matCellDef="let row"> {{row.dataCadastro | date:'dd/MM/yyyy'}} </td>
+          <td mat-cell *matCellDef="let row"> {{row.dataCadastro ? (row.dataCadastro | date:'dd/MM/yyyy') : '-'}} </td>
         </ng-container>
 
         <!-- Quem Cadastrou Column -->
-        <ng-container matColumnDef="quemCadastrou">
+        <ng-container matColumnDef="userCadastro">
           <th mat-header-cell *matHeaderCellDef mat-sort-header> Quem Cadastrou </th>
-          <td mat-cell *matCellDef="let row"> {{row.quemCadastrou}} </td>
+          <td mat-cell *matCellDef="let row"> {{row.userCadastro || '-'}} </td>
         </ng-container>
 
         <!-- Data Alteracao Column -->
         <ng-container matColumnDef="dataAlteracao">
           <th mat-header-cell *matHeaderCellDef mat-sort-header> Data de Alteração </th>
-          <td mat-cell *matCellDef="let row"> {{row.dataAlteracao | date:'dd/MM/yyyy'}} </td>
+          <td mat-cell *matCellDef="let row"> {{row.dataAlteracao ? (row.dataAlteracao | date:'dd/MM/yyyy') : '-'}} </td>
         </ng-container>
 
         <!-- Quem Alterou Column -->
-        <ng-container matColumnDef="quemAlterou">
+        <ng-container matColumnDef="userAlteracao">
           <th mat-header-cell *matHeaderCellDef mat-sort-header> Quem Alterou </th>
-          <td mat-cell *matCellDef="let row"> {{row.quemAlterou}} </td>
+          <td mat-cell *matCellDef="let row"> {{row.userAlteracao || '-'}} </td>
         </ng-container>
 
         <!-- Actions Column -->
         <ng-container matColumnDef="actions">
           <th mat-header-cell *matHeaderCellDef> Ações </th>
-          <td mat-cell *matCellDef="let row">
+          <td mat-cell *matCellDef="let row" (click)="$event.stopPropagation()">
             <div class="action-container">
                 <button mat-icon-button color="primary" (click)="editCollaborator(row)" matTooltip="Alterar">
                 <mat-icon>edit</mat-icon>
@@ -72,8 +72,62 @@
           </td>
         </ng-container>
 
+        <!-- Expanded Content Column - The detail row is made up of this one column that spans across all columns -->
+        <ng-container matColumnDef="expandedDetail">
+          <td mat-cell *matCellDef="let element" [attr.colspan]="displayedColumns.length">
+            <div class="collaborator-detail"
+                 [@detailExpand]="element == expandedElement ? 'expanded' : 'collapsed'">
+              
+              <div class="detail-grid" *ngIf="elementDetail">
+                <div class="detail-item">
+                  <span class="label">CPF</span>
+                  <span class="value">{{elementDetail.cpf || 'Não informado'}}</span>
+                </div>
+                <div class="detail-item">
+                  <span class="label">Contatos</span>
+                  <span class="value">{{elementDetail.celular || elementDetail.telefone || 'Sem contato'}}</span>
+                </div>
+                <div class="detail-item">
+                  <span class="label">Email</span>
+                  <span class="value">{{elementDetail.email || 'Não informado'}}</span>
+                </div>
+                <div class="detail-item">
+                  <span class="label">Chave PIX</span>
+                  <span class="value">{{elementDetail.pix || 'Não informado'}}</span>
+                </div>
+                <div class="detail-item">
+                  <span class="label">Localização</span>
+                  <span class="value">{{elementDetail.cidade}}/{{elementDetail.uf}}</span>
+                </div>
+                <div class="detail-item">
+                  <span class="label">Endereço</span>
+                  <span class="value">{{elementDetail.endereco}}, {{elementDetail.bairro}}</span>
+                </div>
+                <div class="detail-item">
+                  <span class="label">Dados Bancários</span>
+                  <span class="value" *ngIf="elementDetail.banco">{{elementDetail.banco}} - Ag: {{elementDetail.agencia}} / Cc: {{elementDetail.conta}}</span>
+                  <span class="empty" *ngIf="!elementDetail.banco">Dados bancários não cadastrados</span>
+                </div>
+                <div class="detail-item" *ngIf="elementDetail.observacao">
+                  <span class="label">Observações</span>
+                  <span class="value">{{elementDetail.observacao}}</span>
+                </div>
+              </div>
+
+              <div class="loading-detail" *ngIf="loadingDetail">
+                Carregando informações extras...
+              </div>
+            </div>
+          </td>
+        </ng-container>
+
         <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-        <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+        <tr mat-row *matRowDef="let element; columns: displayedColumns;"
+            class="element-row"
+            [class.expanded-row]="expandedElement === element"
+            (click)="toggleRow(element)">
+        </tr>
+        <tr mat-row *matRowDef="let row; columns: ['expandedDetail']" class="detail-row"></tr>
 
         <!-- Row shown when there is no matching data. -->
         <tr class="mat-row" *matNoDataRow>

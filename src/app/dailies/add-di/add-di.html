@@ -3,18 +3,21 @@
     <div class="header">
       <div class="title">
         <h2>Gerenciamento de Diárias</h2>
-        <p>Edite as diárias diretamente na grade abaixo</p>
+        <p>Selecione um colaborador para visualizar e gerenciar suas diárias</p>
       </div>
     </div>
     <hr>
 
-    <mat-form-field appearance="outline" class="search-field">
-      <mat-label>Filtrar</mat-label>
-      <input matInput (keyup)="applyFilter($event)" placeholder="Filtrar por qualquer campo..." #input>
-      <mat-icon matSuffix>search</mat-icon>
-    </mat-form-field>
+    <!-- Seleção de Colaborador -->
+    <div class="collaborator-section">
+      <app-collaborator-search 
+        [collaborators]="collaborators"
+        label="Selecione o Colaborador *"
+        (collaboratorSelected)="onCollaboratorChange($event)">
+      </app-collaborator-search>
+    </div>
 
-    <div class="table-container">
+    <div class="table-container" *ngIf="selectedCollaboratorId">
       <table mat-table [dataSource]="dataSource" matSort>
         <!-- ... colunas permanecem iguais ... -->
         <!-- Checkbox Column -->
@@ -34,7 +37,7 @@
           <th mat-header-cell *matHeaderCellDef mat-sort-header> Data </th>
           <td mat-cell *matCellDef="let row">
             <mat-form-field appearance="fill" class="inline-edit">
-              <input matInput [(ngModel)]="row.data" type="date">
+              <input matInput [(ngModel)]="row.dataDiaria" type="date">
             </mat-form-field>
           </td>
         </ng-container>
@@ -44,7 +47,7 @@
           <th mat-header-cell *matHeaderCellDef mat-sort-header> Diária (R$) </th>
           <td mat-cell *matCellDef="let row">
             <mat-form-field appearance="fill" class="inline-edit">
-              <input matInput [(ngModel)]="row.diaria" type="number" step="0.01">
+              <input matInput [(ngModel)]="row.valor" type="number" step="0.01">
             </mat-form-field>
           </td>
         </ng-container>
@@ -54,9 +57,9 @@
           <th mat-header-cell *matHeaderCellDef mat-sort-header> Posto </th>
           <td mat-cell *matCellDef="let row">
             <mat-form-field appearance="fill" class="inline-edit">
-              <mat-select [(ngModel)]="row.postoId">
-                <mat-option *ngFor="let posto of postos" [value]="posto.id">
-                  {{posto.nome}}
+              <mat-select [(ngModel)]="row.idPosto">
+                <mat-option *ngFor="let station of stations" [value]="station.id">
+                  {{station.nome}}
                 </mat-option>
               </mat-select>
             </mat-form-field>
@@ -79,7 +82,7 @@
         <tr mat-row *matRowDef="let row; columns: displayedColumns;" (click)="selection.toggle(row)"></tr>
 
         <tr class="mat-row" *matNoDataRow>
-          <td class="mat-cell" colspan="5">Nenhum dado correspondente ao filtro "{{input.value}}"</td>
+          <td class="mat-cell" colspan="5">Selecione um colaborador para visualizar suas diárias</td>
         </tr>
       </table>
 

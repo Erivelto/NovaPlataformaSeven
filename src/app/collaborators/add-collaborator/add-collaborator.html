@@ -1,0 +1,161 @@
+<form [formGroup]="form" (ngSubmit)="onSubmit()">
+  
+  <!-- SEÇÃO 1: DADOS PESSOAIS -->
+  <div class="form-section">
+    <div class="section-title">
+      <mat-icon>person</mat-icon>
+      <h3>Dados Pessoais</h3>
+    </div>
+    
+    <div class="form-grid">
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Nome Completo *</mat-label>
+        <input matInput formControlName="nome" placeholder="Ex. João Silva Santos">
+        <mat-icon matPrefix>person_outline</mat-icon>
+        <mat-error *ngIf="form.get('nome')?.hasError('required')">Nome é obrigatório</mat-error>
+        <mat-error *ngIf="form.get('nome')?.hasError('minlength')">Mínimo 3 caracteres</mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="half-width">
+        <mat-label>Chave PIX *</mat-label>
+        <input matInput formControlName="pix" placeholder="CPF, email ou telefone">
+        <mat-icon matPrefix>vpn_key</mat-icon>
+        <mat-error *ngIf="form.get('pix')?.hasError('required')">Chave PIX é obrigatória</mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="half-width">
+        <mat-label>Referência</mat-label>
+        <input matInput formControlName="referencia" placeholder="Ex. Referência pessoal">
+        <mat-icon matPrefix>bookmark_outline</mat-icon>
+      </mat-form-field>
+    </div>
+  </div>
+
+  <!-- SEÇÃO 2: ENDEREÇO -->
+  <div class="form-section">
+    <div class="section-title">
+      <mat-icon>location_on</mat-icon>
+      <h3>Endereço</h3>
+    </div>
+    
+    <div class="form-grid">
+      <mat-form-field appearance="outline" class="third-width">
+        <mat-label>CEP *</mat-label>
+        <input matInput formControlName="cep" placeholder="12345-678">
+        <mat-icon matPrefix>mail_outline</mat-icon>
+        <mat-error *ngIf="form.get('cep')?.hasError('required')">CEP é obrigatório</mat-error>
+        <mat-error *ngIf="form.get('cep')?.hasError('pattern')">CEP inválido (formato: 12345-678)</mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="two-thirds-width">
+        <mat-label>Logradouro *</mat-label>
+        <input matInput formControlName="logradouro" placeholder="Ex. Avenida Paulista, Rua das Flores, Travessa X">
+        <mat-icon matPrefix>road</mat-icon>
+        <mat-error *ngIf="form.get('logradouro')?.hasError('required')">Logradouro é obrigatório</mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="quarter-width">
+        <mat-label>Número *</mat-label>
+        <input matInput formControlName="numero" type="number" placeholder="123">
+        <mat-icon matPrefix>home_outlined</mat-icon>
+        <mat-error *ngIf="form.get('numero')?.hasError('required')">Número é obrigatório</mat-error>
+        <mat-error *ngIf="form.get('numero')?.hasError('pattern')">Apenas números</mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="three-quarters-width">
+        <mat-label>Complemento</mat-label>
+        <input matInput formControlName="complemento" placeholder="Ex. Apartamento 42, Sala 102, Casa B">
+        <mat-icon matPrefix>apartment</mat-icon>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="half-width">
+        <mat-label>Bairro *</mat-label>
+        <input matInput formControlName="bairro" placeholder="Ex. Centro">
+        <mat-icon matPrefix>domain</mat-icon>
+        <mat-error *ngIf="form.get('bairro')?.hasError('required')">Bairro é obrigatório</mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="half-width">
+        <mat-label>Cidade *</mat-label>
+        <input matInput formControlName="cidade" placeholder="Ex. São Paulo">
+        <mat-icon matPrefix>location_city</mat-icon>
+        <mat-error *ngIf="form.get('cidade')?.hasError('required')">Cidade é obrigatória</mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="quarter-width">
+        <mat-label>Estado *</mat-label>
+        <input matInput formControlName="estado" placeholder="SP" maxlength="2" [value]="form.get('estado')?.value?.toUpperCase()">
+        <mat-icon matPrefix>location_on</mat-icon>
+        <mat-error *ngIf="form.get('estado')?.hasError('required')">Estado é obrigatório</mat-error>
+        <mat-error *ngIf="form.get('estado')?.hasError('pattern')">Use a sigla do estado (ex: SP, RJ)</mat-error>
+      </mat-form-field>
+    </div>
+  </div>
+
+  <!-- SEÇÃO 3: CONTRATAÇÃO -->
+  <div class="form-section">
+    <div class="section-title">
+      <mat-icon>attach_money</mat-icon>
+      <h3>Contratação</h3>
+    </div>
+    
+    <div class="form-grid">
+      <mat-form-field appearance="outline" class="quarter-width">
+        <mat-label>Valor da Diária *</mat-label>
+        <input matInput formControlName="valorDiaria" type="number" step="0.01" placeholder="0.00">
+        <mat-icon matPrefix>money</mat-icon>
+        <mat-error *ngIf="form.get('valorDiaria')?.hasError('required')">Valor é obrigatório</mat-error>
+        <mat-error *ngIf="form.get('valorDiaria')?.hasError('pattern')">Valor inválido</mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="third-width">
+        <mat-label>Função *</mat-label>
+        <mat-select formControlName="funcao">
+          <mat-option></mat-option>
+          <mat-option *ngFor="let role of roles" [value]="role.id">
+            {{role.nome}}
+          </mat-option>
+        </mat-select>
+        <mat-icon matPrefix>work_outline</mat-icon>
+        <mat-error *ngIf="form.get('funcao')?.hasError('required')">Função é obrigatória</mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="third-width">
+        <mat-label>Supervisor *</mat-label>
+        <mat-select formControlName="supervisor">
+          <mat-option></mat-option>
+          <mat-option *ngFor="let supervisor of supervisors" [value]="supervisor.id">
+            {{supervisor.nome}}
+          </mat-option>
+        </mat-select>
+        <mat-icon matPrefix>supervisor_account</mat-icon>
+        <mat-error *ngIf="form.get('supervisor')?.hasError('required')">Supervisor é obrigatório</mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="third-width">
+        <mat-label>Posto *</mat-label>
+        <mat-select formControlName="posto">
+          <mat-option></mat-option>
+          <mat-option *ngFor="let station of stations" [value]="station.id">
+            {{station.nome}}
+          </mat-option>
+        </mat-select>
+        <mat-icon matPrefix>location_on</mat-icon>
+        <mat-error *ngIf="form.get('posto')?.hasError('required')">Posto é obrigatório</mat-error>
+      </mat-form-field>
+    </div>
+  </div>
+
+  <!-- BOTÕES DE AÇÃO -->
+  <div class="button-container">
+    <button mat-raised-button class="action-button" type="button" (click)="reset()" [disabled]="loading">
+      <mat-icon>clear</mat-icon>
+      Limpar
+    </button>
+    <button mat-raised-button color="primary" class="action-button" type="submit" [disabled]="loading">
+      <mat-icon *ngIf="!loading">save</mat-icon>
+      <mat-icon *ngIf="loading" class="spinner">hourglass_empty</mat-icon>
+      {{loading ? 'Salvando...' : 'Cadastrar'}}
+    </button>
+  </div>
+</form>

@@ -1,0 +1,50 @@
+.collaborator-search-field {
+  width: 100%;
+  max-width: 600px;
+  margin: 0;
+}
+
+// Estilos para o campo de busca dentro do select
+::ng-deep .mat-mdc-select-panel {
+  padding: 0px 0 !important;
+}
+
+::ng-deep span.mdc-list-item__primary-text {
+  width: 100%;
+}
+
+::ng-deep .mat-mdc-option.search-option {
+  pointer-events: auto !important;
+  cursor: default !important;
+  background-color: #fff !important;
+  border-bottom: 1px solid #e0e0e0;
+  height: auto !important;
+  min-height: 70px !important;
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 100 !important;
+  
+  &:hover {
+    background-color: #fff !important;
+  }
+
+  .search-field {
+    width: calc(100% - 16px) !important;
+    margin: 8px !important;
+    padding: 0 !important;
+    display: block !important;
+    
+    mat-form-field {
+      width: 100% !important;
+      
+      .mat-mdc-form-field-flex {
+        padding: 0 !important;
+      }
+    }
+  }
+}
+
+.search-field {
+  width: 100%;
+  margin-bottom: 16px;
+}

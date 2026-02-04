@@ -38,6 +38,35 @@ mat-card {
   
   table {
     width: 100%;
+    
+    tr.detail-row { height: 0; }
+    tr.element-row:not(.expanded-row):hover { background: whitesmoke; }
+    tr.element-row:not(.expanded-row):active { background: #efefef; }
+    .element-row td { border-bottom-width: 0; cursor: pointer; }
+
+    .collaborator-detail {
+      overflow: hidden;
+      display: flex;
+      padding: 0 24px;
+      background: #fafafa;
+      border-bottom: 1px solid rgba(0,0,0,0.05);
+
+      .detail-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+        padding: 20px 0;
+        width: 100%;
+
+        .detail-item {
+          display: flex;
+          flex-direction: column;
+          .label { font-size: 11px; color: #888; text-transform: uppercase; margin-bottom: 4px; }
+          .value { font-size: 14px; color: #333; font-weight: 500; }
+          .empty { color: #ccc; font-style: italic; font-size: 13px; }
+        }
+      }
+    }
   }
 
   .status-badge {

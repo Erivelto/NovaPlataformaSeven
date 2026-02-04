@@ -108,6 +108,12 @@ body {
   .mdc-notched-outline__trailing {
     border-color: #ffffff !important;
   }
+
+  // Reduzir tamanho da fonte do label (efeito placeholder)
+  .mat-mdc-floating-label,
+  .mdc-floating-label {
+    font-size: 14px !important; // Reduzido de 12px para 11px
+  }
 }
 
 .mat-mdc-form-field.mat-focused {

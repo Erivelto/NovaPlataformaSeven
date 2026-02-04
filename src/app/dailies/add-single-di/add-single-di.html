@@ -8,31 +8,39 @@
     </div>
     <hr>
 
-    <div class="form-container">
+    <form [formGroup]="form" (ngSubmit)="save()" class="form-container">
       <div class="row">
         <!-- Campo Data -->
         <mat-form-field appearance="outline">
-          <mat-label>Data da Diária</mat-label>
-          <input matInput [matDatepicker]="dataPicker" [(ngModel)]="data">
+          <mat-label>Data da Diária *</mat-label>
+          <input matInput [matDatepicker]="dataPicker" formControlName="dataDiaria">
           <mat-hint>DD/MM/AAAA</mat-hint>
           <mat-datepicker-toggle matIconSuffix [for]="dataPicker"></mat-datepicker-toggle>
           <mat-datepicker #dataPicker></mat-datepicker>
+          <mat-error *ngIf="form.get('dataDiaria')?.hasError('required')">Data é obrigatória</mat-error>
         </mat-form-field>
 
-        <!-- Campo Pesquisar por Nome -->
-        <mat-form-field appearance="outline" class="flex-grow">
-          <mat-label>Pesquisar por Nome</mat-label>
-          <input matInput [(ngModel)]="nomePesquisa" placeholder="Digite o nome do colaborador...">
-          <mat-icon matSuffix>search</mat-icon>
-        </mat-form-field>
+        <!-- Campo Colaborador com novo componente -->
+        <div class="flex-grow">
+          <app-collaborator-search 
+            [collaborators]="collaborators"
+            label="Selecione o Colaborador *"
+            (collaboratorSelected)="onCollaboratorChange($event)">
+          </app-collaborator-search>
+        </div>
       </div>
 
       <div class="actions-row">
-        <button mat-raised-button color="primary" class="add-btn" (click)="save()">
-          <mat-icon>add</mat-icon>
-          Adicionar
+        <button mat-raised-button type="button" (click)="reset()" [disabled]="loading">
+          <mat-icon>clear</mat-icon>
+          Limpar
+        </button>
+        <button mat-raised-button color="primary" type="submit" [disabled]="loading">
+          <mat-icon *ngIf="!loading">add</mat-icon>
+          <mat-icon *ngIf="loading" class="spinner">hourglass_empty</mat-icon>
+          {{loading ? 'Salvando...' : 'Adicionar'}}
         </button>
       </div>
-    </div>
+    </form>
   </mat-card>
 </div>

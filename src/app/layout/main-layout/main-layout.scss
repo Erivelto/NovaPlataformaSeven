@@ -1,5 +1,16 @@
 .sidenav-container {
   height: 100%;
+  position: relative;
+}
+
+// Barra de Loading Global
+.global-loading-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 9999;
+  height: 4px;
 }
 
 .sidenav {

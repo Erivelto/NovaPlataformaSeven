@@ -1,4 +1,4 @@
-import { Component, ViewChild, AfterViewInit } from '@angular/core';
+import { Component, ViewChild, AfterViewInit, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
@@ -10,19 +10,10 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
-
-export interface PostoData {
-  codigo: number;
-  nome: string;
-}
-
-const ELEMENT_DATA: PostoData[] = [
-  { codigo: 1, nome: 'Posto Central' },
-  { codigo: 2, nome: 'Posto Norte' },
-  { codigo: 3, nome: 'Posto Sul' },
-  { codigo: 4, nome: 'Posto Leste' },
-  { codigo: 5, nome: 'Posto Oeste' }
-];
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { StationService, Station } from '../../services/station.service';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { ConfirmDialog } from '../../shared/confirm-dialog/confirm-dialog';
 
 @Component({
   selector: 'app-station-registration',
@@ -38,22 +29,44 @@ const ELEMENT_DATA: PostoData[] = [
     MatFormFieldModule,
     MatButtonModule,
     MatIconModule,
-    MatTooltipModule
+    MatTooltipModule,
+    MatSnackBarModule,
+    MatDialogModule
   ],
   templateUrl: './station-registration.html',
   styleUrl: './station-registration.scss'
 })
-export class StationRegistration implements AfterViewInit {
+export class StationRegistration implements OnInit, AfterViewInit {
+  private stationService = inject(StationService);
+  private snackBar = inject(MatSnackBar);
+  private dialog = inject(MatDialog);
+
   novoPosto: string = '';
   displayedColumns: string[] = ['codigo', 'nome', 'actions'];
-  dataSource = new MatTableDataSource<PostoData>(ELEMENT_DATA);
+  dataSource = new MatTableDataSource<Station>([]);
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
 
+  ngOnInit() {
+    this.loadStations();
+  }
+
   ngAfterViewInit() {
     this.dataSource.paginator = this.paginator;
     this.dataSource.sort = this.sort;
+  }
+
+  loadStations() {
+    this.stationService.getAll().subscribe({
+      next: (data) => {
+        this.dataSource.data = data;
+      },
+      error: (err) => {
+        console.error('Erro ao carregar postos:', err);
+        this.snackBar.open('Erro ao carregar postos da API', 'Fechar', { duration: 3000 });
+      }
+    });
   }
 
   applyFilter(event: Event) {
@@ -66,22 +79,65 @@ export class StationRegistration implements AfterViewInit {
   }
 
   addStation() {
-    if (this.novoPosto.trim()) {
-      const nextId = this.dataSource.data.length > 0 
-        ? Math.max(...this.dataSource.data.map(p => p.codigo)) + 1 
-        : 1;
-      
-      const newStation: PostoData = {
-        codigo: nextId,
-        nome: this.novoPosto
-      };
-      
-      this.dataSource.data = [...this.dataSource.data, newStation];
-      this.novoPosto = '';
+    // Validar campo vazio
+    if (!this.novoPosto || this.novoPosto.trim() === '') {
+      this.snackBar.open('O campo de posto não pode estar vazio', 'Fechar', { duration: 3000 });
+      return;
     }
+
+    // Validar nome duplicado
+    const nomeNormalizado = this.novoPosto.trim().toLowerCase();
+    const postoExistente = this.dataSource.data.find(
+      station => station.nome.toLowerCase() === nomeNormalizado
+    );
+
+    if (postoExistente) {
+      this.snackBar.open('Já existe um posto cadastrado com este nome', 'Fechar', { duration: 3000 });
+      return;
+    }
+
+    const newStation: Station = {
+      nome: this.novoPosto.trim()
+    };
+    
+    this.stationService.create(newStation).subscribe({
+      next: () => {
+        this.snackBar.open('Posto adicionado com sucesso!', 'OK', { duration: 2000 });
+        this.novoPosto = '';
+        this.loadStations();
+      },
+      error: (err) => {
+        console.error('Erro ao adicionar posto:', err);
+        this.snackBar.open('Erro ao cadastrar posto', 'Fechar', { duration: 3000 });
+      }
+    });
   }
 
-  viewStation(station: PostoData) {
-    console.log('Visualizar Posto:', station);
+  deleteStation(station: Station) {
+    const dialogRef = this.dialog.open(ConfirmDialog, {
+      width: '450px',
+      maxWidth: '90vw',
+      data: {
+        title: 'Confirmar Exclusão',
+        message: `Deseja realmente excluir o posto ${station.nome}? Esta ação não pode ser desfeita.`,
+        confirmText: 'Excluir',
+        cancelText: 'Cancelar'
+      }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result && station.id) {
+        this.stationService.delete(station.id).subscribe({
+          next: () => {
+            this.snackBar.open('Posto excluído com sucesso', 'OK', { duration: 2000 });
+            this.loadStations();
+          },
+          error: (err) => {
+            console.error('Erro ao deletar:', err);
+            this.snackBar.open('Erro ao excluir posto', 'Fechar', { duration: 3000 });
+          }
+        });
+      }
+    });
   }
 }

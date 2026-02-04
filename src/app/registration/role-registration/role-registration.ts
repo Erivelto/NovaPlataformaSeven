@@ -1,4 +1,4 @@
-import { Component, ViewChild, AfterViewInit } from '@angular/core';
+import { Component, ViewChild, AfterViewInit, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
@@ -10,17 +10,10 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
-
-export interface FuncaoData {
-  codigo: number;
-  nome: string;
-}
-
-const ELEMENT_DATA: FuncaoData[] = [
-  { codigo: 1, nome: 'Vigilante' },
-  { codigo: 2, nome: 'Supervisor de Área' },
-  { codigo: 3, nome: 'Porteiro' }
-];
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { RoleService, Role } from '../../services/role.service';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { ConfirmDialog } from '../../shared/confirm-dialog/confirm-dialog';
 
 @Component({
   selector: 'app-role-registration',
@@ -36,22 +29,44 @@ const ELEMENT_DATA: FuncaoData[] = [
     MatFormFieldModule,
     MatButtonModule,
     MatIconModule,
-    MatTooltipModule
+    MatTooltipModule,
+    MatSnackBarModule,
+    MatDialogModule
   ],
   templateUrl: './role-registration.html',
   styleUrl: './role-registration.scss'
 })
-export class RoleRegistration implements AfterViewInit {
+export class RoleRegistration implements OnInit, AfterViewInit {
+  private roleService = inject(RoleService);
+  private snackBar = inject(MatSnackBar);
+  private dialog = inject(MatDialog);
+
   novaFuncao: string = '';
   displayedColumns: string[] = ['codigo', 'nome', 'actions'];
-  dataSource = new MatTableDataSource<FuncaoData>(ELEMENT_DATA);
+  dataSource = new MatTableDataSource<Role>([]);
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
 
+  ngOnInit() {
+    this.loadRoles();
+  }
+
   ngAfterViewInit() {
     this.dataSource.paginator = this.paginator;
     this.dataSource.sort = this.sort;
+  }
+
+  loadRoles() {
+    this.roleService.getAll().subscribe({
+      next: (data) => {
+        this.dataSource.data = data;
+      },
+      error: (err) => {
+        console.error('Erro ao carregar funções:', err);
+        this.snackBar.open('Erro ao carregar funções da API', 'Fechar', { duration: 3000 });
+      }
+    });
   }
 
   applyFilter(event: Event) {
@@ -64,22 +79,65 @@ export class RoleRegistration implements AfterViewInit {
   }
 
   addRole() {
-    if (this.novaFuncao.trim()) {
-      const nextId = this.dataSource.data.length > 0 
-        ? Math.max(...this.dataSource.data.map(f => f.codigo)) + 1 
-        : 1;
-      
-      const newRole: FuncaoData = {
-        codigo: nextId,
-        nome: this.novaFuncao
-      };
-      
-      this.dataSource.data = [...this.dataSource.data, newRole];
-      this.novaFuncao = '';
+    // Validar campo vazio
+    if (!this.novaFuncao || this.novaFuncao.trim() === '') {
+      this.snackBar.open('O campo de função não pode estar vazio', 'Fechar', { duration: 3000 });
+      return;
     }
+
+    // Validar nome duplicado
+    const nomeNormalizado = this.novaFuncao.trim().toLowerCase();
+    const funcaoExistente = this.dataSource.data.find(
+      role => role.nome.toLowerCase() === nomeNormalizado
+    );
+
+    if (funcaoExistente) {
+      this.snackBar.open('Já existe uma função cadastrada com este nome', 'Fechar', { duration: 3000 });
+      return;
+    }
+
+    const newRole: Role = {
+      nome: this.novaFuncao.trim()
+    };
+    
+    this.roleService.create(newRole).subscribe({
+      next: () => {
+        this.snackBar.open('Função adicionada com sucesso!', 'OK', { duration: 2000 });
+        this.novaFuncao = '';
+        this.loadRoles();
+      },
+      error: (err) => {
+        console.error('Erro ao adicionar função:', err);
+        this.snackBar.open('Erro ao cadastrar função', 'Fechar', { duration: 3000 });
+      }
+    });
   }
 
-  deleteRole(role: FuncaoData) {
-    this.dataSource.data = this.dataSource.data.filter(f => f !== role);
+  deleteRole(role: Role) {
+    const dialogRef = this.dialog.open(ConfirmDialog, {
+      width: '450px',
+      maxWidth: '90vw',
+      data: {
+        title: 'Confirmar Exclusão',
+        message: `Deseja realmente excluir a função ${role.nome}? Esta ação não pode ser desfeita.`,
+        confirmText: 'Excluir',
+        cancelText: 'Cancelar'
+      }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result && role.id) {
+        this.roleService.delete(role.id).subscribe({
+          next: () => {
+            this.snackBar.open('Função excluída com sucesso', 'OK', { duration: 2000 });
+            this.loadRoles();
+          },
+          error: (err) => {
+            console.error('Erro ao deletar:', err);
+            this.snackBar.open('Erro ao excluir função', 'Fechar', { duration: 3000 });
+          }
+        });
+      }
+    });
   }
 }

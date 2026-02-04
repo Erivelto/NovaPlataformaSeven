@@ -4,25 +4,31 @@
       <mat-card-title>Acesso ao Sistema</mat-card-title>
     </mat-card-header>
     <mat-card-content>
-      <form [formGroup]="form" (ngSubmit)="submit()">
+      <form #loginForm="ngForm" (ngSubmit)="submit(loginForm)">
         <mat-form-field appearance="outline">
           <mat-label>Usuário</mat-label>
-          <input matInput formControlName="username" placeholder="Digite seu usuário">
-          @if (form.controls.username.hasError('required')) {
+          <input matInput name="user" [(ngModel)]="user" placeholder="Digite seu usuário" required #userInput="ngModel">
+          @if (userInput.invalid && (userInput.dirty || userInput.touched)) {
             <mat-error>Usuário é obrigatório</mat-error>
           }
         </mat-form-field>
 
         <mat-form-field appearance="outline">
           <mat-label>Senha</mat-label>
-          <input matInput type="password" formControlName="password" placeholder="Digite sua senha">
-          @if (form.controls.password.hasError('required')) {
+          <input matInput type="password" name="password" [(ngModel)]="password" placeholder="Digite sua senha" required #passwordInput="ngModel">
+          @if (passwordInput.invalid && (passwordInput.dirty || passwordInput.touched)) {
             <mat-error>Senha é obrigatória</mat-error>
           }
         </mat-form-field>
 
+        @if (error) {
+          <div class="login-error">{{error}}</div>
+        }
+
         <div class="actions">
-          <button mat-raised-button color="primary" type="submit" [disabled]="form.invalid">ACESSAR</button>
+          <button mat-raised-button color="primary" type="submit" [disabled]="loginForm.invalid || loading">
+            {{ loading ? 'AGUARDE...' : 'ACESSAR' }}
+          </button>
         </div>
       </form>
     </mat-card-content>
