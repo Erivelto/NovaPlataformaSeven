@@ -7,24 +7,173 @@
   </div>
   <hr>
 
+  <mat-card class="hero-card">
+    <div class="hero-content">
+      <div class="hero-title">
+        <h3>Resumo executivo</h3>
+        <p>Panorama geral do desempenho operacional</p>
+      </div>
+      <div class="hero-metrics">
+        @for (item of progressItems; track item.label) {
+          <div class="hero-metric">
+            <div class="metric-header">
+              <span class="metric-label">{{ item.label }}</span>
+              <span class="metric-value">{{ item.value }}</span>
+            </div>
+            <div class="metric-bar">
+              <span class="metric-fill" [style.width]="item.percent" [style.backgroundColor]="item.color"></span>
+            </div>
+            <span class="metric-caption">{{ item.caption }}</span>
+          </div>
+        }
+      </div>
+    </div>
+  </mat-card>
+
   <div class="stats-grid">
-    <mat-card *ngFor="let stat of stats" class="stat-card">
-      <div class="stat-content">
-        <div class="stat-icon" [style.color]="stat.color">
-          <mat-icon>{{stat.icon}}</mat-icon>
+    @for (stat of stats; track stat.label) {
+      <mat-card class="stat-card">
+        <div class="stat-content">
+          <div class="stat-icon" [style.color]="stat.color">
+            <mat-icon>{{ stat.icon }}</mat-icon>
+          </div>
+          <div class="stat-info">
+            <span class="stat-value">{{ stat.value }}</span>
+            <span class="stat-label">{{ stat.label }}</span>
+          </div>
         </div>
-        <div class="stat-info">
-          <span class="stat-value">{{stat.value}}</span>
-          <span class="stat-label">{{stat.label}}</span>
+      </mat-card>
+    }
+  </div>
+
+  <div class="content-grid">
+    <mat-card class="main-card">
+      <div class="card-header">
+        <div>
+          <h3>Resumo mensal</h3>
+          <p>Indicadores consolidados (dados mocados)</p>
         </div>
+        <div class="header-badge">
+          <mat-icon>insights</mat-icon>
+          <span>Fev/2026</span>
+        </div>
+      </div>
+
+      <div class="kpi-grid" aria-label="Indicadores principais">
+        @for (kpi of mockKpis; track kpi.label) {
+          <div class="kpi-card">
+            <div class="kpi-icon" [style.color]="kpi.color">
+              <mat-icon>{{ kpi.icon }}</mat-icon>
+            </div>
+            <div class="kpi-info">
+              <span class="kpi-value">{{ kpi.value }}</span>
+              <span class="kpi-label">{{ kpi.label }}</span>
+              <span class="kpi-change">{{ kpi.change }}</span>
+            </div>
+          </div>
+        }
+      </div>
+
+      <div class="trend-area" aria-label="Tendência mensal">
+        <div class="trend-header">
+          <h4>Tendência de diárias</h4>
+          <span class="trend-note">Últimos 6 meses</span>
+        </div>
+        <div class="trend-bars">
+          @for (item of monthlyTrend; track item.month) {
+            <div class="trend-bar">
+              <span class="bar" [style.height]="item.percent"></span>
+              <span class="label">{{ item.month }}</span>
+              <span class="value">{{ item.value }}</span>
+            </div>
+          }
+        </div>
+      </div>
+    </mat-card>
+
+    <mat-card class="side-card">
+      <div class="card-header">
+        <div>
+          <h3>Alertas e pendências</h3>
+          <p>Resumo de atenção diária</p>
+        </div>
+      </div>
+
+      <div class="alert-list">
+        @for (alert of mockAlerts; track alert.title) {
+          <div class="alert-item">
+            <div class="alert-icon" [style.color]="alert.color">
+              <mat-icon>{{ alert.icon }}</mat-icon>
+            </div>
+            <div class="alert-info">
+              <span class="alert-title">{{ alert.title }}</span>
+              <span class="alert-desc">{{ alert.description }}</span>
+            </div>
+          </div>
+        }
       </div>
     </mat-card>
   </div>
 
-  <mat-card class="main-card">
-    <div class="chart-placeholder">
-       <mat-icon>leaderboard</mat-icon>
-       <span>Área reservada para gráficos e indicadores detalhados</span>
-    </div>
-  </mat-card>
+  <div class="details-grid">
+    <mat-card class="detail-card">
+      <div class="card-header">
+        <div>
+          <h3>Top colaboradores</h3>
+          <p>Mais diárias aprovadas</p>
+        </div>
+      </div>
+      <div class="list" aria-label="Ranking de colaboradores">
+        @for (collaborator of topCollaborators; track collaborator.name) {
+          <div class="list-row">
+            <div class="list-main">
+              <span class="list-title">{{ collaborator.name }}</span>
+              <span class="list-sub">{{ collaborator.role }}</span>
+            </div>
+            <span class="list-metric">{{ collaborator.total }}</span>
+          </div>
+        }
+      </div>
+    </mat-card>
+
+    <mat-card class="detail-card">
+      <div class="card-header">
+        <div>
+          <h3>Últimas diárias</h3>
+          <p>Atividades registradas</p>
+        </div>
+      </div>
+      <div class="list" aria-label="Últimas diárias">
+        @for (daily of recentDailies; track daily.id) {
+          <div class="list-row">
+            <div class="list-main">
+              <span class="list-title">{{ daily.collaborator }}</span>
+              <span class="list-sub">{{ daily.station }} • {{ daily.date }}</span>
+            </div>
+            <span class="status-pill" [style.color]="daily.statusColor" [style.backgroundColor]="daily.statusBackground">
+              {{ daily.status }}
+            </span>
+          </div>
+        }
+      </div>
+    </mat-card>
+
+    <mat-card class="detail-card">
+      <div class="card-header">
+        <div>
+          <h3>Status dos postos</h3>
+          <p>Distribuição atual</p>
+        </div>
+      </div>
+      <div class="status-grid" aria-label="Status dos postos">
+        @for (status of stationStatus; track status.label) {
+          <div class="status-card">
+            <span class="status-label">{{ status.label }}</span>
+            <span class="status-value" [style.color]="status.color">{{ status.value }}</span>
+            <span class="status-caption">{{ status.caption }}</span>
+          </div>
+        }
+      </div>
+    </mat-card>
+  </div>
 </div>
