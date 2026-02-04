@@ -11,6 +11,10 @@ frontend:
     baseDirectory: dist/NovaPlataformaSeven
     files:
       - '**/*'
+  redirects:
+    - source: '/<*>'
+      target: /index.html
+      status: 200
   cache:
     paths:
       - node_modules/**/*
