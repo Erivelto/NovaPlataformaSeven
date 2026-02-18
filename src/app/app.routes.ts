@@ -15,12 +15,14 @@ import { DailiesReport } from './reports/dailies-report/dailies-report';
 import { ConsolidatedReport } from './reports/consolidated-report/consolidated-report';
 import { ConsolidatedByDateReport } from './reports/consolidated-by-date-report/consolidated-by-date-report';
 import { MainLayoutComponent } from './layout/main-layout/main-layout';
+import { authGuard } from './services/auth.guard';
 
 export const routes: Routes = [
   { path: 'login', component: Login },
   {
     path: '',
     component: MainLayoutComponent,
+    canActivateChild: [authGuard],
     children: [
       { path: '', redirectTo: 'colaboradores', pathMatch: 'full' }, 
       { path: 'colaboradores', component: Collaborators },

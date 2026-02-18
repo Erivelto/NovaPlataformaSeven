@@ -15,19 +15,29 @@
 
         <mat-form-field appearance="outline">
           <mat-label>Senha</mat-label>
-          <input matInput type="password" name="password" [(ngModel)]="password" placeholder="Digite sua senha" required #passwordInput="ngModel">
+          <input matInput [type]="showPassword() ? 'text' : 'password'" name="password" [(ngModel)]="password" placeholder="Digite sua senha" required #passwordInput="ngModel">
+          <button
+            mat-icon-button
+            matSuffix
+            type="button"
+            (click)="togglePasswordVisibility()"
+            [attr.aria-pressed]="showPassword()"
+            [attr.aria-label]="showPassword() ? 'Ocultar senha' : 'Mostrar senha'"
+          >
+            <mat-icon>{{ showPassword() ? 'visibility_off' : 'visibility' }}</mat-icon>
+          </button>
           @if (passwordInput.invalid && (passwordInput.dirty || passwordInput.touched)) {
             <mat-error>Senha é obrigatória</mat-error>
           }
         </mat-form-field>
 
-        @if (error) {
-          <div class="login-error">{{error}}</div>
+        @if (error()) {
+          <div class="login-error">{{error()}}</div>
         }
 
         <div class="actions">
-          <button mat-raised-button color="primary" type="submit" [disabled]="loginForm.invalid || loading">
-            {{ loading ? 'AGUARDE...' : 'ACESSAR' }}
+          <button mat-raised-button color="primary" type="submit" [disabled]="loginForm.invalid || loading()">
+            {{ loading() ? 'AGUARDE...' : 'ACESSAR' }}
           </button>
         </div>
       </form>

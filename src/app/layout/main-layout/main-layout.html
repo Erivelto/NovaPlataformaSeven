@@ -75,33 +75,35 @@
           </mat-expansion-panel>
 
           <!-- Cadastro (Agora com 3º nível) -->
-          <mat-expansion-panel class="mat-elevation-z0 nested-panel" [disabled]="isCollapsed && !isHandset()">
-            <mat-expansion-panel-header class="nested-header">
-              <mat-panel-title>
-                <mat-icon matListItemIcon>add_circle_outline</mat-icon>
-                <span *ngIf="!isCollapsed || isHandset()">Cadastro</span>
-              </mat-panel-title>
-            </mat-expansion-panel-header>
-            
-            <mat-nav-list class="nested-list">
-              <a mat-list-item routerLink="/cadastro-posto" routerLinkActive="active-link" [matTooltip]="isCollapsed ? 'Cadastro Posto' : ''" matTooltipPosition="right">
-                <mat-icon matListItemIcon>location_on</mat-icon>
-                <span matListItemTitle *ngIf="!isCollapsed || isHandset()">Cadastro Posto</span>
-              </a>
-              <a mat-list-item routerLink="/cadastro-supervisor" routerLinkActive="active-link" [matTooltip]="isCollapsed ? 'Cadastro Supervisor' : ''" matTooltipPosition="right">
-                <mat-icon matListItemIcon>supervisor_account</mat-icon>
-                <span matListItemTitle *ngIf="!isCollapsed || isHandset()">Cadastro Supervisor</span>
-              </a>
-              <a mat-list-item routerLink="/cadastro-funcao" routerLinkActive="active-link" [matTooltip]="isCollapsed ? 'Cadastro Função' : ''" matTooltipPosition="right">
-                <mat-icon matListItemIcon>work_outline</mat-icon>
-                <span matListItemTitle *ngIf="!isCollapsed || isHandset()">Cadastro Função</span>
-              </a>
-              <a mat-list-item routerLink="/cadastro-usuario" routerLinkActive="active-link" [matTooltip]="isCollapsed ? 'Cadastro Usuário' : ''" matTooltipPosition="right">
-                <mat-icon matListItemIcon>person_add_alt</mat-icon>
-                <span matListItemTitle *ngIf="!isCollapsed || isHandset()">Cadastro Usuário</span>
-              </a>
-            </mat-nav-list>
-          </mat-expansion-panel>
+          @if (hasAccess(['A'])) {
+            <mat-expansion-panel class="mat-elevation-z0 nested-panel" [disabled]="isCollapsed && !isHandset()">
+              <mat-expansion-panel-header class="nested-header">
+                <mat-panel-title>
+                  <mat-icon matListItemIcon>add_circle_outline</mat-icon>
+                  <span *ngIf="!isCollapsed || isHandset()">Cadastro</span>
+                </mat-panel-title>
+              </mat-expansion-panel-header>
+              
+              <mat-nav-list class="nested-list">
+                <a mat-list-item routerLink="/cadastro-posto" routerLinkActive="active-link" [matTooltip]="isCollapsed ? 'Cadastro Posto' : ''" matTooltipPosition="right">
+                  <mat-icon matListItemIcon>location_on</mat-icon>
+                  <span matListItemTitle *ngIf="!isCollapsed || isHandset()">Cadastro Posto</span>
+                </a>
+                <a mat-list-item routerLink="/cadastro-supervisor" routerLinkActive="active-link" [matTooltip]="isCollapsed ? 'Cadastro Supervisor' : ''" matTooltipPosition="right">
+                  <mat-icon matListItemIcon>supervisor_account</mat-icon>
+                  <span matListItemTitle *ngIf="!isCollapsed || isHandset()">Cadastro Supervisor</span>
+                </a>
+                <a mat-list-item routerLink="/cadastro-funcao" routerLinkActive="active-link" [matTooltip]="isCollapsed ? 'Cadastro Função' : ''" matTooltipPosition="right">
+                  <mat-icon matListItemIcon>work_outline</mat-icon>
+                  <span matListItemTitle *ngIf="!isCollapsed || isHandset()">Cadastro Função</span>
+                </a>
+                <a mat-list-item routerLink="/cadastro-usuario" routerLinkActive="active-link" [matTooltip]="isCollapsed ? 'Cadastro Usuário' : ''" matTooltipPosition="right">
+                  <mat-icon matListItemIcon>person_add_alt</mat-icon>
+                  <span matListItemTitle *ngIf="!isCollapsed || isHandset()">Cadastro Usuário</span>
+                </a>
+              </mat-nav-list>
+            </mat-expansion-panel>
+          }
 
           <!-- Relatórios (Agora com 3º nível) -->
           <mat-expansion-panel class="mat-elevation-z0 nested-panel" [disabled]="isCollapsed && !isHandset()">

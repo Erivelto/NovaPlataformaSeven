@@ -1,4 +1,4 @@
-import { Component, ViewChild, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ViewChild, computed, inject, signal } from '@angular/core';
 import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
 import { CommonModule } from '@angular/common';
 import { MatToolbarModule } from '@angular/material/toolbar';
@@ -20,7 +20,7 @@ import { LoadingService } from '../../services/loading.service';
   selector: 'app-main-layout',
   templateUrl: './main-layout.html',
   styleUrl: './main-layout.scss',
-  standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     CommonModule,
     MatToolbarModule,
@@ -43,6 +43,9 @@ export class MainLayoutComponent {
   private authService = inject(AuthService);
   public loadingService = inject(LoadingService);
 
+  private userType = signal<string>(this.authService.getUserData()?.tipo ?? '');
+  readonly isAdmin = computed(() => this.userType() === 'A');
+
   @ViewChild('drawer') drawer!: MatSidenav;
 
   isHandset = toSignal(
@@ -62,6 +65,11 @@ export class MainLayoutComponent {
     const user = this.authService.getUserData();
     const tipoValue = user ? user.tipo : '';
     return this.getTipoLabel(tipoValue) || 'Perfil';
+  }
+
+  hasAccess(roles: string[]): boolean {
+    const tipo = this.userType();
+    return roles.includes(tipo);
   }
 
   getTipoLabel(tipoValue: string): string {

@@ -1,16 +1,17 @@
-import { Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
 import { Router } from '@angular/router';
 import { AuthService } from '../services/auth.service';
+import { finalize } from 'rxjs/operators';
 
 @Component({
   selector: 'app-login',
-  standalone: true,
   imports: [
     CommonModule, 
     FormsModule, 
@@ -18,39 +19,49 @@ import { AuthService } from '../services/auth.service';
     MatCardModule, 
     MatFormFieldModule, 
     MatInputModule, 
-    MatButtonModule
+    MatButtonModule,
+    MatIconModule
   ],
   templateUrl: './login.html',
   styleUrl: './login.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class Login {
-  loading = false;
-  error: string | null = null;
+  private authService = inject(AuthService);
+  private router = inject(Router);
+
+  loading = signal(false);
+  error = signal<string | null>(null);
   
   // Propriedades para bind direto no HTML via [(ngModel)]
   user = '';
   password = '';
 
-  constructor(private authService: AuthService, private router: Router) {}
+  showPassword = signal(false);
+
+  togglePasswordVisibility() {
+    this.showPassword.update(value => !value);
+  }
 
   submit(form: any) {
     if (form.valid) {
-      this.loading = true;
-      this.error = null;
+      this.loading.set(true);
+      this.error.set(null);
 
       const credentials = {
         user: this.user,
         password: this.password
       };
 
-      this.authService.login(credentials).subscribe({
-        next: (response) => {
-          this.loading = false;
+      this.authService
+        .login(credentials)
+        .pipe(finalize(() => this.loading.set(false)))
+        .subscribe({
+        next: () => {
           this.router.navigate(['/']);
         },
         error: (err) => {
-          this.loading = false;
-          this.error = 'Usuário ou senha inválidos. Tente novamente.';
+          this.error.set('Usuário ou senha inválidos. Tente novamente.');
           console.error('Login error:', err);
         }
       });
