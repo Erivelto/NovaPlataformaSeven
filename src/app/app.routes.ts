@@ -24,9 +24,10 @@ export const routes: Routes = [
     component: MainLayoutComponent,
     canActivateChild: [authGuard],
     children: [
-      { path: '', redirectTo: 'colaboradores', pathMatch: 'full' }, 
+      { path: '', redirectTo: 'relatorio-dashboard', pathMatch: 'full' }, 
       { path: 'colaboradores', component: Collaborators },
       { path: 'colaboradores/novo', component: AddCollaboratorPage },
+      { path: 'colaboradores/:id/editar', component: AddCollaboratorPage },
       { path: 'adicionar-diaria', component: AddDi },
       { path: 'adicionar-unica-diaria', component: AddSingleDi },
       { path: 'lista-diarias', component: DailiesList },

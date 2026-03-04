@@ -1,6 +1,7 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, forkJoin } from 'rxjs';
+import { AuthService } from './auth.service';
 
 export interface Daily {
   id?: number;
@@ -25,6 +26,7 @@ export interface PostoFuncaoSuper {
 export class DailyService {
   private readonly apiUrl = 'https://plataformasevenapi-czf4d3ccdea4hvg4.eastus-01.azurewebsites.net/api/Diaria';
   private readonly apiBaseUrl = 'https://plataformasevenapi-czf4d3ccdea4hvg4.eastus-01.azurewebsites.net/api';
+  private authService = inject(AuthService);
 
   constructor(private http: HttpClient) {}
 
@@ -65,5 +67,20 @@ export class DailyService {
 
   getDatasPeriodos(detalheId: number): Observable<string[]> {
     return this.http.get<string[]>(`${this.apiBaseUrl}/DatasPeriodos?detalhe=${detalheId}`);
+  }
+
+  saveDailies(dailies: Daily[]): Observable<Daily[]> {
+    const user = this.authService.getUserData();
+    const userName = user?.user || 'sistema';
+
+    const requests = dailies.map(d => {
+      const payload = {
+        idColaboradorDetalhe: d.idColaboradorDetalhe,
+        dataDiaria: d.dataDiaria.split('T')[0],
+        userCadastro: userName
+      };
+      return this.http.post<Daily>(this.apiUrl, payload);
+    });
+    return forkJoin(requests);
   }
 }

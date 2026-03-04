@@ -2,6 +2,11 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
+export interface DetailOption {
+  id: number;
+  descricao: string;
+}
+
 export interface CollaboratorDetail {
   id?: number;
   idColaborador: number;
@@ -43,8 +48,12 @@ export class CollaboratorDetailService {
     return this.http.get<CollaboratorDetail>(`${this.apiUrl}/${id}`);
   }
 
-  getByCollaboratorId(idColaborador: number): Observable<CollaboratorDetail> {
-    return this.http.get<CollaboratorDetail>(`${this.apiUrl}/colaborador/${idColaborador}`);
+  getByCollaboratorId(idColaborador: number): Observable<CollaboratorDetail[]> {
+    return this.http.get<CollaboratorDetail[]>(`${this.apiUrl}/colaborador/${idColaborador}`);
+  }
+
+  getSelectOptions(idColaborador: number): Observable<DetailOption[]> {
+    return this.http.get<DetailOption[]>(`${this.apiUrl}/select/${idColaborador}`);
   }
 
   create(detail: CollaboratorDetail): Observable<CollaboratorDetail> {

@@ -3,31 +3,82 @@
     <div class="header">
       <div class="title">
         <h2>Adicionar Única Diária</h2>
-        <p>Preencha os campos abaixo para registrar uma nova diária avulsa</p>
+        <p>Preencha os campos abaixo para registrar diárias para um colaborador em data específica</p>
       </div>
     </div>
     <hr>
 
-    <form [formGroup]="form" (ngSubmit)="save()" class="form-container">
-      <div class="row">
-        <!-- Campo Data -->
-        <mat-form-field appearance="outline">
-          <mat-label>Data da Diária *</mat-label>
-          <input matInput [matDatepicker]="dataPicker" formControlName="dataDiaria">
-          <mat-hint>DD/MM/AAAA</mat-hint>
-          <mat-datepicker-toggle matIconSuffix [for]="dataPicker"></mat-datepicker-toggle>
-          <mat-datepicker #dataPicker></mat-datepicker>
-          <mat-error *ngIf="form.get('dataDiaria')?.hasError('required')">Data é obrigatória</mat-error>
-        </mat-form-field>
+    <!-- Seleção de Colaborador -->
+    <div class="collaborator-section">
+      <app-collaborator-search 
+        [collaborators]="collaborators"
+        label="Selecione o Colaborador *"
+        (collaboratorSelected)="onCollaboratorChange($event)">
+      </app-collaborator-search>
+    </div>
 
-        <!-- Campo Colaborador com novo componente -->
-        <div class="flex-grow">
-          <app-collaborator-search 
-            [collaborators]="collaborators"
-            label="Selecione o Colaborador *"
-            (collaboratorSelected)="onCollaboratorChange($event)">
-          </app-collaborator-search>
-        </div>
+    <!-- Loading -->
+    <div *ngIf="isLoadingDetails" class="loading-section">
+      <mat-icon>hourglass_empty</mat-icon>
+      <span>Carregando detalhes...</span>
+    </div>
+
+    <form [formGroup]="form" (ngSubmit)="save()" class="form-container" *ngIf="selectedCollaboratorId && !isLoadingDetails">
+      <div class="table-container">
+        <table mat-table [dataSource]="singleRowData" class="single-row-table">
+          
+          <!-- Data Column -->
+          <ng-container matColumnDef="data">
+            <th mat-header-cell *matHeaderCellDef> Data </th>
+            <td mat-cell *matCellDef="let row">
+              <mat-form-field appearance="fill" class="inline-edit">
+                <input matInput [matDatepicker]="dataPicker" 
+                       formControlName="dataDiaria"
+                       (dateChange)="onDateChange()">
+                <mat-datepicker-toggle matIconSuffix [for]="dataPicker"></mat-datepicker-toggle>
+                <mat-datepicker #dataPicker></mat-datepicker>
+              </mat-form-field>
+            </td>
+          </ng-container>
+
+          <!-- Quantidade Column -->
+          <ng-container matColumnDef="quantidade">
+            <th mat-header-cell *matHeaderCellDef> Quantidade </th>
+            <td mat-cell *matCellDef="let row">
+              <mat-form-field appearance="fill" class="inline-edit">
+                <input matInput formControlName="valor" type="number" min="1" step="1">
+              </mat-form-field>
+            </td>
+          </ng-container>
+
+          <!-- Existentes Column -->
+          <ng-container matColumnDef="existentes">
+            <th mat-header-cell *matHeaderCellDef matTooltip="Diárias já gravadas para esta data"> Existentes </th>
+            <td mat-cell *matCellDef="let row">
+              <span [class.has-existing]="existingCount > 0">
+                {{ existingCount }}
+              </span>
+            </td>
+          </ng-container>
+
+          <!-- Posto Column -->
+          <ng-container matColumnDef="posto">
+            <th mat-header-cell *matHeaderCellDef> Posto </th>
+            <td mat-cell *matCellDef="let row">
+              <mat-form-field appearance="fill" class="inline-edit">
+                <mat-select formControlName="idColaboradorDetalhe" (selectionChange)="onDetailChange()">
+                  <mat-option></mat-option>
+                  <mat-option *ngFor="let opt of detailOptions" [value]="opt.id">
+                    {{ opt.descricao }}
+                  </mat-option>
+                </mat-select>
+              </mat-form-field>
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+        </table>
       </div>
 
       <div class="actions-row">
@@ -35,10 +86,10 @@
           <mat-icon>clear</mat-icon>
           Limpar
         </button>
-        <button mat-raised-button color="primary" type="submit" [disabled]="loading">
+        <button mat-raised-button color="primary" type="submit" [disabled]="loading || form.invalid">
           <mat-icon *ngIf="!loading">add</mat-icon>
           <mat-icon *ngIf="loading" class="spinner">hourglass_empty</mat-icon>
-          {{loading ? 'Salvando...' : 'Adicionar'}}
+          {{loading ? 'Salvando...' : 'Adicionar Diárias'}}
         </button>
       </div>
     </form>

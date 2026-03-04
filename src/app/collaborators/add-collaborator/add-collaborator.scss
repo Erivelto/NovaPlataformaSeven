@@ -157,3 +157,10 @@
     }
   }
 }
+
+.floating-label {
+  position: absolute !important;
+  top: -8px !important;
+  transform: scale(0.85) !important;
+  color: #1976d2 !important;
+}

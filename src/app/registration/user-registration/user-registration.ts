@@ -53,6 +53,7 @@ export class UserRegistration implements OnInit, AfterViewInit {
   senhaUsuario: string = '';
   tipoSelecionado: string = '';
   tipos = TIPO_OPCOES;
+  hidePassword: boolean = true;
 
   displayedColumns: string[] = ['codigo', 'usuario', 'tipo', 'actions'];
   dataSource = new MatTableDataSource<User>([]);
@@ -170,5 +171,9 @@ export class UserRegistration implements OnInit, AfterViewInit {
   getTipoLabel(tipoValue: string): string {
     const tipo = TIPO_OPCOES.find(t => t.value === tipoValue);
     return tipo ? tipo.label : tipoValue;
+  }
+
+  togglePasswordVisibility() {
+    this.hidePassword = !this.hidePassword;
   }
 }

@@ -49,7 +49,7 @@ export class Collaborators implements OnInit, AfterViewInit {
   private router = inject(Router);
   private dialog = inject(MatDialog);
 
-  displayedColumns: string[] = ['codigo', 'nome', 'dataCadastro', 'userCadastro', 'dataAlteracao', 'userAlteracao', 'actions'];
+  displayedColumns: string[] = ['codigo', 'nome', 'dataCadastro', 'userCad', 'dataAlteracao', 'userAlt', 'actions'];
   dataSource = new MatTableDataSource<Collaborator>([]);
   expandedElement: Collaborator | null = null;
   elementDetail: CollaboratorDetail | null = null;
@@ -96,8 +96,8 @@ export class Collaborators implements OnInit, AfterViewInit {
     this.elementDetail = null;
 
     this.detailService.getByCollaboratorId(element.id).subscribe({
-      next: (detail) => {
-        this.elementDetail = detail;
+      next: (details) => {
+        this.elementDetail = details.length > 0 ? details[0] : { idColaborador: element.id! };
         this.loadingDetail = false;
       },
       error: (err) => {
@@ -123,7 +123,9 @@ export class Collaborators implements OnInit, AfterViewInit {
   }
 
   editCollaborator(collaborator: Collaborator) {
-    console.log('Editar', collaborator);
+    if (collaborator.id) {
+      this.router.navigate(['/colaboradores', collaborator.id, 'editar']);
+    }
   }
 
   deleteCollaborator(collaborator: Collaborator) {

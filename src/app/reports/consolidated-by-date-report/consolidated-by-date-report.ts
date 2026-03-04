@@ -14,7 +14,8 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { DailyService } from '../../services/daily.service';
 import { CollaboratorService } from '../../services/collaborator.service';
-import { CollaboratorDetailService } from '../../services/collaborator-detail.service';
+import { CollaboratorDetailService, CollaboratorDetail } from '../../services/collaborator-detail.service';
+import { AdiantamentoService } from '../../services/adiantamento.service';
 import { forkJoin } from 'rxjs';
 
 export const BRAZILIAN_DATE_FORMATS = {
@@ -60,6 +61,7 @@ export class ConsolidatedByDateReport implements OnInit, AfterViewInit {
   private dailyService = inject(DailyService);
   private collaboratorService = inject(CollaboratorService);
   private collaboratorDetailService = inject(CollaboratorDetailService);
+  private adiantamentoService = inject(AdiantamentoService);
   
   dataInicio: Date | null = null;
   dataFim: Date | null = null;
@@ -123,18 +125,22 @@ export class ConsolidatedByDateReport implements OnInit, AfterViewInit {
     const dataInicioFormatada = this.formatDateForAPI(this.dataInicio);
     const dataFimFormatada = this.formatDateForAPI(this.dataFim);
 
-    // Chamar API para buscar diárias do período e colaboradores
+    // Chamar API para buscar diárias do período, colaboradores, detalhes e adiantamentos
     forkJoin({
       diarias: this.dailyService.getByPeriod(dataInicioFormatada, dataFimFormatada),
-      colaboradores: this.collaboratorService.getAll()
+      colaboradores: this.collaboratorService.getAll(),
+      detalhes: this.collaboratorDetailService.getAll(),
+      adiantamentos: this.adiantamentoService.getAll()
     }).subscribe({
       next: (result) => {
         // DEBUG: Verificar estrutura dos dados
         console.log('Diarias recebidas:', result.diarias);
         console.log('Colaboradores recebidos:', result.colaboradores);
+        console.log('Detalhes recebidos:', result.detalhes);
+        console.log('Adiantamentos recebidos:', result.adiantamentos);
         
         // Processar dados para consolidar por colaborador
-        const consolidado = this.consolidarPorColaborador(result.diarias, result.colaboradores);
+        const consolidado = this.consolidarPorColaborador(result.diarias, result.colaboradores, result.detalhes, result.adiantamentos, dataInicioFormatada, dataFimFormatada);
         console.log('Consolidado:', consolidado);
         
         this.dataSource.data = consolidado;
@@ -150,41 +156,53 @@ export class ConsolidatedByDateReport implements OnInit, AfterViewInit {
     });
   }
 
-  private consolidarPorColaborador(diarias: any[], colaboradores: any[]): any[] {
+  private consolidarPorColaborador(diarias: any[], colaboradores: any[], detalhes: CollaboratorDetail[], adiantamentos: any[], dataInicio: string, dataFim: string): any[] {
     const consolidadoMap = new Map<number, any>();
 
     // Agrupar diárias por colaborador
     diarias.forEach(diaria => {
       console.log('Processando diaria:', diaria);
       
-      const idColaborador = diaria.idColaboradorDetalhe || diaria.idColaborador || diaria.colaboradorId;
-      const colaborador = colaboradores.find(c => c.id === idColaborador);
-      
-      // Pular colaboradores sem nome
-      if (!colaborador || !colaborador.nome || colaborador.nome.trim() === '') {
-        console.log('Colaborador ignorado - sem nome:', idColaborador);
+      // Encontrar o detalhe pelo ID
+      const detalhe = detalhes.find(d => d.id === diaria.idColaboradorDetalhe);
+      if (!detalhe) {
+        console.log('Detalhe não encontrado para idColaboradorDetalhe:', diaria.idColaboradorDetalhe);
         return;
       }
       
-      if (!consolidadoMap.has(idColaborador)) {
-        consolidadoMap.set(idColaborador, {
-          codigo: idColaborador,
+      // Encontrar o colaborador usando o ID do detalhe
+      const colaborador = colaboradores.find(c => c.id === detalhe.idColaborador);
+      
+      // Pular colaboradores sem nome
+      if (!colaborador || !colaborador.nome || colaborador.nome.trim() === '') {
+        console.log('Colaborador ignorado - sem nome:', detalhe.idColaborador);
+        return;
+      }
+      
+      if (!consolidadoMap.has(detalhe.idColaborador)) {
+        // Calcular adiantamento total para este colaborador no período
+        const adiantamentoTotal = adiantamentos
+          .filter(a => a.idColaborador === detalhe.idColaborador && a.data >= dataInicio && a.data <= dataFim)
+          .reduce((sum, a) => sum + (a.valor || 0), 0);
+        
+        consolidadoMap.set(detalhe.idColaborador, {
+          codigo: colaborador.codigo || colaborador.id,
           nome: colaborador.nome,
           valorTotal: 0,
-          adiantamento: 0,
-          valorDiaria: 0,
+          adiantamento: adiantamentoTotal,
+          valorDiaria: detalhe.valorDiaria || 0,
           quantidade: 0,
-          pix: colaborador?.pix || '-'
+          pix: detalhe?.pix || colaborador?.pix || '-'
         });
       }
-      const item = consolidadoMap.get(idColaborador);
+      const item = consolidadoMap.get(detalhe.idColaborador);
       item.quantidade++;
       
-      const valorDiaria = diaria.valor || diaria.valorDiaria || diaria.valorTotal || 0;
-      console.log('Valor da diaria:', valorDiaria);
+      // Usar o valor da diária do detalhe (padrão do colaborador/posto)
+      const valorDiaria = detalhe.valorDiaria || 0;
+      console.log('Valor da diaria do detalhe:', valorDiaria);
       
       item.valorTotal += valorDiaria;
-      item.valorDiaria = valorDiaria;
     });
 
     return Array.from(consolidadoMap.values()).sort((a, b) => a.nome.localeCompare(b.nome));

@@ -2,6 +2,7 @@ import { ApplicationConfig, provideBrowserGlobalErrorListeners } from '@angular/
 import { provideRouter } from '@angular/router';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { provideAnimations } from '@angular/platform-browser/animations';
+import { provideNgxMask } from 'ngx-mask';
 import { authInterceptor } from './services/auth.interceptor';
 import { routes } from './app.routes';
 
@@ -10,6 +11,7 @@ export const appConfig: ApplicationConfig = {
     provideBrowserGlobalErrorListeners(),
     provideRouter(routes),
     provideAnimations(),
+    provideNgxMask(),
     provideHttpClient(
       withInterceptors([authInterceptor])
     )

@@ -1,4 +1,4 @@
-import { Component, ViewChild, AfterViewInit } from '@angular/core';
+import { Component, ViewChild, AfterViewInit, OnInit, inject } from '@angular/core';
 import { CommonModule, CurrencyPipe, DecimalPipe, registerLocaleData } from '@angular/common';
 import localePt from '@angular/common/locales/pt';
 import { MatCardModule } from '@angular/material/card';
@@ -8,7 +8,13 @@ import { MatSort, MatSortModule } from '@angular/material/sort';
 import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { LOCALE_ID } from '@angular/core';
+import { DailyService } from '../../services/daily.service';
+import { CollaboratorService } from '../../services/collaborator.service';
+import { CollaboratorDetailService, CollaboratorDetail } from '../../services/collaborator-detail.service';
+import { AdiantamentoService } from '../../services/adiantamento.service';
+import { forkJoin } from 'rxjs';
 
 registerLocaleData(localePt);
 
@@ -33,7 +39,8 @@ export interface ConsolidatedData {
     MatSortModule,
     MatInputModule,
     MatFormFieldModule,
-    MatIconModule
+    MatIconModule,
+    MatSnackBarModule
   ],
   providers: [
     { provide: LOCALE_ID, useValue: 'pt-BR' },
@@ -43,16 +50,16 @@ export interface ConsolidatedData {
   templateUrl: './consolidated-report.html',
   styleUrl: './consolidated-report.scss'
 })
-export class ConsolidatedReport implements AfterViewInit {
-  displayedColumns: string[] = ['codigo', 'nome', 'valorTotal', 'adiantamento', 'valorDiaria', 'quantidade', 'pix', 'actions'];
+export class ConsolidatedReport implements OnInit, AfterViewInit {
+  private dailyService = inject(DailyService);
+  private collaboratorService = inject(CollaboratorService);
+  private collaboratorDetailService = inject(CollaboratorDetailService);
+  private adiantamentoService = inject(AdiantamentoService);
+  private snackBar = inject(MatSnackBar);
   
-  data: ConsolidatedData[] = [
-    { codigo: 1, nome: 'Ricardo Martins', valorTotal: 2250.00, adiantamento: 500.00, valorDiaria: 150.00, quantidade: 15, pix: 'ricardo@email.com' },
-    { codigo: 2, nome: 'Sandra Ferreira', valorTotal: 2160.00, adiantamento: 300.00, valorDiaria: 180.00, quantidade: 12, pix: '11999998888' },
-    { codigo: 3, nome: 'Carlos Souza', valorTotal: 1200.00, adiantamento: 200.00, valorDiaria: 150.00, quantidade: 8, pix: '000.111.222-33' },
-    { codigo: 4, nome: 'Ana Paula', valorTotal: 3000.00, adiantamento: 600.00, valorDiaria: 150.00, quantidade: 20, pix: 'ana@pix.com.br' }
-  ];
-
+  displayedColumns: string[] = ['codigo', 'nome', 'valorTotal', 'adiantamento', 'valorDiaria', 'quantidade', 'pix', 'actions'];
+  loading = false;
+  data: ConsolidatedData[] = [];
   dataSource = new MatTableDataSource<ConsolidatedData>(this.data);
 
   // Estatísticas para os boxes
@@ -63,11 +70,86 @@ export class ConsolidatedReport implements AfterViewInit {
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
 
+  ngOnInit() {
+    this.carregarDados();
+  }
+
   ngAfterViewInit() {
     this.dataSource.paginator = this.paginator;
     this.dataSource.sort = this.sort;
   }
 
+  carregarDados() {
+    this.loading = true;
+    
+    // Buscar todos os dados necessários em paralelo
+    forkJoin({
+      diarias: this.dailyService.getAll(),
+      colaboradores: this.collaboratorService.getAll(),
+      detalhes: this.collaboratorDetailService.getAll(),
+      adiantamentos: this.adiantamentoService.getAll()
+    }).subscribe({
+      next: (result) => {
+        console.log('Dados recebidos para consolidated-report:', result);
+        
+        // Consolidar por colaborador
+        const consolidado = this.consolidarPorColaborador(
+          result.diarias,
+          result.colaboradores,
+          result.detalhes,
+          result.adiantamentos
+        );
+        
+        this.data = consolidado;
+        this.dataSource.data = consolidado;
+        this.loading = false;
+        this.snackBar.open(`${consolidado.length} registro(s) carregado(s)`, 'OK', { duration: 2000 });
+      },
+      error: (err) => {
+        console.error('Erro ao carregar dados:', err);
+        this.loading = false;
+        this.snackBar.open('Erro ao carregar relatório', 'Fechar', { duration: 3000 });
+      }
+    });
+  }
+
+  private consolidarPorColaborador(diarias: any[], colaboradores: any[], detalhes: CollaboratorDetail[], adiantamentos: any[]): ConsolidatedData[] {
+    const consolidadoMap = new Map<number, ConsolidatedData>();
+
+    // Agrupar diárias por colaborador
+    diarias.forEach(diaria => {
+      const detalhe = detalhes.find(d => d.id === diaria.idColaboradorDetalhe);
+      if (!detalhe) return;
+
+      const colaborador = colaboradores.find(c => c.id === detalhe.idColaborador);
+      if (!colaborador || !colaborador.nome || colaborador.nome.trim() === '') return;
+
+      if (!consolidadoMap.has(detalhe.idColaborador)) {
+        // Calcular adiantamento total para este colaborador (todos os períodos)
+        const adiantamentoTotal = adiantamentos
+          .filter(a => a.idColaborador === detalhe.idColaborador)
+          .reduce((sum, a) => sum + (a.valor || 0), 0);
+
+        consolidadoMap.set(detalhe.idColaborador, {
+          codigo: colaborador.codigo || colaborador.id,
+          nome: colaborador.nome,
+          valorTotal: 0,
+          adiantamento: adiantamentoTotal,
+          valorDiaria: detalhe.valorDiaria || 0,
+          quantidade: 0,
+          pix: detalhe?.pix || colaborador?.pix || '-'
+        });
+      }
+
+      const item = consolidadoMap.get(detalhe.idColaborador);
+      if (item) {
+        item.quantidade++;
+        item.valorTotal += (detalhe.valorDiaria || 0);
+      }
+    });
+
+    return Array.from(consolidadoMap.values()).sort((a, b) => a.nome.localeCompare(b.nome));
+  }
   applyFilter(event: Event) {
     const filterValue = (event.target as HTMLInputElement).value;
     this.dataSource.filter = filterValue.trim().toLowerCase();

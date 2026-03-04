@@ -6,10 +6,20 @@ export interface Collaborator {
   id?: number;
   codigo?: number;
   nome: string;
+  pix?: string;
+  referencia?: string;
+  endereco?: string;
+  numero?: string;
+  complemento?: string;
+  bairro?: string;
+  cidade?: string;
+  uf?: string;
+  cep?: string;
   dataCadastro?: string;
-  userCadastro?: string;
+  userCad?: string;
   dataAlteracao?: string;
-  userAlteracao?: string;
+  userAlt?: string;
+  excluido?: boolean;
 }
 
 @Injectable({

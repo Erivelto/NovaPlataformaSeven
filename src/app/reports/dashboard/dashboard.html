@@ -60,7 +60,7 @@
       </div>
 
       <div class="kpi-grid" aria-label="Indicadores principais">
-        @for (kpi of mockKpis; track kpi.label) {
+        @for (kpi of kpis; track kpi.label) {
           <div class="kpi-card">
             <div class="kpi-icon" [style.color]="kpi.color">
               <mat-icon>{{ kpi.icon }}</mat-icon>
@@ -114,7 +114,7 @@
       </div>
 
       <div class="alert-list">
-        @for (alert of mockAlerts; track alert.title) {
+        @for (alert of alerts; track alert.title) {
           <div class="alert-item">
             <div class="alert-icon" [style.color]="alert.color">
               <mat-icon>{{ alert.icon }}</mat-icon>

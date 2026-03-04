@@ -61,9 +61,36 @@ mat-card {
 
     // Ajuste de largura das colunas
     .mat-column-select { width: 50px; }
-    .mat-column-data { width: 180px; }
-    .mat-column-diaria { width: 150px; }
-    .mat-column-actions { width: 60px; text-align: right; }
+    .mat-column-data { width: 140px; }
+    .mat-column-diaria { 
+      width: 60px;
+      
+      .inline-edit {
+        max-width: 60px;
+      }
+    }
+    .mat-column-existentes { width: 100px; text-align: center; }
+    .mat-column-posto { width: 200px; }
+
+    // Linhas que já possuem diárias existentes
+    .has-existing-row {
+      background-color: #e8f5e9 !important;
+    }
+
+    .has-existing {
+      color: #4caf50;
+      font-weight: 600;
+    }
+  }
+
+  .loading-section {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 16px;
+    color: #666;
+    font-size: 14px;
+  }
   }
 
   .footer-actions {
@@ -82,20 +109,39 @@ mat-card {
       }
 
       &.btn-col {
-        flex: 0 0 auto; // Ocupa apenas o espaço do botão
+        flex: 0 0 auto;
         display: flex;
-        justify-content: flex-end;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 8px;
         padding-top: 4px;
       }
     }
 
+    .deadline-info {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      color: #1976d2;
+
+      mat-icon {
+        font-size: 18px;
+        width: 18px;
+        height: 18px;
+      }
+
+      &.warning {
+        color: #f44336;
+      }
+    }
+
     .add-btn {
-      min-width: 180px; // Reduzido ligeiramente
+      min-width: 180px;
       height: 52px;
       border-radius: 4px;
     }
   }
-}
 
 
 /* Responsividade Mobile */

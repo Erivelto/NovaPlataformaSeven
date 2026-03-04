@@ -78,13 +78,13 @@
             </tr>
           </tbody>
         </table>
-        <mat-paginator [pageSizeOptions]="[10, 25, 50, 100]" [length]="dataSource?.data?.length" 
+        <mat-paginator [pageSizeOptions]="[10, 25, 50, 100]" [length]="dataSource.data.length" 
                        [pageSize]="pageSize" (page)="onPageChange($event)" showFirstLastButtons>
         </mat-paginator>
       </div>
 
       <!-- Mensagem vazia -->
-      <div *ngIf="dataSource?.data?.length === 0" style="padding: 40px 20px; text-align: center; color: #999;">
+      <div *ngIf="(dataSource.data.length === 0)" style="padding: 40px 20px; text-align: center; color: #999;">
         <p>Nenhum registro encontrado para o período selecionado.</p>
       </div>
     </div>

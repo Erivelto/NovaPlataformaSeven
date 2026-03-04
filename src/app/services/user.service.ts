@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { AuthService } from './auth.service';
 
 export interface User {
   id?: number;
@@ -18,7 +19,10 @@ export interface User {
 export class UserService {
   private readonly apiUrl = 'https://plataformasevenapi-czf4d3ccdea4hvg4.eastus-01.azurewebsites.net/api/Usuario';
 
-  constructor(private http: HttpClient) {}
+  constructor(
+    private http: HttpClient,
+    private authService: AuthService
+  ) {}
 
   getAll(): Observable<User[]> {
     return this.http.get<User[]>(this.apiUrl);
@@ -33,7 +37,17 @@ export class UserService {
   }
 
   create(user: User): Observable<User> {
-    return this.http.post<User>(this.apiUrl, user);
+    const currentUser = this.authService.getUserData();
+    const userName = currentUser?.user || 'sistema';
+    
+    const payload = {
+      user: user.user,
+      password: user.password,
+      tipo: user.tipo,
+      userCadatro: userName
+    };
+    
+    return this.http.post<User>(this.apiUrl, payload);
   }
 
   update(id: number, user: User): Observable<any> {

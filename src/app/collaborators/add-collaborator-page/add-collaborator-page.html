@@ -2,8 +2,8 @@
   <mat-card>
     <div class="header">
       <div class="title">
-        <h2>Cadastro de Novo Colaborador</h2>
-        <p>Preencha os dados abaixo para cadastrar um novo colaborador no sistema</p>
+        <h2>{{ isEditMode ? 'Editar Colaborador' : 'Cadastro de Novo Colaborador' }}</h2>
+        <p>{{ isEditMode ? 'Altere os dados do colaborador' : 'Preencha os dados abaixo para cadastrar um novo colaborador no sistema' }}</p>
       </div>
       <button mat-raised-button (click)="goBack()">
         <mat-icon>arrow_back</mat-icon>
@@ -12,6 +12,11 @@
     </div>
     <hr>
 
-    <app-add-collaborator (collaboratorAdded)="onCollaboratorAdded()"></app-add-collaborator>
+    <app-add-collaborator 
+      [collaboratorId]="collaboratorId"
+      [isEditMode]="isEditMode"
+      (collaboratorAdded)="onCollaboratorAdded()"
+      (collaboratorUpdated)="onCollaboratorAdded()">
+    </app-add-collaborator>
   </mat-card>
 </div>

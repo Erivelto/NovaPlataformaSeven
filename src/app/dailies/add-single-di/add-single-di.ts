@@ -10,12 +10,13 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule, MAT_DATE_LOCALE } from '@angular/material/core';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
-import { MatAutocompleteModule } from '@angular/material/autocomplete';
-import { DailyService } from '../../services/daily.service';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatTableModule } from '@angular/material/table';
+import { DailyService, Daily } from '../../services/daily.service';
 import { CollaboratorService, Collaborator } from '../../services/collaborator.service';
+import { CollaboratorDetailService, DetailOption } from '../../services/collaborator-detail.service';
 import { CollaboratorSearchComponent } from '../../shared/collaborator-search/collaborator-search';
-import { Observable, of } from 'rxjs';
-import { map, startWith, debounceTime, distinctUntilChanged, switchMap } from 'rxjs/operators';
+import { forkJoin } from 'rxjs';
 
 @Component({
   selector: 'app-add-single-di',
@@ -32,6 +33,8 @@ import { map, startWith, debounceTime, distinctUntilChanged, switchMap } from 'r
     MatDatepickerModule,
     MatNativeDateModule,
     MatSnackBarModule,
+    MatTooltipModule,
+    MatTableModule,
     CollaboratorSearchComponent
   ],
   providers: [
@@ -44,11 +47,20 @@ export class AddSingleDi implements OnInit {
   private fb = inject(FormBuilder);
   private dailyService = inject(DailyService);
   private collaboratorService = inject(CollaboratorService);
+  private collaboratorDetailService = inject(CollaboratorDetailService);
   private snackBar = inject(MatSnackBar);
 
   form!: FormGroup;
   collaborators: Collaborator[] = [];
+  detailOptions: DetailOption[] = [];
+  selectedCollaboratorId: number | null = null;
+  existingCount: number = 0;
   loading = false;
+  isLoadingDetails = false;
+
+  // MatTable properties
+  displayedColumns: string[] = ['data', 'quantidade', 'existentes', 'posto'];
+  singleRowData = [{ id: 1 }]; // Single row data for the table
 
   ngOnInit() {
     this.initForm();
@@ -58,7 +70,9 @@ export class AddSingleDi implements OnInit {
   initForm() {
     this.form = this.fb.group({
       dataDiaria: [new Date(), Validators.required],
-      colaboradorId: ['', Validators.required]
+      colaboradorId: ['', Validators.required],
+      idColaboradorDetalhe: ['', Validators.required],
+      valor: [1, [Validators.required, Validators.min(1)]]
     });
   }
 
@@ -75,9 +89,83 @@ export class AddSingleDi implements OnInit {
   }
 
   onCollaboratorChange(collaboratorId: number) {
+    this.selectedCollaboratorId = collaboratorId;
     this.form.patchValue({
-      colaboradorId: collaboratorId
+      colaboradorId: collaboratorId,
+      idColaboradorDetalhe: ''
     });
+    this.detailOptions = [];
+    this.existingCount = 0;
+    this.checkExistingAndLoadDetails();
+  }
+
+  checkExistingAndLoadDetails() {
+    if (!this.selectedCollaboratorId) return;
+    
+    this.isLoadingDetails = true;
+    
+    // Busca opções do dropdown (endpoint /select)
+    this.collaboratorDetailService.getSelectOptions(this.selectedCollaboratorId).subscribe({
+      next: (options: DetailOption[]) => {
+        this.detailOptions = options || [];
+        this.isLoadingDetails = false;
+        
+        if (this.detailOptions.length === 0) {
+          this.snackBar.open('Nenhum detalhe cadastrado para este colaborador', 'Fechar', { duration: 3000 });
+          return;
+        }
+        
+        this.checkExistingDailies();
+      },
+      error: (err) => {
+        this.isLoadingDetails = false;
+        console.error('Erro ao carregar detalhes:', err);
+        this.snackBar.open('Erro ao carregar detalhes do colaborador', 'Fechar', { duration: 3000 });
+      }
+    });
+  }
+
+  checkExistingDailies() {
+    const currentDate = this.form.get('dataDiaria')?.value;
+    if (!currentDate || this.detailOptions.length === 0) {
+      this.existingCount = 0;
+      return;
+    }
+
+    const dateStr = this.formatDateForApi(currentDate);
+    
+    // Para cada detalhe, busca diárias existentes para contar
+    const requests = this.detailOptions.map(opt =>
+      this.dailyService.getByCollaboratorDetailId(opt.id)
+    );
+
+    forkJoin(requests).subscribe({
+      next: (allExisting: Daily[][]) => {
+        const allDailies = allExisting.flat();
+        this.existingCount = allDailies.filter(
+          d => d.dataDiaria.split('T')[0] === dateStr
+        ).length;
+      },
+      error: (err) => {
+        console.error('Erro ao verificar diárias existentes:', err);
+        this.existingCount = 0;
+      }
+    });
+  }
+
+  onDateChange() {
+    if (this.selectedCollaboratorId && this.detailOptions.length > 0) {
+      this.checkExistingDailies();
+    }
+  }
+
+  onDetailChange() {
+    // Atualizar contagem quando mudar detalhe específico se necessário
+    this.checkExistingDailies();
+  }
+
+  formatDateForApi(date: Date): string {
+    return date.toISOString().split('T')[0];
   }
 
   save() {
@@ -88,22 +176,30 @@ export class AddSingleDi implements OnInit {
 
     this.loading = true;
     const formValue = this.form.value;
+    const valor = parseInt(formValue.valor) || 1;
+    const dateStr = this.formatDateForApi(formValue.dataDiaria);
 
-    const dailyData = {
-      dataDiaria: formValue.dataDiaria.toISOString().split('T')[0],
-      colaboradorId: formValue.colaboradorId
-    };
+    // Criar array de diárias baseado na quantidade
+    const dailies = [];
+    for (let i = 0; i < valor; i++) {
+      dailies.push({
+        idColaboradorDetalhe: formValue.idColaboradorDetalhe,
+        dataDiaria: dateStr
+      });
+    }
 
-    this.dailyService.create(dailyData as any).subscribe({
+    // Usar o método saveDailies do service que já trata o forkJoin
+    this.dailyService.saveDailies(dailies).subscribe({
       next: () => {
         this.loading = false;
-        this.snackBar.open('Diária cadastrada com sucesso!', 'OK', { duration: 2000 });
+        this.snackBar.open(`${valor} diária(s) cadastrada(s) com sucesso!`, 'OK', { duration: 2000 });
         this.reset();
+        this.checkExistingDailies(); // Atualizar contagem
       },
       error: (err) => {
         this.loading = false;
-        console.error('Erro ao cadastrar diária:', err);
-        this.snackBar.open('Erro ao cadastrar diária', 'Fechar', { duration: 3000 });
+        console.error('Erro ao cadastrar diárias:', err);
+        this.snackBar.open('Erro ao cadastrar diárias', 'Fechar', { duration: 3000 });
       }
     });
   }
@@ -111,7 +207,12 @@ export class AddSingleDi implements OnInit {
   reset() {
     this.form.reset({
       dataDiaria: new Date(),
-      colaboradorId: ''
+      colaboradorId: '',
+      idColaboradorDetalhe: '',
+      valor: 1
     });
+    this.selectedCollaboratorId = null;
+    this.detailOptions = [];
+    this.existingCount = 0;
   }
 }

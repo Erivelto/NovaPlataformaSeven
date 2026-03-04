@@ -40,25 +40,22 @@
     
     <div class="form-grid">
       <mat-form-field appearance="outline" class="third-width">
-        <mat-label>CEP *</mat-label>
+        <mat-label>CEP</mat-label>
         <input matInput formControlName="cep" placeholder="12345-678">
         <mat-icon matPrefix>mail_outline</mat-icon>
-        <mat-error *ngIf="form.get('cep')?.hasError('required')">CEP é obrigatório</mat-error>
         <mat-error *ngIf="form.get('cep')?.hasError('pattern')">CEP inválido (formato: 12345-678)</mat-error>
       </mat-form-field>
 
       <mat-form-field appearance="outline" class="two-thirds-width">
-        <mat-label>Logradouro *</mat-label>
+        <mat-label>Logradouro</mat-label>
         <input matInput formControlName="logradouro" placeholder="Ex. Avenida Paulista, Rua das Flores, Travessa X">
         <mat-icon matPrefix>road</mat-icon>
-        <mat-error *ngIf="form.get('logradouro')?.hasError('required')">Logradouro é obrigatório</mat-error>
       </mat-form-field>
 
       <mat-form-field appearance="outline" class="quarter-width">
-        <mat-label>Número *</mat-label>
+        <mat-label>Número</mat-label>
         <input matInput formControlName="numero" type="number" placeholder="123">
         <mat-icon matPrefix>home_outlined</mat-icon>
-        <mat-error *ngIf="form.get('numero')?.hasError('required')">Número é obrigatório</mat-error>
         <mat-error *ngIf="form.get('numero')?.hasError('pattern')">Apenas números</mat-error>
       </mat-form-field>
 
@@ -69,24 +66,21 @@
       </mat-form-field>
 
       <mat-form-field appearance="outline" class="half-width">
-        <mat-label>Bairro *</mat-label>
+        <mat-label>Bairro</mat-label>
         <input matInput formControlName="bairro" placeholder="Ex. Centro">
         <mat-icon matPrefix>domain</mat-icon>
-        <mat-error *ngIf="form.get('bairro')?.hasError('required')">Bairro é obrigatório</mat-error>
       </mat-form-field>
 
       <mat-form-field appearance="outline" class="half-width">
-        <mat-label>Cidade *</mat-label>
+        <mat-label>Cidade</mat-label>
         <input matInput formControlName="cidade" placeholder="Ex. São Paulo">
         <mat-icon matPrefix>location_city</mat-icon>
-        <mat-error *ngIf="form.get('cidade')?.hasError('required')">Cidade é obrigatória</mat-error>
       </mat-form-field>
 
       <mat-form-field appearance="outline" class="quarter-width">
-        <mat-label>Estado *</mat-label>
+        <mat-label>Estado</mat-label>
         <input matInput formControlName="estado" placeholder="SP" maxlength="2" [value]="form.get('estado')?.value?.toUpperCase()">
         <mat-icon matPrefix>location_on</mat-icon>
-        <mat-error *ngIf="form.get('estado')?.hasError('required')">Estado é obrigatório</mat-error>
         <mat-error *ngIf="form.get('estado')?.hasError('pattern')">Use a sigla do estado (ex: SP, RJ)</mat-error>
       </mat-form-field>
     </div>
@@ -102,10 +96,13 @@
     <div class="form-grid">
       <mat-form-field appearance="outline" class="quarter-width">
         <mat-label>Valor da Diária *</mat-label>
-        <input matInput formControlName="valorDiaria" type="number" step="0.01" placeholder="0.00">
-        <mat-icon matPrefix>money</mat-icon>
+        <span matPrefix>R$ </span>
+        <input matInput 
+               type="text" 
+               formControlName="valorDiaria" 
+               (blur)="$event.target.value = formatarValor($event.target.value)"
+               placeholder="0,00">
         <mat-error *ngIf="form.get('valorDiaria')?.hasError('required')">Valor é obrigatório</mat-error>
-        <mat-error *ngIf="form.get('valorDiaria')?.hasError('pattern')">Valor inválido</mat-error>
       </mat-form-field>
 
       <mat-form-field appearance="outline" class="third-width">
@@ -132,16 +129,37 @@
         <mat-error *ngIf="form.get('supervisor')?.hasError('required')">Supervisor é obrigatório</mat-error>
       </mat-form-field>
 
-      <mat-form-field appearance="outline" class="third-width">
-        <mat-label>Posto *</mat-label>
-        <mat-select formControlName="posto">
-          <mat-option></mat-option>
-          <mat-option *ngFor="let station of stations" [value]="station.id">
+      <mat-form-field appearance="outline" class="full-width" [floatLabel]="'always'">
+        <mat-label>Postos *</mat-label>
+        
+        <!-- Chips dos selecionados -->
+        <mat-chip-set aria-label="Postos selecionados" style="display: flex; flex-wrap: wrap; gap: 4px; padding: 4px 0;">
+          <mat-chip *ngFor="let postoId of (form.get('postos')?.value || [])" 
+                    (removed)="togglePosto(postoId)">
+            {{getStationNameById(postoId)}}
+            <button matChipRemove [attr.aria-label]="'Remove ' + getStationNameById(postoId)">
+              <mat-icon>cancel</mat-icon>
+            </button>
+          </mat-chip>
+        </mat-chip-set>
+
+        <!-- Input + Dropdown para adicionar -->
+        <input matInput 
+               #autoInput
+               [matAutocomplete]="auto"
+               (input)="autoInput.value = ''"
+               [placeholder]="(form.get('postos')?.value?.length || 0) > 0 ? '' : 'Clique para adicionar postos'"
+               [style]="(form.get('postos')?.value?.length || 0) > 0 ? 'height: 0; padding: 0; margin: 0; border: none;' : ''">
+        
+        <mat-autocomplete #auto="matAutocomplete">
+          <mat-option *ngFor="let station of getUnselectedStations()" 
+                      (click)="togglePosto(station.id!); $event.stopPropagation()">
             {{station.nome}}
           </mat-option>
-        </mat-select>
+        </mat-autocomplete>
+
         <mat-icon matPrefix>location_on</mat-icon>
-        <mat-error *ngIf="form.get('posto')?.hasError('required')">Posto é obrigatório</mat-error>
+        <mat-error *ngIf="form.get('postos')?.hasError('required')">Selecione pelo menos um posto</mat-error>
       </mat-form-field>
     </div>
   </div>
@@ -155,7 +173,7 @@
     <button mat-raised-button color="primary" class="action-button" type="submit" [disabled]="loading">
       <mat-icon *ngIf="!loading">save</mat-icon>
       <mat-icon *ngIf="loading" class="spinner">hourglass_empty</mat-icon>
-      {{loading ? 'Salvando...' : 'Cadastrar'}}
+      {{loading ? (isEditMode ? 'Atualizando...' : 'Salvando...') : (isEditMode ? 'Atualizar' : 'Cadastrar')}}
     </button>
   </div>
 </form>

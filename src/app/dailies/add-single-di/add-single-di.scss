@@ -85,16 +85,126 @@
   }
 }
 
+.collaborator-section {
+  margin-bottom: 24px;
+  
+  .section-title {
+    display: flex;
+    align-items: center;
+    margin-bottom: 16px;
+    
+    h3 {
+      margin: 0;
+      font-size: 18px;
+      color: #333;
+    }
+    
+    mat-spinner {
+      margin-left: 12px;
+    }
+  }
+}
+
+.table-container {
+  overflow: auto;
+  margin-bottom: 24px;
+  
+  .single-row-table {
+    width: 100%;
+    
+    // Estilo para edição inline nas células
+    .inline-edit {
+      width: 100%;
+      margin: 0;
+      padding: 0;
+      
+      ::ng-deep .mat-mdc-form-field-flex {
+        padding: 4px 0 !important;
+        background: transparent !important;
+      }
+
+      ::ng-deep .mat-mdc-form-field-infix {
+        padding: 4px 0 !important;
+        min-height: auto !important;
+      }
+
+      ::ng-deep .mat-mdc-form-field-subscript-wrapper {
+        display: none !important; // Esconde error messages e hints para economizar espaço
+      }
+
+      ::ng-deep .mat-mdc-select-arrow-wrapper {
+        transform: translateY(-50%);
+      }
+
+      input, mat-select {
+        font-size: 14px;
+      }
+    }
+
+    // Ajuste de largura das colunas - distribuição otimizada
+    .mat-column-data { 
+      width: 120px;
+      min-width: 120px;
+      
+      .inline-edit {
+        max-width: 120px;
+      }
+    }
+    .mat-column-quantidade { 
+      width: 80px;
+      min-width: 80px;
+      text-align: center;
+      
+      .inline-edit {
+        max-width: 80px;
+      }
+    }
+    .mat-column-existentes { 
+      width: 80px; 
+      min-width: 80px;
+      text-align: center; 
+    }
+    .mat-column-posto { 
+      flex: 1;
+      min-width: 200px;
+      
+      .inline-edit {
+        width: 100%;
+      }
+    }
+    
+    th {
+      color: #333;
+      font-weight: 500;
+      font-size: 14px;
+      padding: 12px 8px;
+    }
+    
+    td {
+      padding: 8px;
+      border-bottom: 1px solid #ddd;
+    }
+    
+    .has-existing {
+      color: #4caf50;
+      font-weight: 600;
+    }
+  }
+}
+
 /* Responsividade Mobile */
 @media (max-width: 600px) {
   .add-single-di-container {
     padding: 16px;
-    .row {
-      flex-direction: column;
-      mat-form-field {
-        min-width: 100%;
+    
+    .table-container {
+      overflow-x: auto;
+      
+      .single-row-table {
+        min-width: 600px; // Força scroll horizontal em mobile
       }
     }
+    
     .actions-row {
       flex-direction: column-reverse;
       button { width: 100%; }
