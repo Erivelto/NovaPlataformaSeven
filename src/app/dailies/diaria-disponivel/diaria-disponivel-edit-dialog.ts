@@ -43,7 +43,7 @@ export interface DiariaDisponivelEditData {
     <div class="edit-dialog">
       <div class="dialog-header">
         <mat-icon>event_available</mat-icon>
-        <h2 mat-dialog-title>{{ isNew ? 'Nova Vaga' : 'Editar Vaga' }}</h2>
+        <h2 mat-dialog-title>{{ isNew ? 'Nova Diária' : 'Editar Diária' }}</h2>
       </div>
 
       @if (loadingOptions) {
@@ -265,7 +265,7 @@ export class DiariaDisponivelEditDialog implements OnInit {
     op$.subscribe({
       next: () => {
         this.saving = false;
-        this.notify.success(this.isNew ? 'Vaga criada com sucesso!' : 'Vaga atualizada com sucesso!');
+        this.notify.success(this.isNew ? 'Diária criada com sucesso!' : 'Diária atualizada com sucesso!');
         this.dialogRef.close(true);
       },
       error: () => {

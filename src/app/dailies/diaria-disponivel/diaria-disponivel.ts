@@ -73,7 +73,7 @@ export class DiariaDisponivelComponent implements OnInit, AfterViewInit {
       },
       error: () => {
         this.loading = false;
-        this.notify.error('Erro ao carregar vagas disponíveis');
+        this.notify.error('Erro ao carregar diárias disponíveis');
         this.cdr.markForCheck();
       }
     });
@@ -107,7 +107,7 @@ export class DiariaDisponivelComponent implements OnInit, AfterViewInit {
     if (!item.id) return;
     this.diariaDisponivelService.getById(item.id).subscribe({
       next: (fullItem) => this.openDialog(fullItem),
-      error: () => this.notify.error('Erro ao carregar dados da vaga')
+      error: () => this.notify.error('Erro ao carregar dados da diária')
     });
   }
 
@@ -116,11 +116,11 @@ export class DiariaDisponivelComponent implements OnInit, AfterViewInit {
       if (confirmed && item.id) {
         this.diariaDisponivelService.delete(item.id).subscribe({
           next: () => {
-            this.notify.success('Vaga excluída com sucesso');
+            this.notify.success('Diária excluída com sucesso');
             this.loadData();
           },
           error: () => {
-            this.notify.error('Erro ao excluir vaga');
+            this.notify.error('Erro ao excluir diária');
           }
         });
       }
