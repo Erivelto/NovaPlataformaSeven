@@ -18,6 +18,7 @@ export const routes: Routes = [
       { path: 'adicionar-diaria', loadComponent: () => import('./dailies/add-di/add-di').then(m => m.AddDi) },
       { path: 'adicionar-unica-diaria', loadComponent: () => import('./dailies/add-single-di/add-single-di').then(m => m.AddSingleDi) },
       { path: 'lista-diarias', loadComponent: () => import('./dailies/dailies-list/dailies-list').then(m => m.DailiesList) },
+      { path: 'diaria-disponivel', loadComponent: () => import('./dailies/diaria-disponivel/diaria-disponivel').then(m => m.DiariaDisponivelComponent) },
       { path: 'cadastro-posto', loadComponent: () => import('./registration/station-registration/station-registration').then(m => m.StationRegistration) },
       { path: 'cadastro-supervisor', loadComponent: () => import('./registration/supervisor-registration/supervisor-registration').then(m => m.SupervisorRegistration) },
       { path: 'cadastro-funcao', loadComponent: () => import('./registration/role-registration/role-registration').then(m => m.RoleRegistration) },

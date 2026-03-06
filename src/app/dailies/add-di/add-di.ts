@@ -320,7 +320,7 @@ export class AddDi implements OnInit, AfterViewInit {
           const adiantamento: Adiantamento = {
             idColaborador: this.selectedCollaboratorId!,
             valor: this._valorAdiantamento,
-            data: this.formatDateForInput(this.dataAdiantamento.toISOString().split('T')[0])
+            data: this.dataAdiantamento.toISOString()
           };
           
           this.adiantamentoService.create(adiantamento).subscribe({

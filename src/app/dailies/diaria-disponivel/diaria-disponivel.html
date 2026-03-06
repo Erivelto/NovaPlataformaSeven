@@ -1,0 +1,94 @@
+<section class="diaria-disponivel-container" aria-labelledby="diaria-disponivel-title">
+  <mat-card>
+    <header class="header">
+      <div class="title">
+        <h2 id="diaria-disponivel-title">Controle de Vagas</h2>
+        <p>Consulte as vagas de diárias disponíveis</p>
+      </div>
+      <button mat-raised-button color="primary" (click)="novaVaga()">
+        <mat-icon>add</mat-icon>
+        Nova Vaga
+      </button>
+    </header>
+    <hr>
+
+    <mat-form-field appearance="outline" class="search-field">
+      <mat-label>Pesquisar vagas</mat-label>
+      <input matInput (keyup)="applyFilter($event)" placeholder="Ex. Posto, Função..." #input>
+      <mat-icon matSuffix>search</mat-icon>
+    </mat-form-field>
+
+    @if (loading) {
+      <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+    }
+
+    <div class="table-container">
+      <table mat-table [dataSource]="dataSource" matSort aria-label="Vagas disponíveis">
+
+        <!-- Código Column -->
+        <ng-container matColumnDef="id">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header> Código </th>
+          <td mat-cell *matCellDef="let row"> {{row.id}} </td>
+        </ng-container>
+
+        <!-- Data Referência Column -->
+        <ng-container matColumnDef="dataReferencia">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header> Data Referência </th>
+          <td mat-cell *matCellDef="let row"> {{row.dataReferencia | date:'dd/MM/yyyy'}} </td>
+        </ng-container>
+
+        <!-- Quantidade Column -->
+        <ng-container matColumnDef="quantidadeDiaria">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header> Qtd. Vagas </th>
+          <td mat-cell *matCellDef="let row">
+            <span class="badge" [class.badge-available]="row.quantidadeDiaria > 0" [class.badge-empty]="row.quantidadeDiaria === 0">
+              {{row.quantidadeDiaria}}
+            </span>
+          </td>
+        </ng-container>
+
+        <!-- Posto Column -->
+        <ng-container matColumnDef="posto">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header> Posto </th>
+          <td mat-cell *matCellDef="let row"> {{row.nomePosto}} </td>
+        </ng-container>
+
+        <!-- Função Column -->
+        <ng-container matColumnDef="funcao">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header> Função </th>
+          <td mat-cell *matCellDef="let row"> {{row.nomeFuncao}} </td>
+        </ng-container>
+
+        <!-- Supervisor Column -->
+        <ng-container matColumnDef="supervisor">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header> Supervisor </th>
+          <td mat-cell *matCellDef="let row"> {{row.nomeSupervisor}} </td>
+        </ng-container>
+
+        <!-- Actions Column -->
+        <ng-container matColumnDef="actions">
+          <th mat-header-cell *matHeaderCellDef class="mat-column-actions"> Ações </th>
+          <td mat-cell *matCellDef="let row" class="mat-column-actions">
+            <div class="action-container">
+              <button mat-icon-button color="primary" (click)="editVaga(row)" matTooltip="Editar Vaga" aria-label="Editar vaga">
+                <mat-icon>edit</mat-icon>
+              </button>
+              <button mat-icon-button color="warn" (click)="deleteVaga(row)" matTooltip="Excluir Vaga" aria-label="Excluir vaga">
+                <mat-icon>delete</mat-icon>
+              </button>
+            </div>
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+
+        <tr class="mat-row" *matNoDataRow>
+          <td class="mat-cell" colspan="7">Nenhuma vaga encontrada para o filtro "{{input.value}}"</td>
+        </tr>
+      </table>
+
+      <mat-paginator [pageSizeOptions]="[5, 10, 25, 100]" aria-label="Selecionar página"></mat-paginator>
+    </div>
+  </mat-card>
+</section>

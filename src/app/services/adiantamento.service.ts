@@ -7,17 +7,16 @@ import { environment } from '../environments/environment';
 export interface Adiantamento {
   id?: number;
   idColaborador: number;
-  valor: number;
   data: string;
-  dataCadastro?: string;
   userCadastro?: string;
+  valor: number;
 }
 
 @Injectable({
   providedIn: 'root'
 })
 export class AdiantamentoService {
-  private readonly apiUrl = `${environment.apiBaseUrl}/Adiantamento`;
+  private readonly apiUrl = `${environment.apiBaseUrl}/DiariaDesconto`;
   private authService = inject(AuthService);
 
   constructor(private http: HttpClient) {}

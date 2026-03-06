@@ -94,6 +94,27 @@
             </mat-nav-list>
           </mat-expansion-panel>
 
+          <!-- Controle de Vagas -->
+          <mat-expansion-panel class="mat-elevation-z0 nested-panel" [disabled]="isCollapsed() && !isHandset()">
+            <mat-expansion-panel-header class="nested-header">
+              <mat-panel-title>
+                <mat-icon matListItemIcon>event_available</mat-icon>
+                @if (!isCollapsed() || isHandset()) {
+                  <span>Controle de Vagas</span>
+                }
+              </mat-panel-title>
+            </mat-expansion-panel-header>
+
+            <mat-nav-list class="nested-list">
+              <a mat-list-item routerLink="/diaria-disponivel" routerLinkActive="active-link" [matTooltip]="isCollapsed() ? 'Vagas Disponíveis' : ''" matTooltipPosition="right">
+                <mat-icon matListItemIcon>list_alt</mat-icon>
+                @if (!isCollapsed() || isHandset()) {
+                  <span matListItemTitle>Vagas Disponíveis</span>
+                }
+              </a>
+            </mat-nav-list>
+          </mat-expansion-panel>
+
           <!-- Cadastro (Agora com 3º nível) -->
           @if (hasAccess(['A'])) {
             <mat-expansion-panel class="mat-elevation-z0 nested-panel" [disabled]="isCollapsed() && !isHandset()">
