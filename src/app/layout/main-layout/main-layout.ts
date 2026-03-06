@@ -1,6 +1,5 @@
 import { ChangeDetectionStrategy, Component, ViewChild, computed, inject, signal } from '@angular/core';
 import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
-import { CommonModule } from '@angular/common';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatButtonModule } from '@angular/material/button';
 import { MatSidenavModule, MatSidenav } from '@angular/material/sidenav';
@@ -22,7 +21,6 @@ import { LoadingService } from '../../services/loading.service';
   styleUrl: './main-layout.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
-    CommonModule,
     MatToolbarModule,
     MatButtonModule,
     MatSidenavModule,
@@ -43,8 +41,11 @@ export class MainLayoutComponent {
   private authService = inject(AuthService);
   public loadingService = inject(LoadingService);
 
-  private userType = signal<string>(this.authService.getUserData()?.tipo ?? '');
+  private userData = signal(this.authService.getUserData());
+  private userType = signal<string>(this.userData()?.tipo ?? '');
   readonly isAdmin = computed(() => this.userType() === 'A');
+  readonly userName = computed(() => this.userData()?.user ?? 'Usuário');
+  readonly userRole = computed(() => this.getTipoLabel(this.userType()) || 'Perfil');
 
   @ViewChild('drawer') drawer!: MatSidenav;
 
@@ -53,19 +54,7 @@ export class MainLayoutComponent {
     { initialValue: false }
   );
 
-  isCollapsed = false;
-
-  get userName() {
-    const user = this.authService.getUserData();
-    // Prioriza o campo 'user' conforme sugerido pelo contrato da API
-    return user ? user.user : 'Usuário';
-  }
-
-  get userRole() {
-    const user = this.authService.getUserData();
-    const tipoValue = user ? user.tipo : '';
-    return this.getTipoLabel(tipoValue) || 'Perfil';
-  }
+  isCollapsed = signal(false);
 
   hasAccess(roles: string[]): boolean {
     const tipo = this.userType();
@@ -81,7 +70,7 @@ export class MainLayoutComponent {
   }
 
   toggleCollapse() {
-    this.isCollapsed = !this.isCollapsed;
+    this.isCollapsed.update(v => !v);
   }
 
   logout() {

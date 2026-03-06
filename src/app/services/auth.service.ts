@@ -1,23 +1,43 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, tap } from 'rxjs';
+import { environment } from '../environments/environment';
 
 export interface LoginRequest {
   user: string;
   password: string;
 }
 
+export interface UserData {
+  id?: number;
+  user: string;
+  tipo: string;
+  dataCadastro?: string;
+  dataAtualizacao?: string;
+}
+
 export interface LoginResponse {
   token: string;
   refreshToken?: string;
-  user?: any;
+  user?: UserData;
+}
+
+export interface RegisterRequest {
+  user: string;
+  password: string;
+  tipo: string;
+}
+
+export interface ChangePasswordRequest {
+  currentPassword: string;
+  newPassword: string;
 }
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
-  private readonly apiUrl = 'https://plataformasevenapi-czf4d3ccdea4hvg4.eastus-01.azurewebsites.net/api/Autenticacao'; 
+  private readonly apiUrl = `${environment.apiBaseUrl}/Autenticacao`; 
 
   constructor(private http: HttpClient) {}
 
@@ -37,16 +57,16 @@ export class AuthService {
     );
   }
 
-  register(data: any): Observable<any> {
-    return this.http.post(`${this.apiUrl}/register`, data);
+  register(data: RegisterRequest): Observable<UserData> {
+    return this.http.post<UserData>(`${this.apiUrl}/register`, data);
   }
 
-  getMe(): Observable<any> {
-    return this.http.get(`${this.apiUrl}/me`);
+  getMe(): Observable<UserData> {
+    return this.http.get<UserData>(`${this.apiUrl}/me`);
   }
 
-  validateToken(): Observable<any> {
-    return this.http.get(`${this.apiUrl}/validate`);
+  validateToken(): Observable<{ valid: boolean }> {
+    return this.http.get<{ valid: boolean }>(`${this.apiUrl}/validate`);
   }
 
   refreshToken(): Observable<LoginResponse> {
@@ -60,8 +80,8 @@ export class AuthService {
     );
   }
 
-  changePassword(data: any): Observable<any> {
-    return this.http.post(`${this.apiUrl}/change-passwoard`, data);
+  changePassword(data: ChangePasswordRequest): Observable<void> {
+    return this.http.post<void>(`${this.apiUrl}/change-passwoard`, data);
   }
 
   logout(): void {
@@ -78,12 +98,18 @@ export class AuthService {
     return localStorage.getItem('auth_token');
   }
 
-  saveUserData(user: any): void {
+  saveUserData(user: UserData): void {
     localStorage.setItem('user_data', JSON.stringify(user));
   }
 
-  getUserData(): any {
+  getUserData(): UserData | null {
     const data = localStorage.getItem('user_data');
-    return data ? JSON.parse(data) : null;
+    if (!data) return null;
+    try {
+      return JSON.parse(data) as UserData;
+    } catch {
+      localStorage.removeItem('user_data');
+      return null;
+    }
   }
 }

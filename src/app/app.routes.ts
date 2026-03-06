@@ -1,45 +1,32 @@
 import { Routes } from '@angular/router';
-import { Login } from './login/login';
-import { Collaborators } from './collaborators/collaborators';
-import { AddCollaboratorPage } from './collaborators/add-collaborator-page/add-collaborator-page';
-import { AddDi } from './dailies/add-di/add-di';
-import { AddSingleDi } from './dailies/add-single-di/add-single-di';
-import { DailiesList } from './dailies/dailies-list/dailies-list';
-import { StationRegistration } from './registration/station-registration/station-registration';
-import { SupervisorRegistration } from './registration/supervisor-registration/supervisor-registration';
-import { RoleRegistration } from './registration/role-registration/role-registration';
-import { UserRegistration } from './registration/user-registration/user-registration';
-import { Dashboard } from './reports/dashboard/dashboard';
-import { CurriculumsList } from './reports/curriculums-list/curriculums-list';
-import { DailiesReport } from './reports/dailies-report/dailies-report';
-import { ConsolidatedReport } from './reports/consolidated-report/consolidated-report';
-import { ConsolidatedByDateReport } from './reports/consolidated-by-date-report/consolidated-by-date-report';
-import { MainLayoutComponent } from './layout/main-layout/main-layout';
 import { authGuard } from './services/auth.guard';
 
 export const routes: Routes = [
-  { path: 'login', component: Login },
+  {
+    path: 'login',
+    loadComponent: () => import('./login/login').then(m => m.Login)
+  },
   {
     path: '',
-    component: MainLayoutComponent,
+    loadComponent: () => import('./layout/main-layout/main-layout').then(m => m.MainLayoutComponent),
     canActivateChild: [authGuard],
     children: [
-      { path: '', redirectTo: 'relatorio-dashboard', pathMatch: 'full' }, 
-      { path: 'colaboradores', component: Collaborators },
-      { path: 'colaboradores/novo', component: AddCollaboratorPage },
-      { path: 'colaboradores/:id/editar', component: AddCollaboratorPage },
-      { path: 'adicionar-diaria', component: AddDi },
-      { path: 'adicionar-unica-diaria', component: AddSingleDi },
-      { path: 'lista-diarias', component: DailiesList },
-      { path: 'cadastro-posto', component: StationRegistration },
-      { path: 'cadastro-supervisor', component: SupervisorRegistration },
-      { path: 'cadastro-funcao', component: RoleRegistration },
-      { path: 'cadastro-usuario', component: UserRegistration },
-      { path: 'relatorio-dashboard', component: Dashboard },
-      { path: 'relatorio-curriculos', component: CurriculumsList },
-      { path: 'relatorio-diarias', component: DailiesReport },
-      { path: 'relatorio-consolidado', component: ConsolidatedReport },
-      { path: 'relatorio-consolidado-data', component: ConsolidatedByDateReport }
+      { path: '', redirectTo: 'relatorio-dashboard', pathMatch: 'full' },
+      { path: 'colaboradores', loadComponent: () => import('./collaborators/collaborators').then(m => m.Collaborators) },
+      { path: 'colaboradores/novo', loadComponent: () => import('./collaborators/add-collaborator-page/add-collaborator-page').then(m => m.AddCollaboratorPage) },
+      { path: 'colaboradores/:id/editar', loadComponent: () => import('./collaborators/add-collaborator-page/add-collaborator-page').then(m => m.AddCollaboratorPage) },
+      { path: 'adicionar-diaria', loadComponent: () => import('./dailies/add-di/add-di').then(m => m.AddDi) },
+      { path: 'adicionar-unica-diaria', loadComponent: () => import('./dailies/add-single-di/add-single-di').then(m => m.AddSingleDi) },
+      { path: 'lista-diarias', loadComponent: () => import('./dailies/dailies-list/dailies-list').then(m => m.DailiesList) },
+      { path: 'cadastro-posto', loadComponent: () => import('./registration/station-registration/station-registration').then(m => m.StationRegistration) },
+      { path: 'cadastro-supervisor', loadComponent: () => import('./registration/supervisor-registration/supervisor-registration').then(m => m.SupervisorRegistration) },
+      { path: 'cadastro-funcao', loadComponent: () => import('./registration/role-registration/role-registration').then(m => m.RoleRegistration) },
+      { path: 'cadastro-usuario', loadComponent: () => import('./registration/user-registration/user-registration').then(m => m.UserRegistration) },
+      { path: 'relatorio-dashboard', loadComponent: () => import('./reports/dashboard/dashboard').then(m => m.Dashboard) },
+      { path: 'relatorio-curriculos', loadComponent: () => import('./reports/curriculums-list/curriculums-list').then(m => m.CurriculumsList) },
+      { path: 'relatorio-diarias', loadComponent: () => import('./reports/dailies-report/dailies-report').then(m => m.DailiesReport) },
+      { path: 'relatorio-consolidado', loadComponent: () => import('./reports/consolidated-report/consolidated-report').then(m => m.ConsolidatedReport) },
+      { path: 'relatorio-consolidado-data', loadComponent: () => import('./reports/consolidated-by-date-report/consolidated-by-date-report').then(m => m.ConsolidatedByDateReport) }
     ]
   },
   { path: '**', redirectTo: 'login' }

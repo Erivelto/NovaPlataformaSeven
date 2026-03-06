@@ -1,5 +1,5 @@
-import { Component, ViewChild, AfterViewInit, OnInit, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { ChangeDetectionStrategy, Component, DestroyRef, ViewChild, AfterViewInit, OnInit, inject } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
@@ -10,16 +10,14 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { SupervisorService, Supervisor } from '../../services/supervisor.service';
-import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
-import { ConfirmDialog } from '../../shared/confirm-dialog/confirm-dialog';
+import { NotificationService } from '../../services/notification.service';
+import { ConfirmService } from '../../services/confirm.service';
 
 @Component({
   selector: 'app-supervisor-registration',
   standalone: true,
   imports: [
-    CommonModule,
     FormsModule,
     MatCardModule,
     MatTableModule,
@@ -29,17 +27,17 @@ import { ConfirmDialog } from '../../shared/confirm-dialog/confirm-dialog';
     MatFormFieldModule,
     MatButtonModule,
     MatIconModule,
-    MatTooltipModule,
-    MatSnackBarModule,
-    MatDialogModule
+    MatTooltipModule
   ],
   templateUrl: './supervisor-registration.html',
-  styleUrl: './supervisor-registration.scss'
+  styleUrl: './supervisor-registration.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SupervisorRegistration implements OnInit, AfterViewInit {
   private supervisorService = inject(SupervisorService);
-  private snackBar = inject(MatSnackBar);
-  private dialog = inject(MatDialog);
+  private notify = inject(NotificationService);
+  private confirmService = inject(ConfirmService);
+  private destroyRef = inject(DestroyRef);
 
   novoSupervisor: string = '';
   displayedColumns: string[] = ['codigo', 'nome', 'actions'];
@@ -62,9 +60,8 @@ export class SupervisorRegistration implements OnInit, AfterViewInit {
       next: (data) => {
         this.dataSource.data = data;
       },
-      error: (err) => {
-        console.error('Erro ao carregar supervisores:', err);
-        this.snackBar.open('Erro ao carregar supervisores da API', 'Fechar', { duration: 3000 });
+      error: () => {
+        this.notify.error('Erro ao carregar supervisores da API');
       }
     });
   }
@@ -81,7 +78,7 @@ export class SupervisorRegistration implements OnInit, AfterViewInit {
   addSupervisor() {
     // Validar campo vazio
     if (!this.novoSupervisor || this.novoSupervisor.trim() === '') {
-      this.snackBar.open('O campo de supervisor não pode estar vazio', 'Fechar', { duration: 3000 });
+      this.notify.warn('O campo de supervisor não pode estar vazio');
       return;
     }
 
@@ -92,7 +89,7 @@ export class SupervisorRegistration implements OnInit, AfterViewInit {
     );
 
     if (supervisorExistente) {
-      this.snackBar.open('Já existe um supervisor cadastrado com este nome', 'Fechar', { duration: 3000 });
+      this.notify.warn('Já existe um supervisor cadastrado com este nome');
       return;
     }
 
@@ -102,39 +99,26 @@ export class SupervisorRegistration implements OnInit, AfterViewInit {
     
     this.supervisorService.create(newSupervisor).subscribe({
       next: () => {
-        this.snackBar.open('Supervisor adicionado com sucesso!', 'OK', { duration: 2000 });
+        this.notify.success('Supervisor adicionado com sucesso!');
         this.novoSupervisor = '';
         this.loadSupervisors();
       },
-      error: (err) => {
-        console.error('Erro ao adicionar supervisor:', err);
-        this.snackBar.open('Erro ao cadastrar supervisor', 'Fechar', { duration: 3000 });
+      error: () => {
+        this.notify.error('Erro ao cadastrar supervisor');
       }
     });
   }
 
   deleteSupervisor(supervisor: Supervisor) {
-    const dialogRef = this.dialog.open(ConfirmDialog, {
-      width: '450px',
-      maxWidth: '90vw',
-      data: {
-        title: 'Confirmar Exclusão',
-        message: `Deseja realmente excluir o supervisor ${supervisor.nome}? Esta ação não pode ser desfeita.`,
-        confirmText: 'Excluir',
-        cancelText: 'Cancelar'
-      }
-    });
-
-    dialogRef.afterClosed().subscribe(result => {
-      if (result && supervisor.id) {
+    this.confirmService.confirmDelete(`o supervisor ${supervisor.nome}`).pipe(takeUntilDestroyed(this.destroyRef)).subscribe(confirmed => {
+      if (confirmed && supervisor.id) {
         this.supervisorService.delete(supervisor.id).subscribe({
           next: () => {
-            this.snackBar.open('Supervisor excluído com sucesso', 'OK', { duration: 2000 });
+            this.notify.success('Supervisor excluído com sucesso');
             this.loadSupervisors();
           },
-          error: (err) => {
-            console.error('Erro ao deletar:', err);
-            this.snackBar.open('Erro ao excluir supervisor', 'Fechar', { duration: 3000 });
+          error: () => {
+            this.notify.error('Erro ao excluir supervisor');
           }
         });
       }

@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../environments/environment';
 
 export interface Supervisor {
   id?: number;
@@ -11,7 +12,7 @@ export interface Supervisor {
   providedIn: 'root'
 })
 export class SupervisorService {
-  private readonly apiUrl = 'https://plataformasevenapi-czf4d3ccdea4hvg4.eastus-01.azurewebsites.net/api/Supervisor';
+  private readonly apiUrl = `${environment.apiBaseUrl}/Supervisor`;
 
   constructor(private http: HttpClient) {}
 
@@ -27,11 +28,11 @@ export class SupervisorService {
     return this.http.post<Supervisor>(this.apiUrl, supervisor);
   }
 
-  update(id: number, supervisor: Supervisor): Observable<any> {
-    return this.http.put(`${this.apiUrl}/${id}`, supervisor);
+  update(id: number, supervisor: Supervisor): Observable<void> {
+    return this.http.put<void>(`${this.apiUrl}/${id}`, supervisor);
   }
 
-  delete(id: number): Observable<any> {
-    return this.http.delete(`${this.apiUrl}/${id}`);
+  delete(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/${id}`);
   }
 }

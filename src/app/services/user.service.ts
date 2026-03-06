@@ -1,7 +1,8 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { AuthService } from './auth.service';
+import { environment } from '../environments/environment';
 
 export interface User {
   id?: number;
@@ -17,12 +18,9 @@ export interface User {
   providedIn: 'root'
 })
 export class UserService {
-  private readonly apiUrl = 'https://plataformasevenapi-czf4d3ccdea4hvg4.eastus-01.azurewebsites.net/api/Usuario';
-
-  constructor(
-    private http: HttpClient,
-    private authService: AuthService
-  ) {}
+  private readonly apiUrl = `${environment.apiBaseUrl}/Usuario`;
+  private readonly http = inject(HttpClient);
+  private readonly authService = inject(AuthService);
 
   getAll(): Observable<User[]> {
     return this.http.get<User[]>(this.apiUrl);
@@ -50,11 +48,11 @@ export class UserService {
     return this.http.post<User>(this.apiUrl, payload);
   }
 
-  update(id: number, user: User): Observable<any> {
-    return this.http.put(`${this.apiUrl}/${id}`, user);
+  update(id: number, user: User): Observable<void> {
+    return this.http.put<void>(`${this.apiUrl}/${id}`, user);
   }
 
-  delete(id: number): Observable<any> {
-    return this.http.delete(`${this.apiUrl}/${id}`);
+  delete(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/${id}`);
   }
 }

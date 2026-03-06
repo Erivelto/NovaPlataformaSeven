@@ -1,5 +1,5 @@
-import { Component, ViewChild, AfterViewInit, OnInit, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { ChangeDetectionStrategy, Component, DestroyRef, ViewChild, AfterViewInit, OnInit, inject } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
@@ -10,16 +10,14 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { StationService, Station } from '../../services/station.service';
-import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
-import { ConfirmDialog } from '../../shared/confirm-dialog/confirm-dialog';
+import { NotificationService } from '../../services/notification.service';
+import { ConfirmService } from '../../services/confirm.service';
 
 @Component({
   selector: 'app-station-registration',
   standalone: true,
   imports: [
-    CommonModule,
     FormsModule,
     MatCardModule,
     MatTableModule,
@@ -29,17 +27,17 @@ import { ConfirmDialog } from '../../shared/confirm-dialog/confirm-dialog';
     MatFormFieldModule,
     MatButtonModule,
     MatIconModule,
-    MatTooltipModule,
-    MatSnackBarModule,
-    MatDialogModule
+    MatTooltipModule
   ],
   templateUrl: './station-registration.html',
-  styleUrl: './station-registration.scss'
+  styleUrl: './station-registration.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class StationRegistration implements OnInit, AfterViewInit {
   private stationService = inject(StationService);
-  private snackBar = inject(MatSnackBar);
-  private dialog = inject(MatDialog);
+  private notify = inject(NotificationService);
+  private confirmService = inject(ConfirmService);
+  private destroyRef = inject(DestroyRef);
 
   novoPosto: string = '';
   displayedColumns: string[] = ['codigo', 'nome', 'actions'];
@@ -62,9 +60,8 @@ export class StationRegistration implements OnInit, AfterViewInit {
       next: (data) => {
         this.dataSource.data = data;
       },
-      error: (err) => {
-        console.error('Erro ao carregar postos:', err);
-        this.snackBar.open('Erro ao carregar postos da API', 'Fechar', { duration: 3000 });
+      error: () => {
+        this.notify.error('Erro ao carregar postos da API');
       }
     });
   }
@@ -81,7 +78,7 @@ export class StationRegistration implements OnInit, AfterViewInit {
   addStation() {
     // Validar campo vazio
     if (!this.novoPosto || this.novoPosto.trim() === '') {
-      this.snackBar.open('O campo de posto não pode estar vazio', 'Fechar', { duration: 3000 });
+      this.notify.warn('O campo de posto não pode estar vazio');
       return;
     }
 
@@ -92,7 +89,7 @@ export class StationRegistration implements OnInit, AfterViewInit {
     );
 
     if (postoExistente) {
-      this.snackBar.open('Já existe um posto cadastrado com este nome', 'Fechar', { duration: 3000 });
+      this.notify.warn('Já existe um posto cadastrado com este nome');
       return;
     }
 
@@ -102,39 +99,26 @@ export class StationRegistration implements OnInit, AfterViewInit {
     
     this.stationService.create(newStation).subscribe({
       next: () => {
-        this.snackBar.open('Posto adicionado com sucesso!', 'OK', { duration: 2000 });
+        this.notify.success('Posto adicionado com sucesso!');
         this.novoPosto = '';
         this.loadStations();
       },
-      error: (err) => {
-        console.error('Erro ao adicionar posto:', err);
-        this.snackBar.open('Erro ao cadastrar posto', 'Fechar', { duration: 3000 });
+      error: () => {
+        this.notify.error('Erro ao cadastrar posto');
       }
     });
   }
 
   deleteStation(station: Station) {
-    const dialogRef = this.dialog.open(ConfirmDialog, {
-      width: '450px',
-      maxWidth: '90vw',
-      data: {
-        title: 'Confirmar Exclusão',
-        message: `Deseja realmente excluir o posto ${station.nome}? Esta ação não pode ser desfeita.`,
-        confirmText: 'Excluir',
-        cancelText: 'Cancelar'
-      }
-    });
-
-    dialogRef.afterClosed().subscribe(result => {
-      if (result && station.id) {
+    this.confirmService.confirmDelete(`o posto ${station.nome}`).pipe(takeUntilDestroyed(this.destroyRef)).subscribe(confirmed => {
+      if (confirmed && station.id) {
         this.stationService.delete(station.id).subscribe({
           next: () => {
-            this.snackBar.open('Posto excluído com sucesso', 'OK', { duration: 2000 });
+            this.notify.success('Posto excluído com sucesso');
             this.loadStations();
           },
-          error: (err) => {
-            console.error('Erro ao deletar:', err);
-            this.snackBar.open('Erro ao excluir posto', 'Fechar', { duration: 3000 });
+          error: () => {
+            this.notify.error('Erro ao excluir posto');
           }
         });
       }

@@ -2,6 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { AuthService } from './auth.service';
+import { environment } from '../environments/environment';
 
 export interface Adiantamento {
   id?: number;
@@ -16,7 +17,7 @@ export interface Adiantamento {
   providedIn: 'root'
 })
 export class AdiantamentoService {
-  private readonly apiUrl = 'https://plataformasevenapi-czf4d3ccdea4hvg4.eastus-01.azurewebsites.net/api/Adiantamento';
+  private readonly apiUrl = `${environment.apiBaseUrl}/Adiantamento`;
   private authService = inject(AuthService);
 
   constructor(private http: HttpClient) {}
@@ -52,11 +53,11 @@ export class AdiantamentoService {
     return this.http.post<Adiantamento>(this.apiUrl, payload);
   }
 
-  update(id: number, adiantamento: Adiantamento): Observable<any> {
-    return this.http.put(`${this.apiUrl}/${id}`, adiantamento);
+  update(id: number, adiantamento: Adiantamento): Observable<void> {
+    return this.http.put<void>(`${this.apiUrl}/${id}`, adiantamento);
   }
 
-  delete(id: number): Observable<any> {
-    return this.http.delete(`${this.apiUrl}/${id}`);
+  delete(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/${id}`);
   }
 }

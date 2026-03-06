@@ -1,8 +1,8 @@
-<div class="report-container">
+<section class="report-container" aria-labelledby="dailies-report-title">
   <mat-card>
     <div class="header">
       <div class="title">
-        <h2>Relatório de Diárias</h2>
+        <h2 id="dailies-report-title">Relatório de Diárias</h2>
         <p>Listagem detalhada de todos os lançamentos de diárias</p>
       </div>
     </div>
@@ -34,20 +34,17 @@
           (collaboratorSelected)="onCollaboratorChange($event)">
         </app-collaborator-search>
       </div>
-
-      <div class="filter-col">
-        <mat-form-field appearance="outline">
-          <mat-label>Posto</mat-label>
-          <mat-select [(ngModel)]="postoSelecionado" (selectionChange)="applyFilters()" [compareWith]="compareById">
-            <mat-option [value]="null" selected>Todos</mat-option>
-            <mat-option *ngFor="let p of postos" [value]="p.id">{{p.nome}}</mat-option>
-          </mat-select>
-          <mat-icon matPrefix>location_on</mat-icon>
-        </mat-form-field>
-      </div>
     </div>
 
     <div class="filter-row">
+      <div class="filter-col-full">
+        <app-station-select
+          [stations]="postos"
+          label="Posto"
+          (selectionChange)="onStationChange($event)">
+        </app-station-select>
+      </div>
+
       <div class="btn-col">
         <button mat-raised-button color="primary" class="add-btn" (click)="consultar()" [disabled]="isLoading">
           <mat-icon>search</mat-icon>
@@ -56,26 +53,29 @@
       </div>
     </div>
 
-    <div class="table-section" *ngIf="showResults">
+    @if (showResults) {
+    <div class="table-section" aria-live="polite">
       <div class="table-container">
-        <table>
+        <table aria-label="Relatório de diárias">
           <thead>
             <tr>
-              <th>Código</th>
-              <th>Data</th>
-              <th>Colaborador</th>
-              <th>Valor (R$)</th>
-              <th>Posto</th>
+              <th scope="col">Código</th>
+              <th scope="col">Data</th>
+              <th scope="col">Colaborador</th>
+              <th scope="col">Valor</th>
+              <th scope="col">Posto</th>
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let row of getPaginatedData()">
+            @for (row of getPaginatedData(); track row.codigo) {
+            <tr>
               <td>{{row.codigo}}</td>
               <td>{{row.data | date:'dd/MM/yyyy'}}</td>
               <td>{{row.colaborador}}</td>
-              <td style="text-align: right;">{{row.valor | number:'1.2-2'}}</td>
+              <td style="text-align: right;">{{row.valor | currency:'BRL':'symbol':'1.2-2':'pt-BR'}}</td>
               <td>{{row.posto}}</td>
             </tr>
+            }
           </tbody>
         </table>
         <mat-paginator [pageSizeOptions]="[10, 25, 50, 100]" [length]="dataSource.data.length" 
@@ -84,13 +84,18 @@
       </div>
 
       <!-- Mensagem vazia -->
-      <div *ngIf="(dataSource.data.length === 0)" style="padding: 40px 20px; text-align: center; color: #999;">
+      @if (dataSource.data.length === 0) {
+      <div style="padding: 40px 20px; text-align: center; color: #767676;" role="status">
         <p>Nenhum registro encontrado para o período selecionado.</p>
       </div>
+      }
     </div>
+    }
 
-    <div *ngIf="!showResults" style="padding: 20px; text-align: center; color: #999;">
+    @if (!showResults) {
+    <div style="padding: 20px; text-align: center; color: #767676;">
       <p>Selecione um período e clique em "Consultar" para visualizar os registros.</p>
     </div>
+    }
   </mat-card>
-</div>
+</section>

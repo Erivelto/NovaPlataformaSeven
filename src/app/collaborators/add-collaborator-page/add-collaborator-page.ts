@@ -1,5 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { ChangeDetectionStrategy, Component, OnInit, inject } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
@@ -10,14 +9,14 @@ import { AddCollaborator } from '../add-collaborator/add-collaborator';
   selector: 'app-add-collaborator-page',
   standalone: true,
   imports: [
-    CommonModule,
     MatCardModule,
     MatButtonModule,
     MatIconModule,
     AddCollaborator
   ],
   templateUrl: './add-collaborator-page.html',
-  styleUrl: './add-collaborator-page.scss'
+  styleUrl: './add-collaborator-page.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AddCollaboratorPage implements OnInit {
   private router = inject(Router);

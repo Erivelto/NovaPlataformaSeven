@@ -13,7 +13,7 @@ html {
       primary: mat.$azure-palette,
       tertiary: mat.$blue-palette,
     ),
-    typography: Roboto,
+    typography: Inter,
     density: -3,
   ));
 }
@@ -24,6 +24,31 @@ body {
   font: var(--mat-sys-body-medium);
   margin: 0;
   height: 100%;
+}
+
+// Material Symbols Rounded — visual leve e moderno
+.material-symbols-rounded {
+  font-family: 'Material Symbols Rounded';
+  font-weight: normal;
+  font-style: normal;
+  font-size: 24px;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  font-feature-settings: 'liga';
+  // Estilo: outlined, peso leve, arredondado
+  font-variation-settings:
+    'FILL' 0,
+    'wght' 300,
+    'GRAD' 0,
+    'opsz' 24;
 }
 
 // Global: Cor Branca para escrita em botões primários
@@ -241,3 +266,22 @@ hr {
 }
 
 /* You can add global styles to this file, and also import other style files */
+
+// Utility: visually hidden but accessible to screen readers
+.visually-hidden {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
+// Login page h1 inside mat-card-title should not have default margin
+.login-title {
+  margin: 0;
+  font: inherit;
+}

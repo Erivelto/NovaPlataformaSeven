@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { HttpClient, HttpResponse } from '@angular/common/http';
+import { Observable, map } from 'rxjs';
+import { environment } from '../environments/environment';
 
 export interface Collaborator {
   id?: number;
@@ -16,8 +17,8 @@ export interface Collaborator {
   uf?: string;
   cep?: string;
   dataCadastro?: string;
-  userCad?: string;
   dataAlteracao?: string;
+  userCad?: string;
   userAlt?: string;
   excluido?: boolean;
 }
@@ -26,7 +27,7 @@ export interface Collaborator {
   providedIn: 'root'
 })
 export class CollaboratorService {
-  private readonly apiUrl = 'https://plataformasevenapi-czf4d3ccdea4hvg4.eastus-01.azurewebsites.net/api/Colaborador';
+  private readonly apiUrl = `${environment.apiBaseUrl}/Colaborador`;
 
   constructor(private http: HttpClient) {}
 
@@ -38,15 +39,15 @@ export class CollaboratorService {
     return this.http.get<Collaborator>(`${this.apiUrl}/${id}`);
   }
 
-  create(collaborator: Collaborator): Observable<Collaborator> {
-    return this.http.post<Collaborator>(this.apiUrl, collaborator);
+  create(collaborator: Partial<Collaborator>): Observable<number> {
+    return this.http.post<number>(this.apiUrl, collaborator, { observe: 'body' });
   }
 
-  update(id: number, collaborator: Collaborator): Observable<any> {
-    return this.http.put(`${this.apiUrl}/${id}`, collaborator);
+  update(id: number, collaborator: Partial<Collaborator>): Observable<void> {
+    return this.http.put<void>(`${this.apiUrl}/${id}`, collaborator);
   }
 
-  delete(id: number): Observable<any> {
-    return this.http.delete(`${this.apiUrl}/${id}`);
+  delete(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/${id}`);
   }
 }

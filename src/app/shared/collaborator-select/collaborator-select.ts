@@ -1,5 +1,5 @@
-import { Component, Input, Output, EventEmitter, OnInit, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { ChangeDetectionStrategy, Component, Input, Output, EventEmitter, OnInit, inject } from '@angular/core';
+import { AsyncPipe } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormControl } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
@@ -15,7 +15,7 @@ import { map, startWith } from 'rxjs/operators';
   selector: 'app-collaborator-select',
   standalone: true,
   imports: [
-    CommonModule,
+    AsyncPipe,
     FormsModule,
     ReactiveFormsModule,
     MatFormFieldModule,
@@ -25,6 +25,7 @@ import { map, startWith } from 'rxjs/operators';
     MatAutocompleteModule,
     MatOptionModule
   ],
+  changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <mat-form-field appearance="outline" class="full-width">
       <mat-label>Colaborador</mat-label>
@@ -33,9 +34,11 @@ import { map, startWith } from 'rxjs/operators';
         (selectionChange)="onSelectionChange($event)"
         [compareWith]="compareById">
         <mat-option [value]="null">Todos</mat-option>
-        <mat-option *ngFor="let col of filteredCollaborators$ | async" [value]="col.id">
-          {{col.nome}}
-        </mat-option>
+        @for (col of filteredCollaborators$ | async; track col.id) {
+          <mat-option [value]="col.id">
+            {{col.nome}}
+          </mat-option>
+        }
       </mat-select>
       <mat-icon matPrefix>person</mat-icon>
     </mat-form-field>
@@ -62,11 +65,11 @@ export class CollaboratorSelectComponent implements OnInit {
     );
   }
 
-  onSelectionChange(event: any) {
+  onSelectionChange(event: { value: number | null }) {
     this.selectionChange.emit(event.value);
   }
 
-  compareById(a: any, b: any): boolean {
+  compareById(a: number | null, b: number | null): boolean {
     return a === b;
   }
 }

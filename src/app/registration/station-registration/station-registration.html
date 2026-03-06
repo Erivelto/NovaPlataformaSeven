@@ -1,8 +1,8 @@
-<div class="station-registration-container">
+<section class="station-registration-container" aria-labelledby="station-reg-title">
   <mat-card class="form-card">
     <div class="header">
       <div class="title">
-        <h2>Cadastro de Posto</h2>
+        <h2 id="station-reg-title">Cadastro de Posto</h2>
         <p>Insira o nome do novo posto de trabalho</p>
       </div>
     </div>
@@ -36,7 +36,7 @@
     </div>
 
     <div class="table-container">
-      <table mat-table [dataSource]="dataSource" matSort>
+      <table mat-table [dataSource]="dataSource" matSort aria-label="Lista de postos">
 
         <!-- Código Column -->
         <ng-container matColumnDef="codigo">
@@ -55,7 +55,9 @@
           <th mat-header-cell *matHeaderCellDef class="mat-column-actions"> Ações </th>
           <td mat-cell *matCellDef="let row" class="mat-column-actions">
             <div class="action-container">
-                <mat-icon color="warn" (click)="deleteStation(row)" matTooltip="Excluir" style="cursor: pointer;">delete</mat-icon>
+                <button mat-icon-button color="warn" (click)="deleteStation(row)" matTooltip="Excluir" aria-label="Excluir posto">
+                  <mat-icon>delete</mat-icon>
+                </button>
             </div>
           </td>
         </ng-container>
@@ -71,4 +73,4 @@
       <mat-paginator [pageSizeOptions]="[5, 10, 25]" aria-label="Selecionar página"></mat-paginator>
     </div>
   </mat-card>
-</div>
+</section>

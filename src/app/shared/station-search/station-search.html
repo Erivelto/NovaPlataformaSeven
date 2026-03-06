@@ -1,0 +1,33 @@
+<mat-form-field appearance="outline" class="station-search-field">
+  <mat-label>{{ label }}</mat-label>
+  <mat-icon matPrefix>location_on</mat-icon>
+  <mat-select [(ngModel)]="selectedStationId" (selectionChange)="onStationSelected()">
+    <mat-select-trigger>
+      {{ getSelectedStationName() }}
+    </mat-select-trigger>
+
+    <!-- Campo de busca dentro do dropdown -->
+    <mat-option disabled class="search-option">
+      <mat-form-field appearance="outline" class="search-field" (click)="$event.stopPropagation()">
+        <mat-icon matPrefix>search</mat-icon>
+        <input matInput
+               [formControl]="stationFilterControl"
+               placeholder="Buscar posto..."
+               aria-label="Buscar posto"
+               (click)="$event.stopPropagation()"
+               (keydown)="$event.stopPropagation()">
+      </mat-form-field>
+    </mat-option>
+
+    <!-- Opção "Todos" -->
+    @if (showAllOption) {
+      <mat-option [value]="null">Todos</mat-option>
+    }
+
+    @for (station of filteredStations | async; track station.id) {
+      <mat-option [value]="station.id">
+        {{ station.nome }}
+      </mat-option>
+    }
+  </mat-select>
+</mat-form-field>

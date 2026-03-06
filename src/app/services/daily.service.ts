@@ -2,6 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, forkJoin } from 'rxjs';
 import { AuthService } from './auth.service';
+import { environment } from '../environments/environment';
 
 export interface Daily {
   id?: number;
@@ -24,8 +25,7 @@ export interface PostoFuncaoSuper {
   providedIn: 'root'
 })
 export class DailyService {
-  private readonly apiUrl = 'https://plataformasevenapi-czf4d3ccdea4hvg4.eastus-01.azurewebsites.net/api/Diaria';
-  private readonly apiBaseUrl = 'https://plataformasevenapi-czf4d3ccdea4hvg4.eastus-01.azurewebsites.net/api';
+  private readonly apiUrl = `${environment.apiBaseUrl}/Diaria`;
   private authService = inject(AuthService);
 
   constructor(private http: HttpClient) {}
@@ -53,20 +53,20 @@ export class DailyService {
     return this.http.post<Daily>(this.apiUrl, daily);
   }
 
-  update(id: number, daily: Daily): Observable<any> {
-    return this.http.put(`${this.apiUrl}/${id}`, daily);
+  update(id: number, daily: Daily): Observable<void> {
+    return this.http.put<void>(`${this.apiUrl}/${id}`, daily);
   }
 
-  delete(id: number): Observable<any> {
-    return this.http.delete(`${this.apiUrl}/${id}`);
+  delete(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/${id}`);
   }
 
   getPostoFuncaoSuper(detalheId: number): Observable<PostoFuncaoSuper[]> {
-    return this.http.get<PostoFuncaoSuper[]>(`${this.apiBaseUrl}/GetPostoFuncaoSuper?detalhe=${detalheId}`);
+    return this.http.get<PostoFuncaoSuper[]>(`${environment.apiBaseUrl}/GetPostoFuncaoSuper?detalhe=${detalheId}`);
   }
 
   getDatasPeriodos(detalheId: number): Observable<string[]> {
-    return this.http.get<string[]>(`${this.apiBaseUrl}/DatasPeriodos?detalhe=${detalheId}`);
+    return this.http.get<string[]>(`${environment.apiBaseUrl}/DatasPeriodos?detalhe=${detalheId}`);
   }
 
   saveDailies(dailies: Daily[]): Observable<Daily[]> {

@@ -1,5 +1,7 @@
-import { Component, ViewChild, AfterViewInit, OnInit, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { ChangeDetectionStrategy, Component, DestroyRef, ViewChild, AfterViewInit, OnInit, inject } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { CurrencyPipe, DatePipe, registerLocaleData } from '@angular/common';
+import localePt from '@angular/common/locales/pt';
 import { Router } from '@angular/router';
 import { animate, state, style, transition, trigger } from '@angular/animations';
 import { MatCardModule } from '@angular/material/card';
@@ -10,17 +12,20 @@ import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
-import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { CollaboratorService, Collaborator } from '../services/collaborator.service';
 import { CollaboratorDetailService, CollaboratorDetail } from '../services/collaborator-detail.service';
-import { ConfirmDialog } from '../shared/confirm-dialog/confirm-dialog';
+import { NotificationService } from '../services/notification.service';
+import { ConfirmService } from '../services/confirm.service';
+import { LOCALE_ID } from '@angular/core';
+
+registerLocaleData(localePt);
 
 @Component({
   selector: 'app-collaborators',
   standalone: true,
   imports: [
-    CommonModule,
+    CurrencyPipe,
+    DatePipe,
     MatCardModule,
     MatTableModule,
     MatPaginatorModule,
@@ -28,9 +33,10 @@ import { ConfirmDialog } from '../shared/confirm-dialog/confirm-dialog';
     MatInputModule,
     MatFormFieldModule,
     MatButtonModule,
-    MatIconModule,
-    MatSnackBarModule,
-    MatDialogModule
+    MatIconModule
+  ],
+  providers: [
+    { provide: LOCALE_ID, useValue: 'pt-BR' }
   ],
   animations: [
     trigger('detailExpand', [
@@ -41,13 +47,15 @@ import { ConfirmDialog } from '../shared/confirm-dialog/confirm-dialog';
   ],
   templateUrl: './collaborators.html',
   styleUrl: './collaborators.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Collaborators implements OnInit, AfterViewInit {
   private collaboratorService = inject(CollaboratorService);
   private detailService = inject(CollaboratorDetailService);
-  private snackBar = inject(MatSnackBar);
+  private notify = inject(NotificationService);
   private router = inject(Router);
-  private dialog = inject(MatDialog);
+  private confirmService = inject(ConfirmService);
+  private destroyRef = inject(DestroyRef);
 
   displayedColumns: string[] = ['codigo', 'nome', 'dataCadastro', 'userCad', 'dataAlteracao', 'userAlt', 'actions'];
   dataSource = new MatTableDataSource<Collaborator>([]);
@@ -72,9 +80,8 @@ export class Collaborators implements OnInit, AfterViewInit {
       next: (data) => {
         this.dataSource.data = data;
       },
-      error: (err) => {
-        console.error('Erro ao carregar colaboradores:', err);
-        this.snackBar.open('Erro ao carregar colaboradores da API', 'Fechar', { duration: 3000 });
+      error: () => {
+        this.notify.error('Erro ao carregar colaboradores da API');
       }
     });
   }
@@ -100,10 +107,8 @@ export class Collaborators implements OnInit, AfterViewInit {
         this.elementDetail = details.length > 0 ? details[0] : { idColaborador: element.id! };
         this.loadingDetail = false;
       },
-      error: (err) => {
-        console.error('Erro ao buscar detalhes:', err);
+      error: () => {
         this.loadingDetail = false;
-        // Se der erro (ex: não tem detalhe cadastrado ainda), mostra como vazio
         this.elementDetail = { idColaborador: element.id! };
       }
     });
@@ -129,27 +134,15 @@ export class Collaborators implements OnInit, AfterViewInit {
   }
 
   deleteCollaborator(collaborator: Collaborator) {
-    const dialogRef = this.dialog.open(ConfirmDialog, {
-      width: '450px',
-      maxWidth: '90vw',
-      data: {
-        title: 'Confirmar Exclusão',
-        message: `Deseja realmente excluir o colaborador ${collaborator.nome}? Esta ação não pode ser desfeita.`,
-        confirmText: 'Excluir',
-        cancelText: 'Cancelar'
-      }
-    });
-
-    dialogRef.afterClosed().subscribe(result => {
-      if (result && collaborator.id) {
+    this.confirmService.confirmDelete(`o colaborador ${collaborator.nome}`).pipe(takeUntilDestroyed(this.destroyRef)).subscribe(confirmed => {
+      if (confirmed && collaborator.id) {
         this.collaboratorService.delete(collaborator.id).subscribe({
           next: () => {
-            this.snackBar.open('Colaborador excluído com sucesso', 'OK', { duration: 2000 });
+            this.notify.success('Colaborador excluído com sucesso');
             this.loadCollaborators();
           },
-          error: (err) => {
-            console.error('Erro ao deletar:', err);
-            this.snackBar.open('Erro ao excluir colaborador', 'Fechar', { duration: 3000 });
+          error: () => {
+            this.notify.error('Erro ao excluir colaborador');
           }
         });
       }

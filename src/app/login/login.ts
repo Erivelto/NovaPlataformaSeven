@@ -1,6 +1,5 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule, NgForm } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -13,7 +12,6 @@ import { finalize } from 'rxjs/operators';
 @Component({
   selector: 'app-login',
   imports: [
-    CommonModule, 
     FormsModule, 
     ReactiveFormsModule,
     MatCardModule, 
@@ -43,7 +41,7 @@ export class Login {
     this.showPassword.update(value => !value);
   }
 
-  submit(form: any) {
+  submit(form: Pick<NgForm, 'valid'>) {
     if (form.valid) {
       this.loading.set(true);
       this.error.set(null);
@@ -60,9 +58,8 @@ export class Login {
         next: () => {
           this.router.navigate(['/']);
         },
-        error: (err) => {
+        error: () => {
           this.error.set('Usuário ou senha inválidos. Tente novamente.');
-          console.error('Login error:', err);
         }
       });
     }

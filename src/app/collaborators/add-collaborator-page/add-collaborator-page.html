@@ -1,15 +1,15 @@
-<div class="collaborators-container">
+<section class="collaborators-container" aria-labelledby="add-collab-title">
   <mat-card>
-    <div class="header">
+    <header class="header">
       <div class="title">
-        <h2>{{ isEditMode ? 'Editar Colaborador' : 'Cadastro de Novo Colaborador' }}</h2>
+        <h2 id="add-collab-title">{{ isEditMode ? 'Editar Colaborador' : 'Cadastro de Novo Colaborador' }}</h2>
         <p>{{ isEditMode ? 'Altere os dados do colaborador' : 'Preencha os dados abaixo para cadastrar um novo colaborador no sistema' }}</p>
       </div>
       <button mat-raised-button (click)="goBack()">
         <mat-icon>arrow_back</mat-icon>
         Voltar
       </button>
-    </div>
+    </header>
     <hr>
 
     <app-add-collaborator 
@@ -19,4 +19,4 @@
       (collaboratorUpdated)="onCollaboratorAdded()">
     </app-add-collaborator>
   </mat-card>
-</div>
+</section>

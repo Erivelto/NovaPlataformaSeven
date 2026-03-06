@@ -1,8 +1,8 @@
-<div class="role-registration-container">
+<section class="role-registration-container" aria-labelledby="role-reg-title">
   <mat-card class="form-card">
     <div class="header">
       <div class="title">
-        <h2>Cadastro de Função</h2>
+        <h2 id="role-reg-title">Cadastro de Função</h2>
         <p>Insira o nome da nova função/cargo</p>
       </div>
     </div>
@@ -36,7 +36,7 @@
     </div>
 
     <div class="table-container">
-      <table mat-table [dataSource]="dataSource" matSort>
+      <table mat-table [dataSource]="dataSource" matSort aria-label="Lista de funções">
 
         <!-- Código Column -->
         <ng-container matColumnDef="codigo">
@@ -55,7 +55,9 @@
           <th mat-header-cell *matHeaderCellDef class="mat-column-actions"> Ações </th>
           <td mat-cell *matCellDef="let row" class="mat-column-actions">
             <div class="action-container">
-                <mat-icon color="warn" (click)="deleteRole(row)" matTooltip="Excluir" style="cursor: pointer;">delete</mat-icon>
+                <button mat-icon-button color="warn" (click)="deleteRole(row)" matTooltip="Excluir" aria-label="Excluir função">
+                  <mat-icon>delete</mat-icon>
+                </button>
             </div>
           </td>
         </ng-container>
@@ -71,4 +73,4 @@
       <mat-paginator [pageSizeOptions]="[5, 10, 25]" aria-label="Selecionar página"></mat-paginator>
     </div>
   </mat-card>
-</div>
+</section>

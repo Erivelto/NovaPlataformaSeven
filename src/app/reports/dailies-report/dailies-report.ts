@@ -1,5 +1,6 @@
-import { Component, ViewChild, AfterViewInit, OnInit, inject, ChangeDetectorRef } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { ChangeDetectionStrategy, Component, ViewChild, AfterViewInit, OnInit, inject, ChangeDetectorRef } from '@angular/core';
+import { CurrencyPipe, DatePipe, registerLocaleData } from '@angular/common';
+import localePt from '@angular/common/locales/pt';
 import { FormsModule } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
@@ -8,19 +9,21 @@ import { MatSort, MatSortModule } from '@angular/material/sort';
 import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
-import { MatTooltipModule } from '@angular/material/tooltip';
-import { MatSelectModule } from '@angular/material/select';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule, MAT_DATE_LOCALE, DateAdapter, MAT_DATE_FORMATS } from '@angular/material/core';
 import { MatButtonModule } from '@angular/material/button';
-import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { DailyService } from '../../services/daily.service';
 import { CollaboratorService, Collaborator } from '../../services/collaborator.service';
 import { StationService, Station } from '../../services/station.service';
 import { CollaboratorSearchComponent } from '../../shared/collaborator-search/collaborator-search';
+import { StationSelectComponent } from '../../shared/station-select/station-select';
+import { NotificationService } from '../../services/notification.service';
 import { Daily } from '../../services/daily.service';
 import { NativeDateAdapter } from '@angular/material/core';
 import { forkJoin } from 'rxjs';
+import { LOCALE_ID } from '@angular/core';
+
+registerLocaleData(localePt);
 
 export interface DailyReportData {
   codigo: number;
@@ -38,7 +41,7 @@ export class BrazilianDateAdapter extends NativeDateAdapter {
     return `${day}/${month}/${year}`;
   }
 
-  override parse(value: any): Date | null {
+  override parse(value: string | null): Date | null {
     if (typeof value === 'string') {
       const parts = value.split('/');
       if (parts.length === 3) {
@@ -68,7 +71,8 @@ export const BRAZILIAN_DATE_FORMATS = {
   selector: 'app-dailies-report',
   standalone: true,
   imports: [
-    CommonModule,
+    CurrencyPipe,
+    DatePipe,
     FormsModule,
     MatCardModule,
     MatTableModule,
@@ -77,34 +81,34 @@ export const BRAZILIAN_DATE_FORMATS = {
     MatInputModule,
     MatFormFieldModule,
     MatIconModule,
-    MatTooltipModule,
-    MatSelectModule,
     MatDatepickerModule,
     MatNativeDateModule,
     MatButtonModule,
-    MatSnackBarModule,
-    CollaboratorSearchComponent
+    CollaboratorSearchComponent,
+    StationSelectComponent
   ],
   providers: [
     { provide: MAT_DATE_LOCALE, useValue: 'pt-BR' },
     { provide: DateAdapter, useClass: BrazilianDateAdapter },
-    { provide: MAT_DATE_FORMATS, useValue: BRAZILIAN_DATE_FORMATS }
+    { provide: MAT_DATE_FORMATS, useValue: BRAZILIAN_DATE_FORMATS },
+    { provide: LOCALE_ID, useValue: 'pt-BR' }
   ],
   templateUrl: './dailies-report.html',
-  styleUrl: './dailies-report.scss'
+  styleUrl: './dailies-report.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class DailiesReport implements OnInit, AfterViewInit {
   private dailyService = inject(DailyService);
   private collaboratorService = inject(CollaboratorService);
   private stationService = inject(StationService);
-  private snackBar = inject(MatSnackBar);
+  private notify = inject(NotificationService);
   private cdr = inject(ChangeDetectorRef);
 
   // Filtros
   dataInicio: Date | null = null;
   dataFim: Date | null = null;
   colaboradorSelecionado: number | null = null;
-  postoSelecionado: number | null = null;
+  postosSelecionados: number[] = [];
 
   // Listas para options
   colaboradores: Collaborator[] = [];
@@ -124,18 +128,17 @@ export class DailiesReport implements OnInit, AfterViewInit {
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
 
-  compareById(a: any, b: any): boolean {
-    return a === b;
-  }
-
-  onCollaboratorChange(collaboratorId: number | null) {
+  onCollaboratorChange(collaboratorId: number | null): void {
     this.colaboradorSelecionado = collaboratorId;
     this.applyFilters();
   }
 
+  onStationChange(stationIds: number[]): void {
+    this.postosSelecionados = stationIds;
+    this.applyFilters();
+  }
+
   ngOnInit() {
-    console.log('Iniciando carregamento de dados...');
-    // Carregar colaboradores e postos em paralelo
     forkJoin({
       colaboradores: this.collaboratorService.getAll(),
       postos: this.stationService.getAll()
@@ -143,12 +146,11 @@ export class DailiesReport implements OnInit, AfterViewInit {
       next: (result) => {
         this.colaboradores = result.colaboradores;
         this.postos = result.postos;
-        console.log('✓ Colaboradores carregados:', this.colaboradores.length);
-        console.log('✓ Postos carregados:', this.postos.length);
+        this.cdr.markForCheck();
       },
-      error: (err) => {
-        console.error('Erro ao carregar dados iniciais:', err);
-        this.snackBar.open('Erro ao carregar dados iniciais', 'Fechar', { duration: 3000 });
+      error: () => {
+        this.notify.error('Erro ao carregar dados iniciais');
+        this.cdr.markForCheck();
       }
     });
   }
@@ -171,16 +173,16 @@ export class DailiesReport implements OnInit, AfterViewInit {
   consultar() {
     // Reset filters to null for fresh data
     this.colaboradorSelecionado = null;
-    this.postoSelecionado = null;
+    this.postosSelecionados = [];
 
     // Validações
     if (!this.dataInicio || !this.dataFim) {
-      this.snackBar.open('Por favor, selecione as datas inicial e final', 'Fechar', { duration: 3000 });
+      this.notify.warn('Por favor, selecione as datas inicial e final');
       return;
     }
 
     if (this.dataInicio > this.dataFim) {
-      this.snackBar.open('A data inicial não pode ser maior que a data final', 'Fechar', { duration: 3000 });
+      this.notify.warn('A data inicial não pode ser maior que a data final');
       return;
     }
 
@@ -188,7 +190,7 @@ export class DailiesReport implements OnInit, AfterViewInit {
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     
     if (diffDays > 365) {
-      this.snackBar.open('O período não pode ser maior que 365 dias', 'Fechar', { duration: 3000 });
+      this.notify.warn('O período não pode ser maior que 365 dias');
       return;
     }
 
@@ -203,11 +205,12 @@ export class DailiesReport implements OnInit, AfterViewInit {
         this.showResults = true;
         this.applyFilters();
         this.isLoading = false;
+        this.cdr.markForCheck();
       },
       error: (err) => {
-        this.snackBar.open('Erro ao carregar diárias', 'Fechar', { duration: 3000 });
-        console.error('Erro ao carregar diárias:', err);
+        this.notify.error('Erro ao carregar diárias');
         this.isLoading = false;
+        this.cdr.markForCheck();
       }
     });
   }
@@ -226,10 +229,10 @@ export class DailiesReport implements OnInit, AfterViewInit {
       );
     }
 
-    // Filtrar por posto - apenas se selecionado
-    if (this.postoSelecionado !== null && this.postoSelecionado !== undefined) {
+    // Filtrar por postos - apenas se algum selecionado
+    if (this.postosSelecionados.length > 0) {
       filteredData = filteredData.filter(daily => 
-        daily.idPosto === this.postoSelecionado
+        daily.idPosto !== undefined && this.postosSelecionados.includes(daily.idPosto)
       );
     }
 
@@ -271,7 +274,7 @@ export class DailiesReport implements OnInit, AfterViewInit {
     return this.dataSource.data.slice(start, end);
   }
 
-  onPageChange(event: any): void {
+  onPageChange(event: { pageIndex: number; pageSize: number }): void {
     this.currentPage = event.pageIndex;
     this.pageSize = event.pageSize;
   }

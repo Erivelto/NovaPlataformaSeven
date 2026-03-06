@@ -1,13 +1,13 @@
-<div class="login-container">
+<main class="login-container">
   <mat-card>
     <mat-card-header>
-      <mat-card-title>Acesso ao Sistema</mat-card-title>
+      <mat-card-title><h1 class="login-title">Acesso ao Sistema</h1></mat-card-title>
     </mat-card-header>
     <mat-card-content>
-      <form #loginForm="ngForm" (ngSubmit)="submit(loginForm)">
+      <form #loginForm="ngForm" (ngSubmit)="submit(loginForm)" aria-label="Formulário de login">
         <mat-form-field appearance="outline">
           <mat-label>Usuário</mat-label>
-          <input matInput name="user" [(ngModel)]="user" placeholder="Digite seu usuário" required #userInput="ngModel">
+          <input matInput name="user" [(ngModel)]="user" placeholder="Digite seu usuário" required #userInput="ngModel" autocomplete="username">
           @if (userInput.invalid && (userInput.dirty || userInput.touched)) {
             <mat-error>Usuário é obrigatório</mat-error>
           }
@@ -15,7 +15,7 @@
 
         <mat-form-field appearance="outline">
           <mat-label>Senha</mat-label>
-          <input matInput [type]="showPassword() ? 'text' : 'password'" name="password" [(ngModel)]="password" placeholder="Digite sua senha" required #passwordInput="ngModel">
+          <input matInput [type]="showPassword() ? 'text' : 'password'" name="password" [(ngModel)]="password" placeholder="Digite sua senha" required #passwordInput="ngModel" autocomplete="current-password">
           <button
             mat-icon-button
             matSuffix
@@ -32,7 +32,7 @@
         </mat-form-field>
 
         @if (error()) {
-          <div class="login-error">{{error()}}</div>
+          <div class="login-error" role="alert" aria-live="assertive">{{error()}}</div>
         }
 
         <div class="actions">
@@ -43,4 +43,4 @@
       </form>
     </mat-card-content>
   </mat-card>
-</div>
+</main>

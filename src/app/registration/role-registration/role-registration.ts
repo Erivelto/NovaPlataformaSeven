@@ -1,5 +1,5 @@
-import { Component, ViewChild, AfterViewInit, OnInit, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { ChangeDetectionStrategy, Component, DestroyRef, ViewChild, AfterViewInit, OnInit, inject } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
@@ -10,16 +10,14 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { RoleService, Role } from '../../services/role.service';
-import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
-import { ConfirmDialog } from '../../shared/confirm-dialog/confirm-dialog';
+import { NotificationService } from '../../services/notification.service';
+import { ConfirmService } from '../../services/confirm.service';
 
 @Component({
   selector: 'app-role-registration',
   standalone: true,
   imports: [
-    CommonModule,
     FormsModule,
     MatCardModule,
     MatTableModule,
@@ -29,17 +27,17 @@ import { ConfirmDialog } from '../../shared/confirm-dialog/confirm-dialog';
     MatFormFieldModule,
     MatButtonModule,
     MatIconModule,
-    MatTooltipModule,
-    MatSnackBarModule,
-    MatDialogModule
+    MatTooltipModule
   ],
   templateUrl: './role-registration.html',
-  styleUrl: './role-registration.scss'
+  styleUrl: './role-registration.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class RoleRegistration implements OnInit, AfterViewInit {
   private roleService = inject(RoleService);
-  private snackBar = inject(MatSnackBar);
-  private dialog = inject(MatDialog);
+  private notify = inject(NotificationService);
+  private confirmService = inject(ConfirmService);
+  private destroyRef = inject(DestroyRef);
 
   novaFuncao: string = '';
   displayedColumns: string[] = ['codigo', 'nome', 'actions'];
@@ -62,9 +60,8 @@ export class RoleRegistration implements OnInit, AfterViewInit {
       next: (data) => {
         this.dataSource.data = data;
       },
-      error: (err) => {
-        console.error('Erro ao carregar funções:', err);
-        this.snackBar.open('Erro ao carregar funções da API', 'Fechar', { duration: 3000 });
+      error: () => {
+        this.notify.error('Erro ao carregar funções da API');
       }
     });
   }
@@ -81,7 +78,7 @@ export class RoleRegistration implements OnInit, AfterViewInit {
   addRole() {
     // Validar campo vazio
     if (!this.novaFuncao || this.novaFuncao.trim() === '') {
-      this.snackBar.open('O campo de função não pode estar vazio', 'Fechar', { duration: 3000 });
+      this.notify.warn('O campo de função não pode estar vazio');
       return;
     }
 
@@ -92,7 +89,7 @@ export class RoleRegistration implements OnInit, AfterViewInit {
     );
 
     if (funcaoExistente) {
-      this.snackBar.open('Já existe uma função cadastrada com este nome', 'Fechar', { duration: 3000 });
+      this.notify.warn('Já existe uma função cadastrada com este nome');
       return;
     }
 
@@ -102,39 +99,26 @@ export class RoleRegistration implements OnInit, AfterViewInit {
     
     this.roleService.create(newRole).subscribe({
       next: () => {
-        this.snackBar.open('Função adicionada com sucesso!', 'OK', { duration: 2000 });
+        this.notify.success('Função adicionada com sucesso!');
         this.novaFuncao = '';
         this.loadRoles();
       },
-      error: (err) => {
-        console.error('Erro ao adicionar função:', err);
-        this.snackBar.open('Erro ao cadastrar função', 'Fechar', { duration: 3000 });
+      error: () => {
+        this.notify.error('Erro ao cadastrar função');
       }
     });
   }
 
   deleteRole(role: Role) {
-    const dialogRef = this.dialog.open(ConfirmDialog, {
-      width: '450px',
-      maxWidth: '90vw',
-      data: {
-        title: 'Confirmar Exclusão',
-        message: `Deseja realmente excluir a função ${role.nome}? Esta ação não pode ser desfeita.`,
-        confirmText: 'Excluir',
-        cancelText: 'Cancelar'
-      }
-    });
-
-    dialogRef.afterClosed().subscribe(result => {
-      if (result && role.id) {
+    this.confirmService.confirmDelete(`a função ${role.nome}`).pipe(takeUntilDestroyed(this.destroyRef)).subscribe(confirmed => {
+      if (confirmed && role.id) {
         this.roleService.delete(role.id).subscribe({
           next: () => {
-            this.snackBar.open('Função excluída com sucesso', 'OK', { duration: 2000 });
+            this.notify.success('Função excluída com sucesso');
             this.loadRoles();
           },
-          error: (err) => {
-            console.error('Erro ao deletar:', err);
-            this.snackBar.open('Erro ao excluir função', 'Fechar', { duration: 3000 });
+          error: () => {
+            this.notify.error('Erro ao excluir função');
           }
         });
       }

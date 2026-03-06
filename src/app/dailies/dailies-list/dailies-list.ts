@@ -1,5 +1,6 @@
-import { Component, ViewChild, AfterViewInit, OnInit, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ViewChild, AfterViewInit, OnInit, DestroyRef, inject } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { DatePipe } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
@@ -12,14 +13,15 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { DailyService, Daily } from '../../services/daily.service';
 import { CollaboratorService } from '../../services/collaborator.service';
 import { CollaboratorDetailService } from '../../services/collaborator-detail.service';
-import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { NotificationService } from '../../services/notification.service';
+import { ConfirmService } from '../../services/confirm.service';
 import { forkJoin } from 'rxjs';
 
 @Component({
   selector: 'app-dailies-list',
   standalone: true,
   imports: [
-    CommonModule,
+    DatePipe,
     MatCardModule,
     MatTableModule,
     MatPaginatorModule,
@@ -28,17 +30,20 @@ import { forkJoin } from 'rxjs';
     MatFormFieldModule,
     MatButtonModule,
     MatIconModule,
-    MatTooltipModule,
-    MatSnackBarModule
+    MatTooltipModule
   ],
   templateUrl: './dailies-list.html',
-  styleUrl: './dailies-list.scss'
+  styleUrl: './dailies-list.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class DailiesList implements OnInit, AfterViewInit {
   private dailyService = inject(DailyService);
   private collaboratorService = inject(CollaboratorService);
   private detailService = inject(CollaboratorDetailService);
-  private snackBar = inject(MatSnackBar);
+  private notify = inject(NotificationService);
+  private confirmService = inject(ConfirmService);
+  private destroyRef = inject(DestroyRef);
+  private cdr = inject(ChangeDetectorRef);
 
   displayedColumns: string[] = ['codigo', 'colaborador', 'dataDiaria', 'userCadastro', 'actions'];
   dataSource = new MatTableDataSource<Daily>([]);
@@ -75,10 +80,11 @@ export class DailiesList implements OnInit, AfterViewInit {
         });
 
         this.dataSource.data = processedDailies;
+        this.cdr.markForCheck();
       },
-      error: (err) => {
-        console.error('Erro ao carregar dados:', err);
-        this.snackBar.open('Erro ao sincronizar dados da API', 'Fechar', { duration: 3000 });
+      error: () => {
+        this.notify.error('Erro ao sincronizar dados da API');
+        this.cdr.markForCheck();
       }
     });
   }
@@ -93,19 +99,18 @@ export class DailiesList implements OnInit, AfterViewInit {
   }
 
   deleteDaily(item: Daily) {
-    if (confirm(`Deseja realmente excluir esta diária?`)) {
-      if (item.id) {
+    this.confirmService.confirmDelete('esta diária').pipe(takeUntilDestroyed(this.destroyRef)).subscribe(confirmed => {
+      if (confirmed && item.id) {
         this.dailyService.delete(item.id).subscribe({
           next: () => {
-            this.snackBar.open('Diária excluída com sucesso', 'OK', { duration: 2000 });
+            this.notify.success('Diária excluída com sucesso');
             this.loadDailies();
           },
-          error: (err) => {
-            console.error('Erro ao deletar:', err);
-            this.snackBar.open('Erro ao excluir diária', 'Fechar', { duration: 3000 });
+          error: () => {
+            this.notify.error('Erro ao excluir diária');
           }
         });
       }
-    }
+    });
   }
 }

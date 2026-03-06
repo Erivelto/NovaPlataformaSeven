@@ -1,5 +1,4 @@
-import { Component, ViewChild, AfterViewInit, OnInit, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ViewChild, AfterViewInit, OnInit, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
@@ -12,7 +11,6 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatSelectModule } from '@angular/material/select';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule, MAT_DATE_LOCALE } from '@angular/material/core';
-import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { SelectionModel } from '@angular/cdk/collections';
 import { forkJoin } from 'rxjs';
@@ -21,6 +19,8 @@ import { CollaboratorDetailService, DetailOption } from '../../services/collabor
 import { DailyService, Daily } from '../../services/daily.service';
 import { StationService, Station } from '../../services/station.service';
 import { AdiantamentoService, Adiantamento } from '../../services/adiantamento.service';
+import { NotificationService } from '../../services/notification.service';
+import { parseCurrencyToNumber, formatNumberToCurrency } from '../../shared/utils/currency.utils';
 import { CollaboratorSearchComponent } from '../../shared/collaborator-search/collaborator-search';
 
 /** Linha da tabela — 1 por data da semana */
@@ -35,7 +35,6 @@ export interface DailyRow {
   selector: 'app-add-di',
   standalone: true,
   imports: [
-    CommonModule,
     FormsModule,
     MatCardModule,
     MatTableModule,
@@ -48,7 +47,6 @@ export interface DailyRow {
     MatSelectModule,
     MatDatepickerModule,
     MatNativeDateModule,
-    MatSnackBarModule,
     MatTooltipModule,
     CollaboratorSearchComponent
   ],
@@ -56,7 +54,8 @@ export interface DailyRow {
     { provide: MAT_DATE_LOCALE, useValue: 'pt-BR' }
   ],
   templateUrl: './add-di.html',
-  styleUrl: './add-di.scss'
+  styleUrl: './add-di.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AddDi implements OnInit, AfterViewInit {
   private collaboratorService = inject(CollaboratorService);
@@ -64,7 +63,8 @@ export class AddDi implements OnInit, AfterViewInit {
   private dailyService = inject(DailyService);
   private stationService = inject(StationService);
   private adiantamentoService = inject(AdiantamentoService);
-  private snackBar = inject(MatSnackBar);
+  private notify = inject(NotificationService);
+  private cdr = inject(ChangeDetectorRef);
 
   displayedColumns: string[] = ['select', 'data', 'diaria', 'existentes', 'posto'];
   dataSource = new MatTableDataSource<DailyRow>([]);
@@ -83,8 +83,16 @@ export class AddDi implements OnInit, AfterViewInit {
   isLoadingDailies: boolean = false;
 
   formatarValorAdiantamento() {
-    // ngx-mask cuida da formatação automaticamente
-    this._valorAdiantamento = parseFloat(this.valorAdiantamentoStr.replace(/\./g, '').replace(',', '.'));
+    if (!this.valorAdiantamentoStr) {
+      this._valorAdiantamento = 0;
+      return;
+    }
+    this._valorAdiantamento = parseCurrencyToNumber(this.valorAdiantamentoStr);
+    if (this._valorAdiantamento === 0) {
+      this.valorAdiantamentoStr = '';
+      return;
+    }
+    this.valorAdiantamentoStr = formatNumberToCurrency(this._valorAdiantamento);
   }
 
   @ViewChild(MatSort) sort!: MatSort;
@@ -102,10 +110,11 @@ export class AddDi implements OnInit, AfterViewInit {
     this.collaboratorService.getAll().subscribe({
       next: (data) => {
         this.collaborators = data;
+        this.cdr.markForCheck();
       },
-      error: (err) => {
-        console.error('Erro ao carregar colaboradores:', err);
-        this.snackBar.open('Erro ao carregar colaboradores', 'Fechar', { duration: 3000 });
+      error: () => {
+        this.notify.error('Erro ao carregar colaboradores');
+        this.cdr.markForCheck();
       }
     });
   }
@@ -114,10 +123,11 @@ export class AddDi implements OnInit, AfterViewInit {
     this.stationService.getAll().subscribe({
       next: (data) => {
         this.stations = data;
+        this.cdr.markForCheck();
       },
-      error: (err) => {
-        console.error('Erro ao carregar postos:', err);
-        this.snackBar.open('Erro ao carregar postos', 'Fechar', { duration: 3000 });
+      error: () => {
+        this.notify.error('Erro ao carregar postos');
+        this.cdr.markForCheck();
       }
     });
   }
@@ -157,7 +167,8 @@ export class AddDi implements OnInit, AfterViewInit {
         if (this.detailOptions.length === 0) {
           this.isLoadingDailies = false;
           this.dataSource.data = [];
-          this.snackBar.open('Nenhum detalhe cadastrado para este colaborador', 'Fechar', { duration: 3000 });
+          this.cdr.markForCheck();
+          this.notify.warn('Nenhum detalhe cadastrado para este colaborador');
           return;
         }
 
@@ -188,11 +199,11 @@ export class AddDi implements OnInit, AfterViewInit {
 
             const totalExisting = rows.reduce((sum, r) => sum + r.existingCount, 0);
             if (totalExisting > 0) {
-              this.snackBar.open(
-                `${options.length} posto(s) disponível(is). ${totalExisting} diária(s) já salva(s).`,
-                'OK', { duration: 3000 }
+              this.notify.info(
+                `${options.length} posto(s) disponível(is). ${totalExisting} diária(s) já salva(s).`
               );
             }
+            this.cdr.markForCheck();
           },
           error: () => {
             this.isLoadingDailies = false;
@@ -202,6 +213,7 @@ export class AddDi implements OnInit, AfterViewInit {
               valor: 1,
               existingCount: 0
             }));
+            this.cdr.markForCheck();
           }
         });
       },
@@ -214,7 +226,8 @@ export class AddDi implements OnInit, AfterViewInit {
           existingCount: 0
         }));
         this.detailOptions = [];
-        this.snackBar.open('Erro ao buscar detalhes do colaborador', 'Fechar', { duration: 3000 });
+        this.notify.error('Erro ao buscar detalhes do colaborador');
+        this.cdr.markForCheck();
       }
     });
   }
@@ -251,31 +264,31 @@ export class AddDi implements OnInit, AfterViewInit {
 
   saveDailies() {
     if (!this.selectedCollaboratorId) {
-      this.snackBar.open('Selecione um colaborador primeiro', 'Fechar', { duration: 3000 });
+      this.notify.warn('Selecione um colaborador primeiro');
       return;
     }
     if (!this.canSaveDailies) {
-      this.snackBar.open('O prazo para salvar diárias desta semana já expirou.', 'Fechar', { duration: 4000 });
+      this.notify.warn('O prazo para salvar diárias desta semana já expirou.');
       return;
     }
 
     const selectedRows = this.selection.selected;
     if (selectedRows.length === 0) {
-      this.snackBar.open('Selecione ao menos uma diária para enviar', 'Fechar', { duration: 3000 });
+      this.notify.warn('Selecione ao menos uma diária para enviar');
       return;
     }
 
     // Validar se todas as linhas selecionadas têm valor (dias) > 0
     const emptyRows = selectedRows.filter(d => !d.valor || d.valor <= 0);
     if (emptyRows.length > 0) {
-      this.snackBar.open('Preencha o campo Dias para todos os dias marcados', 'Fechar', { duration: 3000 });
+      this.notify.warn('Preencha o campo Dias para todos os dias marcados');
       return;
     }
 
     // Validar se todas as linhas selecionadas têm posto selecionado
     const noPosto = selectedRows.filter(d => !d.idColaboradorDetalhe);
     if (noPosto.length > 0) {
-      this.snackBar.open('Selecione o posto para todos os dias marcados', 'Fechar', { duration: 3000 });
+      this.notify.warn('Selecione o posto para todos os dias marcados');
       return;
     }
 
@@ -305,23 +318,21 @@ export class AddDi implements OnInit, AfterViewInit {
           
           this.adiantamentoService.create(adiantamento).subscribe({
             next: () => {
-              this.snackBar.open(`${total} diária(s) e adiantamento salvo(s) com sucesso!`, 'OK', { duration: 3000 });
+              this.notify.success(`${total} diária(s) e adiantamento salvo(s) com sucesso!`);
               this.resetAfterSave();
             },
-            error: (err: any) => {
-              console.error('Erro ao salvar adiantamento:', err);
-              this.snackBar.open(`Diárias salvas, mas erro ao salvar adiantamento: ${err?.error?.message || 'Erro desconhecido'}`, 'Fechar', { duration: 4000 });
+            error: (err: { error?: { message?: string } }) => {
+              this.notify.warn(`Diárias salvas, mas erro ao salvar adiantamento: ${err?.error?.message || 'Erro desconhecido'}`);
               this.isSaving = false;
             }
           });
         } else {
-          this.snackBar.open(`${total} diária(s) salva(s) com sucesso!`, 'OK', { duration: 3000 });
+          this.notify.success(`${total} diária(s) salva(s) com sucesso!`);
           this.resetAfterSave();
         }
       },
       error: (err: any) => {
-        console.error('Erro ao salvar diárias:', err);
-        this.snackBar.open('Erro ao salvar diárias', 'Fechar', { duration: 3000 });
+        this.notify.error('Erro ao salvar diárias');
         this.isSaving = false;
       }
     });

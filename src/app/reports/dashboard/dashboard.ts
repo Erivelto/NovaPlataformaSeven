@@ -1,12 +1,11 @@
 import { Component, OnInit, OnDestroy, ChangeDetectionStrategy, ChangeDetectorRef, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { Router, NavigationEnd } from '@angular/router';
 import { CollaboratorService } from '../../services/collaborator.service';
 import { DailyService } from '../../services/daily.service';
 import { StationService } from '../../services/station.service';
-import { CollaboratorDetailService } from '../../services/collaborator-detail.service';
+import { CollaboratorDetailService, CollaboratorDetail } from '../../services/collaborator-detail.service';
 import { forkJoin, Subscription } from 'rxjs';
 import { filter } from 'rxjs/operators';
 
@@ -14,7 +13,6 @@ import { filter } from 'rxjs/operators';
   selector: 'app-dashboard',
   standalone: true,
   imports: [
-    CommonModule,
     MatCardModule,
     MatIconModule
   ],
@@ -104,7 +102,7 @@ export class Dashboard implements OnInit, OnDestroy {
     // Recarrega os dados quando a navegação terminar
     this.routerSubscription = this.router.events.pipe(
       filter(event => event instanceof NavigationEnd)
-    ).subscribe((event: any) => {
+    ).subscribe((event: NavigationEnd) => {
       if (event.url.includes('relatorio-dashboard')) {
         this.loadDashboardStats();
       }
@@ -155,7 +153,7 @@ export class Dashboard implements OnInit, OnDestroy {
         this.kpis[2].change = `${percentChange > 0 ? '+' : ''}${percentChange}% vs mês anterior`;
 
         // Top 4 Colaboradores com mais diárias
-        const dailiesByCollab = new Map<number, { count: number; details: any }>();
+        const dailiesByCollab = new Map<number, { count: number; details: CollaboratorDetail }>();
         dailiesThisMonth.forEach(daily => {
           const detail = res.details.find(d => d.id === daily.idColaboradorDetalhe);
           if (detail) {
@@ -172,7 +170,7 @@ export class Dashboard implements OnInit, OnDestroy {
             const collab = res.collaborators.find(c => c.id === item.details.idColaborador);
             return {
               name: collab?.nome || 'Desconhecido',
-              role: item.details?.role || 'Operador',
+              role: 'Operador',
               total: `${item.count} diária(s)`
             };
           });
@@ -264,8 +262,8 @@ export class Dashboard implements OnInit, OnDestroy {
         this.alerts = alerts.length > 0 ? alerts : this.alerts;
         this.cdr.markForCheck();
       },
-      error: (err) => {
-        console.error('Erro ao carregar estatísticas:', err);
+      error: () => {
+        // Erro silencioso - dashboard continua com dados padrão
       }
     });
   }

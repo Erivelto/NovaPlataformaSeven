@@ -1,0 +1,35 @@
+<mat-form-field appearance="outline" class="station-select-field" [floatLabel]="'always'">
+  <mat-label>{{ label }}</mat-label>
+
+  <!-- Chips dos postos selecionados -->
+  <mat-chip-set aria-label="Postos selecionados" class="chip-set">
+    @for (id of selectedIds; track id) {
+      <mat-chip (removed)="removeStation(id)">
+        {{ getStationName(id) }}
+        <button matChipRemove [attr.aria-label]="'Remover ' + getStationName(id)">
+          <mat-icon>cancel</mat-icon>
+        </button>
+      </mat-chip>
+    }
+  </mat-chip-set>
+
+  <!-- Input com autocomplete para buscar e adicionar -->
+  <input matInput
+         [formControl]="searchControl"
+         [matAutocomplete]="stationAuto"
+         [placeholder]="selectedIds.length > 0 ? 'Buscar posto...' : placeholder"
+         [style]="selectedIds.length > 0 ? 'height: 0; padding: 0; margin: 0; border: none;' : ''"
+         (blur)="onBlur()"
+         aria-label="Buscar posto">
+
+  <mat-autocomplete #stationAuto="matAutocomplete">
+    @for (station of filteredStations$ | async; track station.id) {
+      <mat-option (click)="addStation(station.id!); $event.stopPropagation()">
+        {{ station.nome }}
+      </mat-option>
+    }
+  </mat-autocomplete>
+
+  <mat-icon matPrefix>location_on</mat-icon>
+  <mat-error>{{ errorMessage }}</mat-error>
+</mat-form-field>

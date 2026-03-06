@@ -1,5 +1,5 @@
-import { Component, Input, Output, EventEmitter, OnInit, OnChanges, SimpleChanges, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { ChangeDetectionStrategy, Component, Input, Output, EventEmitter, OnInit, OnChanges, SimpleChanges, inject } from '@angular/core';
+import { AsyncPipe } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormControl } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -13,7 +13,7 @@ import { Collaborator } from '../../services/collaborator.service';
   selector: 'app-collaborator-search',
   standalone: true,
   imports: [
-    CommonModule,
+    AsyncPipe,
     FormsModule,
     ReactiveFormsModule,
     MatFormFieldModule,
@@ -22,7 +22,8 @@ import { Collaborator } from '../../services/collaborator.service';
     MatIconModule
   ],
   templateUrl: './collaborator-search.html',
-  styleUrl: './collaborator-search.scss'
+  styleUrl: './collaborator-search.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CollaboratorSearchComponent implements OnInit, OnChanges {
   @Input() collaborators: Collaborator[] = [];

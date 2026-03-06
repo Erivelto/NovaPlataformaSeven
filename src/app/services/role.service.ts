@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../environments/environment';
 
 export interface Role {
   id?: number;
@@ -11,7 +12,7 @@ export interface Role {
   providedIn: 'root'
 })
 export class RoleService {
-  private readonly apiUrl = 'https://plataformasevenapi-czf4d3ccdea4hvg4.eastus-01.azurewebsites.net/api/funcao';
+  private readonly apiUrl = `${environment.apiBaseUrl}/funcao`;
 
   constructor(private http: HttpClient) {}
 
@@ -27,11 +28,11 @@ export class RoleService {
     return this.http.post<Role>(this.apiUrl, role);
   }
 
-  update(id: number, role: Role): Observable<any> {
-    return this.http.put(`${this.apiUrl}/${id}`, role);
+  update(id: number, role: Role): Observable<void> {
+    return this.http.put<void>(`${this.apiUrl}/${id}`, role);
   }
 
-  delete(id: number): Observable<any> {
-    return this.http.delete(`${this.apiUrl}/${id}`);
+  delete(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/${id}`);
   }
 }

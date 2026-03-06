@@ -116,18 +116,18 @@ describe('AddDi', () => {
     expect(component.stations[0].nome).toBe('Posto Alpha');
   });
 
-  it('loadCollaborators deve exibir snackBar em caso de erro', () => {
-    const snackSpy = vi.spyOn(component['snackBar'], 'open');
+  it('loadCollaborators deve exibir notificação em caso de erro', () => {
+    const notifySpy = vi.spyOn(component['notify'], 'error');
     vi.spyOn(collaboratorService, 'getAll').mockReturnValue(throwError(() => new Error('Erro')));
     component.loadCollaborators();
-    expect(snackSpy).toHaveBeenCalledWith('Erro ao carregar colaboradores', 'Fechar', { duration: 3000 });
+    expect(notifySpy).toHaveBeenCalledWith('Erro ao carregar colaboradores');
   });
 
-  it('loadStations deve exibir snackBar em caso de erro', () => {
-    const snackSpy = vi.spyOn(component['snackBar'], 'open');
+  it('loadStations deve exibir notificação em caso de erro', () => {
+    const notifySpy = vi.spyOn(component['notify'], 'error');
     vi.spyOn(stationService, 'getAll').mockReturnValue(throwError(() => new Error('Erro')));
     component.loadStations();
-    expect(snackSpy).toHaveBeenCalledWith('Erro ao carregar postos', 'Fechar', { duration: 3000 });
+    expect(notifySpy).toHaveBeenCalledWith('Erro ao carregar postos');
   });
 
   // ==========================================
@@ -209,11 +209,11 @@ describe('AddDi', () => {
     expect(component.dataSource.data[2].existingCount).toBe(0);
   });
 
-  it('onCollaboratorChange deve exibir snackBar quando sem detalhes', () => {
-    const snackSpy = vi.spyOn(component['snackBar'], 'open');
+  it('onCollaboratorChange deve exibir notificação quando sem detalhes', () => {
+    const notifySpy = vi.spyOn(component['notify'], 'warn');
     vi.spyOn(collaboratorDetailService, 'getSelectOptions').mockReturnValue(of([]));
     component.onCollaboratorChange(999);
-    expect(snackSpy).toHaveBeenCalledWith('Nenhum detalhe cadastrado para este colaborador', 'Fechar', { duration: 3000 });
+    expect(notifySpy).toHaveBeenCalledWith('Nenhum detalhe cadastrado para este colaborador');
     expect(component.dataSource.data.length).toBe(0);
   });
 
@@ -228,11 +228,11 @@ describe('AddDi', () => {
     });
   });
 
-  it('onCollaboratorChange deve exibir snackBar se busca de detalhes falhar', () => {
-    const snackSpy = vi.spyOn(component['snackBar'], 'open');
+  it('onCollaboratorChange deve exibir notificação se busca de detalhes falhar', () => {
+    const notifySpy = vi.spyOn(component['notify'], 'error');
     vi.spyOn(collaboratorDetailService, 'getSelectOptions').mockReturnValue(throwError(() => new Error('Erro')));
     component.onCollaboratorChange(932);
-    expect(snackSpy).toHaveBeenCalledWith('Erro ao buscar detalhes do colaborador', 'Fechar', { duration: 3000 });
+    expect(notifySpy).toHaveBeenCalledWith('Erro ao buscar detalhes do colaborador');
   });
 
   it('onCollaboratorChange deve setar isLoadingDailies false após carregamento', () => {
@@ -272,30 +272,40 @@ describe('AddDi', () => {
   });
 
   // ==========================================
-  // formatarValorAdiantamento — máscara R$
+  // formatarValorAdiantamento — parsing de valor
   // ==========================================
-  it('formatarValorAdiantamento deve formatar vazio como 0,00', () => {
+  it('formatarValorAdiantamento deve tratar string vazia como 0', () => {
     component.valorAdiantamentoStr = '';
     component.formatarValorAdiantamento();
-    expect(component.valorAdiantamentoStr).toBe('0,00');
+    expect(component['_valorAdiantamento']).toBe(0);
   });
 
-  it('formatarValorAdiantamento deve formatar 1000 como 1.000,00', () => {
+  it('formatarValorAdiantamento deve parsear e formatar 1000 como "1.000,00"', () => {
     component.valorAdiantamentoStr = '1000';
     component.formatarValorAdiantamento();
+    expect(component['_valorAdiantamento']).toBe(1000);
     expect(component.valorAdiantamentoStr).toBe('1.000,00');
   });
 
-  it('formatarValorAdiantamento deve formatar 50,5 como 50,50', () => {
+  it('formatarValorAdiantamento deve parsear e formatar 50,5 como "50,50"', () => {
     component.valorAdiantamentoStr = '50,5';
     component.formatarValorAdiantamento();
+    expect(component['_valorAdiantamento']).toBe(50.5);
     expect(component.valorAdiantamentoStr).toBe('50,50');
   });
 
-  it('formatarValorAdiantamento deve tratar texto inválido como 0,00', () => {
+  it('formatarValorAdiantamento deve tratar texto inválido como 0 e limpar string', () => {
     component.valorAdiantamentoStr = 'abc';
     component.formatarValorAdiantamento();
-    expect(component.valorAdiantamentoStr).toBe('0,00');
+    expect(component['_valorAdiantamento']).toBe(0);
+    expect(component.valorAdiantamentoStr).toBe('');
+  });
+
+  it('formatarValorAdiantamento deve formatar 1500.75 corretamente', () => {
+    component.valorAdiantamentoStr = '1.500,75';
+    component.formatarValorAdiantamento();
+    expect(component['_valorAdiantamento']).toBe(1500.75);
+    expect(component.valorAdiantamentoStr).toBe('1.500,75');
   });
 
   // ==========================================
@@ -322,14 +332,14 @@ describe('AddDi', () => {
   // saveDailies — validações e loop de registros
   // ==========================================
   it('saveDailies deve exibir erro se nenhum colaborador selecionado', () => {
-    const snackSpy = vi.spyOn(component['snackBar'], 'open');
+    const notifySpy = vi.spyOn(component['notify'], 'warn');
     component.selectedCollaboratorId = null;
     component.saveDailies();
-    expect(snackSpy).toHaveBeenCalledWith('Selecione um colaborador primeiro', 'Fechar', { duration: 3000 });
+    expect(notifySpy).toHaveBeenCalledWith('Selecione um colaborador primeiro');
   });
 
   it('saveDailies deve exibir erro se nenhuma diária selecionada', () => {
-    const snackSpy = vi.spyOn(component['snackBar'], 'open');
+    const notifySpy = vi.spyOn(component['notify'], 'warn');
     component.selectedCollaboratorId = 1;
     component.isSaving = false;
     const row: DailyRow = { idColaboradorDetalhe: null, dataDiaria: '2026-02-23', valor: 1, existingCount: 0 };
@@ -338,12 +348,12 @@ describe('AddDi', () => {
 
     if (component.canSaveDailies) {
       component.saveDailies();
-      expect(snackSpy).toHaveBeenCalledWith('Selecione ao menos uma diária para enviar', 'Fechar', { duration: 3000 });
+      expect(notifySpy).toHaveBeenCalledWith('Selecione ao menos uma diária para enviar');
     }
   });
 
   it('saveDailies deve exibir erro se linha selecionada sem valor preenchido', () => {
-    const snackSpy = vi.spyOn(component['snackBar'], 'open');
+    const notifySpy = vi.spyOn(component['notify'], 'warn');
     component.selectedCollaboratorId = 1;
     component.isSaving = false;
     const row: DailyRow = { idColaboradorDetalhe: 1973, dataDiaria: '2026-02-23', valor: 0, existingCount: 0 };
@@ -352,12 +362,12 @@ describe('AddDi', () => {
 
     if (component.canSaveDailies) {
       component.saveDailies();
-      expect(snackSpy).toHaveBeenCalledWith('Preencha o campo Dias para todos os dias marcados', 'Fechar', { duration: 3000 });
+      expect(notifySpy).toHaveBeenCalledWith('Preencha o campo Dias para todos os dias marcados');
     }
   });
 
   it('saveDailies deve exibir erro se linha selecionada sem posto', () => {
-    const snackSpy = vi.spyOn(component['snackBar'], 'open');
+    const notifySpy = vi.spyOn(component['notify'], 'warn');
     component.selectedCollaboratorId = 1;
     component.isSaving = false;
     const row: DailyRow = { idColaboradorDetalhe: null, dataDiaria: '2026-02-23', valor: 1, existingCount: 0 };
@@ -366,7 +376,7 @@ describe('AddDi', () => {
 
     if (component.canSaveDailies) {
       component.saveDailies();
-      expect(snackSpy).toHaveBeenCalledWith('Selecione o posto para todos os dias marcados', 'Fechar', { duration: 3000 });
+      expect(notifySpy).toHaveBeenCalledWith('Selecione o posto para todos os dias marcados');
     }
   });
 
@@ -408,7 +418,7 @@ describe('AddDi', () => {
   });
 
   it('saveDailies deve exibir erro e resetar isSaving em caso de falha', () => {
-    const snackSpy = vi.spyOn(component['snackBar'], 'open');
+    const notifySpy = vi.spyOn(component['notify'], 'error');
     component.selectedCollaboratorId = 1;
     component.isSaving = false;
     const row: DailyRow = { idColaboradorDetalhe: 1973, dataDiaria: '2026-02-23', valor: 1, existingCount: 0 };
@@ -419,7 +429,7 @@ describe('AddDi', () => {
 
     if (component.canSaveDailies) {
       component.saveDailies();
-      expect(snackSpy).toHaveBeenCalledWith('Erro ao salvar diárias', 'Fechar', { duration: 3000 });
+      expect(notifySpy).toHaveBeenCalledWith('Erro ao salvar diárias');
       expect(component.isSaving).toBe(false);
     }
   });

@@ -1,13 +1,12 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { MatSnackBar } from '@angular/material/snack-bar';
-import { MatDialog } from '@angular/material/dialog';
 import { Router } from '@angular/router';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import { of, throwError } from 'rxjs';
 import { Collaborators } from './collaborators';
 import { CollaboratorService, Collaborator } from '../services/collaborator.service';
 import { CollaboratorDetailService, CollaboratorDetail } from '../services/collaborator-detail.service';
-import { ConfirmDialog } from '../shared/confirm-dialog/confirm-dialog';
+import { NotificationService } from '../services/notification.service';
+import { ConfirmService } from '../services/confirm.service';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 
 describe('Collaborators Component', () => {
@@ -15,14 +14,13 @@ describe('Collaborators Component', () => {
   let fixture: ComponentFixture<Collaborators>;
   let mockCollaboratorService: any;
   let mockDetailService: any;
-  let mockSnackBar: any;
+  let mockNotify: any;
   let mockRouter: any;
-  let mockDialog: any;
+  let mockConfirmService: any;
 
   const mockCollaborators: Collaborator[] = [
     {
       id: 1,
-      codigo: 100,
       nome: 'João Silva',
       pix: '11999999999',
       referencia: '123.456.789-00',
@@ -33,7 +31,6 @@ describe('Collaborators Component', () => {
     },
     {
       id: 2,
-      codigo: 101,
       nome: 'Maria Santos',
       pix: 'maria@email.com',
       referencia: '987.654.321-00',
@@ -66,22 +63,20 @@ describe('Collaborators Component', () => {
       getByCollaboratorId: vi.fn().mockReturnValue(of([mockDetail]))
     };
 
-    mockSnackBar = {
-      open: vi.fn()
+    mockNotify = {
+      success: vi.fn(),
+      error: vi.fn(),
+      info: vi.fn(),
+      warn: vi.fn()
     };
 
     mockRouter = {
       navigate: vi.fn()
     };
 
-    mockDialog = {
-      open: vi.fn().mockReturnValue({
-        afterClosed: () => of(true),
-        componentInstance: {},
-        updatePosition: vi.fn(),
-        updateSize: vi.fn(),
-        close: vi.fn()
-      })
+    mockConfirmService = {
+      confirmDelete: vi.fn().mockReturnValue(of(true)),
+      confirm: vi.fn().mockReturnValue(of(true))
     };
 
     await TestBed.configureTestingModule({
@@ -90,9 +85,9 @@ describe('Collaborators Component', () => {
         provideAnimationsAsync(),
         { provide: CollaboratorService, useValue: mockCollaboratorService },
         { provide: CollaboratorDetailService, useValue: mockDetailService },
-        { provide: MatSnackBar, useValue: mockSnackBar },
+        { provide: NotificationService, useValue: mockNotify },
         { provide: Router, useValue: mockRouter },
-        { provide: MatDialog, useValue: mockDialog }
+        { provide: ConfirmService, useValue: mockConfirmService }
       ]
     }).compileComponents();
 
@@ -123,16 +118,14 @@ describe('Collaborators Component', () => {
       expect(component.dataSource.data).toEqual(mockCollaborators);
     });
 
-    it('should handle error by logging to console', () => {
+    it('should handle error with notification', () => {
       mockCollaboratorService.getAll.mockReturnValue(
         throwError(() => new Error('API Error'))
       );
-      const consoleSpy = vi.spyOn(console, 'error');
 
       component.loadCollaborators();
 
-      expect(consoleSpy).toHaveBeenCalled();
-      consoleSpy.mockRestore();
+      expect(mockNotify.error).toHaveBeenCalledWith('Erro ao carregar colaboradores da API');
     });
   });
 

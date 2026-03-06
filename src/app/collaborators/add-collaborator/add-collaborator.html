@@ -1,4 +1,4 @@
-<form [formGroup]="form" (ngSubmit)="onSubmit()">
+<form [formGroup]="form" (ngSubmit)="onSubmit()" aria-label="Cadastro de colaborador">
   
   <!-- SEÇÃO 1: DADOS PESSOAIS -->
   <div class="form-section">
@@ -12,15 +12,21 @@
         <mat-label>Nome Completo *</mat-label>
         <input matInput formControlName="nome" placeholder="Ex. João Silva Santos">
         <mat-icon matPrefix>person_outline</mat-icon>
-        <mat-error *ngIf="form.get('nome')?.hasError('required')">Nome é obrigatório</mat-error>
-        <mat-error *ngIf="form.get('nome')?.hasError('minlength')">Mínimo 3 caracteres</mat-error>
+        @if (form.get('nome')?.hasError('required')) {
+          <mat-error>Nome é obrigatório</mat-error>
+        }
+        @if (form.get('nome')?.hasError('minlength')) {
+          <mat-error>Mínimo 3 caracteres</mat-error>
+        }
       </mat-form-field>
 
       <mat-form-field appearance="outline" class="half-width">
         <mat-label>Chave PIX *</mat-label>
         <input matInput formControlName="pix" placeholder="CPF, email ou telefone">
         <mat-icon matPrefix>vpn_key</mat-icon>
-        <mat-error *ngIf="form.get('pix')?.hasError('required')">Chave PIX é obrigatória</mat-error>
+        @if (form.get('pix')?.hasError('required')) {
+          <mat-error>Chave PIX é obrigatória</mat-error>
+        }
       </mat-form-field>
 
       <mat-form-field appearance="outline" class="half-width">
@@ -43,20 +49,24 @@
         <mat-label>CEP</mat-label>
         <input matInput formControlName="cep" placeholder="12345-678">
         <mat-icon matPrefix>mail_outline</mat-icon>
-        <mat-error *ngIf="form.get('cep')?.hasError('pattern')">CEP inválido (formato: 12345-678)</mat-error>
+        @if (form.get('cep')?.hasError('pattern')) {
+          <mat-error>CEP inválido (formato: 12345-678)</mat-error>
+        }
       </mat-form-field>
 
       <mat-form-field appearance="outline" class="two-thirds-width">
         <mat-label>Logradouro</mat-label>
-        <input matInput formControlName="logradouro" placeholder="Ex. Avenida Paulista, Rua das Flores, Travessa X">
+        <input matInput formControlName="endereco" placeholder="Ex. Avenida Paulista, Rua das Flores, Travessa X">
         <mat-icon matPrefix>road</mat-icon>
       </mat-form-field>
 
       <mat-form-field appearance="outline" class="quarter-width">
         <mat-label>Número</mat-label>
-        <input matInput formControlName="numero" type="number" placeholder="123">
+        <input matInput formControlName="numero" type="text" placeholder="123">
         <mat-icon matPrefix>home_outlined</mat-icon>
-        <mat-error *ngIf="form.get('numero')?.hasError('pattern')">Apenas números</mat-error>
+        @if (form.get('numero')?.hasError('pattern')) {
+          <mat-error>Apenas números</mat-error>
+        }
       </mat-form-field>
 
       <mat-form-field appearance="outline" class="three-quarters-width">
@@ -79,9 +89,11 @@
 
       <mat-form-field appearance="outline" class="quarter-width">
         <mat-label>Estado</mat-label>
-        <input matInput formControlName="estado" placeholder="SP" maxlength="2" [value]="form.get('estado')?.value?.toUpperCase()">
+        <input matInput formControlName="uf" placeholder="SP" maxlength="2" [value]="form.get('uf')?.value?.toUpperCase()">
         <mat-icon matPrefix>location_on</mat-icon>
-        <mat-error *ngIf="form.get('estado')?.hasError('pattern')">Use a sigla do estado (ex: SP, RJ)</mat-error>
+        @if (form.get('uf')?.hasError('pattern')) {
+          <mat-error>Use a sigla do estado (ex: SP, RJ)</mat-error>
+        }
       </mat-form-field>
     </div>
   </div>
@@ -102,65 +114,48 @@
                formControlName="valorDiaria" 
                (blur)="$event.target.value = formatarValor($event.target.value)"
                placeholder="0,00">
-        <mat-error *ngIf="form.get('valorDiaria')?.hasError('required')">Valor é obrigatório</mat-error>
+        @if (form.get('valorDiaria')?.hasError('required')) {
+          <mat-error>Valor é obrigatório</mat-error>
+        }
       </mat-form-field>
 
       <mat-form-field appearance="outline" class="third-width">
         <mat-label>Função *</mat-label>
         <mat-select formControlName="funcao">
           <mat-option></mat-option>
-          <mat-option *ngFor="let role of roles" [value]="role.id">
-            {{role.nome}}
-          </mat-option>
+          @for (role of roles; track role.id) {
+            <mat-option [value]="role.id">
+              {{role.nome}}
+            </mat-option>
+          }
         </mat-select>
         <mat-icon matPrefix>work_outline</mat-icon>
-        <mat-error *ngIf="form.get('funcao')?.hasError('required')">Função é obrigatória</mat-error>
+        @if (form.get('funcao')?.hasError('required')) {
+          <mat-error>Função é obrigatória</mat-error>
+        }
       </mat-form-field>
 
       <mat-form-field appearance="outline" class="third-width">
         <mat-label>Supervisor *</mat-label>
         <mat-select formControlName="supervisor">
           <mat-option></mat-option>
-          <mat-option *ngFor="let supervisor of supervisors" [value]="supervisor.id">
-            {{supervisor.nome}}
-          </mat-option>
+          @for (supervisor of supervisors; track supervisor.id) {
+            <mat-option [value]="supervisor.id">
+              {{supervisor.nome}}
+            </mat-option>
+          }
         </mat-select>
         <mat-icon matPrefix>supervisor_account</mat-icon>
-        <mat-error *ngIf="form.get('supervisor')?.hasError('required')">Supervisor é obrigatório</mat-error>
+        @if (form.get('supervisor')?.hasError('required')) {
+          <mat-error>Supervisor é obrigatório</mat-error>
+        }
       </mat-form-field>
 
-      <mat-form-field appearance="outline" class="full-width" [floatLabel]="'always'">
-        <mat-label>Postos *</mat-label>
-        
-        <!-- Chips dos selecionados -->
-        <mat-chip-set aria-label="Postos selecionados" style="display: flex; flex-wrap: wrap; gap: 4px; padding: 4px 0;">
-          <mat-chip *ngFor="let postoId of (form.get('postos')?.value || [])" 
-                    (removed)="togglePosto(postoId)">
-            {{getStationNameById(postoId)}}
-            <button matChipRemove [attr.aria-label]="'Remove ' + getStationNameById(postoId)">
-              <mat-icon>cancel</mat-icon>
-            </button>
-          </mat-chip>
-        </mat-chip-set>
-
-        <!-- Input + Dropdown para adicionar -->
-        <input matInput 
-               #autoInput
-               [matAutocomplete]="auto"
-               (input)="autoInput.value = ''"
-               [placeholder]="(form.get('postos')?.value?.length || 0) > 0 ? '' : 'Clique para adicionar postos'"
-               [style]="(form.get('postos')?.value?.length || 0) > 0 ? 'height: 0; padding: 0; margin: 0; border: none;' : ''">
-        
-        <mat-autocomplete #auto="matAutocomplete">
-          <mat-option *ngFor="let station of getUnselectedStations()" 
-                      (click)="togglePosto(station.id!); $event.stopPropagation()">
-            {{station.nome}}
-          </mat-option>
-        </mat-autocomplete>
-
-        <mat-icon matPrefix>location_on</mat-icon>
-        <mat-error *ngIf="form.get('postos')?.hasError('required')">Selecione pelo menos um posto</mat-error>
-      </mat-form-field>
+      <app-station-select
+        class="full-width"
+        [stations]="stations"
+        formControlName="postos">
+      </app-station-select>
     </div>
   </div>
 
@@ -171,8 +166,11 @@
       Limpar
     </button>
     <button mat-raised-button color="primary" class="action-button" type="submit" [disabled]="loading">
-      <mat-icon *ngIf="!loading">save</mat-icon>
-      <mat-icon *ngIf="loading" class="spinner">hourglass_empty</mat-icon>
+      @if (!loading) {
+        <mat-icon>save</mat-icon>
+      } @else {
+        <mat-icon class="spinner">hourglass_empty</mat-icon>
+      }
       {{loading ? (isEditMode ? 'Atualizando...' : 'Salvando...') : (isEditMode ? 'Atualizar' : 'Cadastrar')}}
     </button>
   </div>

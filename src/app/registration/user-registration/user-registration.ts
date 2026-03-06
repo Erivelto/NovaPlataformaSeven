@@ -1,5 +1,5 @@
-import { Component, ViewChild, AfterViewInit, OnInit, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { ChangeDetectionStrategy, Component, DestroyRef, ViewChild, AfterViewInit, OnInit, inject } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
@@ -11,10 +11,9 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { UserService, User } from '../../services/user.service';
-import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
-import { ConfirmDialog } from '../../shared/confirm-dialog/confirm-dialog';
+import { NotificationService } from '../../services/notification.service';
+import { ConfirmService } from '../../services/confirm.service';
 
 const TIPO_OPCOES = [
   { label: 'Admin', value: 'A' },
@@ -25,7 +24,6 @@ const TIPO_OPCOES = [
   selector: 'app-user-registration',
   standalone: true,
   imports: [
-    CommonModule,
     FormsModule,
     MatCardModule,
     MatTableModule,
@@ -36,17 +34,17 @@ const TIPO_OPCOES = [
     MatSelectModule,
     MatButtonModule,
     MatIconModule,
-    MatTooltipModule,
-    MatSnackBarModule,
-    MatDialogModule
+    MatTooltipModule
   ],
   templateUrl: './user-registration.html',
-  styleUrl: './user-registration.scss'
+  styleUrl: './user-registration.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class UserRegistration implements OnInit, AfterViewInit {
   private userService = inject(UserService);
-  private snackBar = inject(MatSnackBar);
-  private dialog = inject(MatDialog);
+  private notify = inject(NotificationService);
+  private confirmService = inject(ConfirmService);
+  private destroyRef = inject(DestroyRef);
 
   // Modelo para o formulário
   novoUsuario: string = '';
@@ -75,9 +73,8 @@ export class UserRegistration implements OnInit, AfterViewInit {
       next: (data) => {
         this.dataSource.data = data;
       },
-      error: (err) => {
-        console.error('Erro ao carregar usuários:', err);
-        this.snackBar.open('Erro ao carregar usuários da API', 'Fechar', { duration: 3000 });
+      error: () => {
+        this.notify.error('Erro ao carregar usuários da API');
       }
     });
   }
@@ -94,17 +91,17 @@ export class UserRegistration implements OnInit, AfterViewInit {
   addUser() {
     // Validar campos vazios
     if (!this.novoUsuario || this.novoUsuario.trim() === '') {
-      this.snackBar.open('O campo de usuário não pode estar vazio', 'Fechar', { duration: 3000 });
+      this.notify.warn('O campo de usuário não pode estar vazio');
       return;
     }
 
     if (!this.senhaUsuario || this.senhaUsuario.trim() === '') {
-      this.snackBar.open('O campo de senha não pode estar vazio', 'Fechar', { duration: 3000 });
+      this.notify.warn('O campo de senha não pode estar vazio');
       return;
     }
 
     if (!this.tipoSelecionado) {
-      this.snackBar.open('Selecione o tipo de usuário', 'Fechar', { duration: 3000 });
+      this.notify.warn('Selecione o tipo de usuário');
       return;
     }
 
@@ -115,7 +112,7 @@ export class UserRegistration implements OnInit, AfterViewInit {
     );
 
     if (usuarioExistente) {
-      this.snackBar.open('Já existe um usuário cadastrado com este nome', 'Fechar', { duration: 3000 });
+      this.notify.warn('Já existe um usuário cadastrado com este nome');
       return;
     }
 
@@ -127,41 +124,28 @@ export class UserRegistration implements OnInit, AfterViewInit {
     
     this.userService.create(newUser).subscribe({
       next: () => {
-        this.snackBar.open('Usuário adicionado com sucesso!', 'OK', { duration: 2000 });
+        this.notify.success('Usuário adicionado com sucesso!');
         this.novoUsuario = '';
         this.senhaUsuario = '';
         this.tipoSelecionado = '';
         this.loadUsers();
       },
-      error: (err) => {
-        console.error('Erro ao adicionar usuário:', err);
-        this.snackBar.open('Erro ao cadastrar usuário', 'Fechar', { duration: 3000 });
+      error: () => {
+        this.notify.error('Erro ao cadastrar usuário');
       }
     });
   }
 
   deleteUser(user: User) {
-    const dialogRef = this.dialog.open(ConfirmDialog, {
-      width: '450px',
-      maxWidth: '90vw',
-      data: {
-        title: 'Confirmar Exclusão',
-        message: `Deseja realmente excluir o usuário ${user.user}? Esta ação não pode ser desfeita.`,
-        confirmText: 'Excluir',
-        cancelText: 'Cancelar'
-      }
-    });
-
-    dialogRef.afterClosed().subscribe(result => {
-      if (result && user.id) {
+    this.confirmService.confirmDelete(`o usuário ${user.user}`).pipe(takeUntilDestroyed(this.destroyRef)).subscribe(confirmed => {
+      if (confirmed && user.id) {
         this.userService.delete(user.id).subscribe({
           next: () => {
-            this.snackBar.open('Usuário excluído com sucesso', 'OK', { duration: 2000 });
+            this.notify.success('Usuário excluído com sucesso');
             this.loadUsers();
           },
-          error: (err) => {
-            console.error('Erro ao deletar:', err);
-            this.snackBar.open('Erro ao excluir usuário', 'Fechar', { duration: 3000 });
+          error: () => {
+            this.notify.error('Erro ao excluir usuário');
           }
         });
       }

@@ -1,8 +1,8 @@
-<div class="add-single-di-container">
+<section class="add-single-di-container" aria-labelledby="add-single-di-title">
   <mat-card>
     <div class="header">
       <div class="title">
-        <h2>Adicionar Única Diária</h2>
+        <h2 id="add-single-di-title">Adicionar Única Diária</h2>
         <p>Preencha os campos abaixo para registrar diárias para um colaborador em data específica</p>
       </div>
     </div>
@@ -18,20 +18,24 @@
     </div>
 
     <!-- Loading -->
-    <div *ngIf="isLoadingDetails" class="loading-section">
+    @if (isLoadingDetails) {
+    <div class="loading-section" aria-live="polite" role="status">
       <mat-icon>hourglass_empty</mat-icon>
       <span>Carregando detalhes...</span>
     </div>
+    }
 
-    <form [formGroup]="form" (ngSubmit)="save()" class="form-container" *ngIf="selectedCollaboratorId && !isLoadingDetails">
+    @if (selectedCollaboratorId && !isLoadingDetails) {
+    <form [formGroup]="form" (ngSubmit)="save()" class="form-container" aria-label="Adicionar diária">
       <div class="table-container">
-        <table mat-table [dataSource]="singleRowData" class="single-row-table">
+        <table mat-table [dataSource]="singleRowData" class="single-row-table" aria-label="Dados da diária">
           
           <!-- Data Column -->
           <ng-container matColumnDef="data">
             <th mat-header-cell *matHeaderCellDef> Data </th>
             <td mat-cell *matCellDef="let row">
               <mat-form-field appearance="fill" class="inline-edit">
+                <mat-label>Data</mat-label>
                 <input matInput [matDatepicker]="dataPicker" 
                        formControlName="dataDiaria"
                        (dateChange)="onDateChange()">
@@ -46,6 +50,7 @@
             <th mat-header-cell *matHeaderCellDef> Quantidade </th>
             <td mat-cell *matCellDef="let row">
               <mat-form-field appearance="fill" class="inline-edit">
+                <mat-label>Quantidade</mat-label>
                 <input matInput formControlName="valor" type="number" min="1" step="1">
               </mat-form-field>
             </td>
@@ -66,11 +71,14 @@
             <th mat-header-cell *matHeaderCellDef> Posto </th>
             <td mat-cell *matCellDef="let row">
               <mat-form-field appearance="fill" class="inline-edit">
+                <mat-label>Posto</mat-label>
                 <mat-select formControlName="idColaboradorDetalhe" (selectionChange)="onDetailChange()">
                   <mat-option></mat-option>
-                  <mat-option *ngFor="let opt of detailOptions" [value]="opt.id">
-                    {{ opt.descricao }}
-                  </mat-option>
+                  @for (opt of detailOptions; track opt.id) {
+                    <mat-option [value]="opt.id">
+                      {{ opt.descricao }}
+                    </mat-option>
+                  }
                 </mat-select>
               </mat-form-field>
             </td>
@@ -87,11 +95,15 @@
           Limpar
         </button>
         <button mat-raised-button color="primary" type="submit" [disabled]="loading || form.invalid">
-          <mat-icon *ngIf="!loading">add</mat-icon>
-          <mat-icon *ngIf="loading" class="spinner">hourglass_empty</mat-icon>
+          @if (!loading) {
+            <mat-icon>add</mat-icon>
+          } @else {
+            <mat-icon class="spinner">hourglass_empty</mat-icon>
+          }
           {{loading ? 'Salvando...' : 'Adicionar Diárias'}}
         </button>
       </div>
     </form>
+    }
   </mat-card>
-</div>
+</section>

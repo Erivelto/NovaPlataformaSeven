@@ -1,11 +1,12 @@
-import { Component, ViewChild, AfterViewInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { ChangeDetectionStrategy, Component, ViewChild, AfterViewInit } from '@angular/core';
+import { DatePipe } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
 import { MatSort, MatSortModule } from '@angular/material/sort';
 import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 
@@ -27,18 +28,20 @@ const ELEMENT_DATA: CurriculumData[] = [
   selector: 'app-curriculums-list',
   standalone: true,
   imports: [
-    CommonModule,
+    DatePipe,
     MatCardModule,
     MatTableModule,
     MatPaginatorModule,
     MatSortModule,
     MatInputModule,
     MatFormFieldModule,
+    MatButtonModule,
     MatIconModule,
     MatTooltipModule
   ],
   templateUrl: './curriculums-list.html',
-  styleUrl: './curriculums-list.scss'
+  styleUrl: './curriculums-list.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CurriculumsList implements AfterViewInit {
   displayedColumns: string[] = ['codigo', 'nome', 'idade', 'profissao', 'whatsapp', 'dataAtualizacao', 'actions'];

@@ -13,13 +13,16 @@
         <input matInput 
                [formControl]="collaboratorFilterControl"
                placeholder="Buscar colaborador..."
+               aria-label="Buscar colaborador"
                (click)="$event.stopPropagation()"
                (keydown)="$event.stopPropagation()">
       </mat-form-field>
     </mat-option>
     
-    <mat-option *ngFor="let collaborator of filteredCollaborators | async" [value]="collaborator.id">
-      {{ collaborator.nome }} - Cód: {{ collaborator.id }}
-    </mat-option>
+    @for (collaborator of filteredCollaborators | async; track collaborator.id) {
+      <mat-option [value]="collaborator.id">
+        {{ collaborator.nome }} - Cód: {{ collaborator.id }}
+      </mat-option>
+    }
   </mat-select>
 </mat-form-field>

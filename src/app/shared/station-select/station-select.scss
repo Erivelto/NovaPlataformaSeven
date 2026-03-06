@@ -1,0 +1,10 @@
+.station-select-field {
+  width: 100%;
+
+  .chip-set {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    padding: 4px 0;
+  }
+}

@@ -1,42 +1,36 @@
-import { Component, OnInit, Output, EventEmitter, Input, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { ChangeDetectionStrategy, Component, OnInit, Output, EventEmitter, Input, inject } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatButtonModule } from '@angular/material/button';
-import { MatCheckboxModule } from '@angular/material/checkbox';
-import { MatChipsModule } from '@angular/material/chips';
-import { MatMenuModule } from '@angular/material/menu';
-import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatIconModule } from '@angular/material/icon';
-import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { StationSelectComponent } from '../../shared/station-select/station-select';
 import { CollaboratorService, Collaborator } from '../../services/collaborator.service';
 import { CollaboratorDetailService, CollaboratorDetail } from '../../services/collaborator-detail.service';
 import { RoleService, Role } from '../../services/role.service';
 import { SupervisorService, Supervisor } from '../../services/supervisor.service';
 import { StationService, Station } from '../../services/station.service';
-import { forkJoin } from 'rxjs';
+import { AuthService } from '../../services/auth.service';
+import { NotificationService } from '../../services/notification.service';
+import { formatNumberToCurrency, parseCurrencyToNumber } from '../../shared/utils/currency.utils';
+import { forkJoin, switchMap } from 'rxjs';
 
 @Component({
   selector: 'app-add-collaborator',
   standalone: true,
   imports: [
-    CommonModule,
     ReactiveFormsModule,
     MatFormFieldModule,
     MatInputModule,
     MatSelectModule,
     MatButtonModule,
     MatIconModule,
-    MatSnackBarModule,
-    MatCheckboxModule,
-    MatChipsModule,
-    MatMenuModule,
-    MatAutocompleteModule
+    StationSelectComponent
   ],
   templateUrl: './add-collaborator.html',
-  styleUrl: './add-collaborator.scss'
+  styleUrl: './add-collaborator.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AddCollaborator implements OnInit {
   @Input() collaboratorId: number | null = null;
@@ -50,7 +44,8 @@ export class AddCollaborator implements OnInit {
   private roleService = inject(RoleService);
   private supervisorService = inject(SupervisorService);
   private stationService = inject(StationService);
-  private snackBar = inject(MatSnackBar);
+  private authService = inject(AuthService);
+  private notify = inject(NotificationService);
 
   form!: FormGroup;
   roles: Role[] = [];
@@ -75,12 +70,12 @@ export class AddCollaborator implements OnInit {
 
       // Endereço (OPCIONAL)
       cep: ['', [Validators.pattern(/^\d{5}-?\d{3}$/)]],
-      logradouro: [''],
-      numero: ['', [Validators.pattern(/^\d+$/)]],
+      endereco: [''],
+      numero: [''],
       complemento: [''],
       bairro: [''],
       cidade: [''],
-      estado: ['', [Validators.pattern(/^[A-Z]{2}$/)]],
+      uf: ['', [Validators.pattern(/^[A-Z]{2}$/)]],
 
       // Contratação
       valorDiaria: ['', Validators.required],
@@ -101,9 +96,8 @@ export class AddCollaborator implements OnInit {
         this.supervisors = res.supervisors;
         this.stations = res.stations;
       },
-      error: (err) => {
-        console.error('Erro ao carregar dados:', err);
-        this.snackBar.open('Erro ao carregar opções do formulário', 'Fechar', { duration: 3000 });
+      error: () => {
+        this.notify.error('Erro ao carregar opções do formulário');
       }
     });
   }
@@ -121,31 +115,30 @@ export class AddCollaborator implements OnInit {
         
         this.form.patchValue({
           nome: collaborator.nome,
-          pix: detail?.pix || '',
-          referencia: detail?.endereco || '',
-          cep: detail?.cep || '',
-          logradouro: detail?.endereco || '',
-          numero: '', // Campo não disponível no detalhe
-          complemento: '', // Campo não disponível no detalhe
-          bairro: detail?.bairro || '',
-          cidade: detail?.cidade || '',
-          estado: detail?.uf || '',
+          pix: collaborator.pix || detail?.pix || '',
+          referencia: collaborator.referencia || '',
+          cep: collaborator.cep || detail?.cep || '',
+          endereco: collaborator.endereco || detail?.endereco || '',
+          numero: collaborator.numero || '',
+          complemento: collaborator.complemento || '',
+          bairro: collaborator.bairro || detail?.bairro || '',
+          cidade: collaborator.cidade || detail?.cidade || '',
+          uf: collaborator.uf || detail?.uf || '',
           valorDiaria: detail?.valorDiaria || '',
           funcao: detail?.idFuncao || '',
           supervisor: detail?.idSupervisor || '',
           postos: detail?.idPosto ? [detail.idPosto] : []
         });
       },
-      error: (err) => {
-        console.error('Erro ao carregar dados do colaborador:', err);
-        this.snackBar.open('Erro ao carregar dados do colaborador', 'Fechar', { duration: 3000 });
+      error: () => {
+        this.notify.error('Erro ao carregar dados do colaborador');
       }
     });
   }
 
   onSubmit() {
     if (this.form.invalid) {
-      this.snackBar.open('Formulário inválido. Verifique os campos obrigatórios.', 'Fechar', { duration: 3000 });
+      this.notify.warn('Formulário inválido. Verifique os campos obrigatórios.');
       return;
     }
 
@@ -159,71 +152,107 @@ export class AddCollaborator implements OnInit {
       return value.replace(/\*/g, '').replace(/\s+/g, ' ').trim();
     };
 
-    // Preparar dados apenas com campos preenchidos (obrigatórios + opcionais preenchidos)
-    const collaboratorData: any = {
+    // 1) Montar payload do Colaborador (POST /api/Colaborador)
+    const now = new Date().toISOString();
+    const userData = this.authService.getUserData();
+    const userName = userData?.user || '';
+
+    const colaboradorPayload: Partial<Collaborator> = {
+      id: 0,
       nome: cleanValue(formValue.nome),
-      pix: cleanValue(formValue.pix),
-      valorDiaria: parseFloat(String(formValue.valorDiaria).replace(',', '.')),
-      funcaoId: formValue.funcao,
-      supervisorId: formValue.supervisor,
-      postoId: formValue.postos && formValue.postos.length > 0 ? formValue.postos[0] : null,
-      postoIds: formValue.postos
+      pix: cleanValue(formValue.pix) || undefined,
+      referencia: cleanValue(formValue.referencia) || undefined,
+      endereco: cleanValue(formValue.endereco) || undefined,
+      numero: formValue.numero ? String(formValue.numero) : undefined,
+      complemento: cleanValue(formValue.complemento) || undefined,
+      bairro: cleanValue(formValue.bairro) || undefined,
+      cidade: cleanValue(formValue.cidade) || undefined,
+      uf: cleanValue(formValue.uf) ? cleanValue(formValue.uf).toUpperCase() : undefined,
+      cep: cleanValue(formValue.cep) ? cleanValue(formValue.cep).replace(/\D/g, '') : undefined,
+      dataCadastro: now,
+      dataAlteracao: now,
+      userCad: userName,
+      userAlt: userName,
+      excluido: false
     };
 
-    // Adicionar campos opcionais apenas se preenchidos
-    if (cleanValue(formValue.referencia)) {
-      collaboratorData.referencia = cleanValue(formValue.referencia);
-    }
-    if (cleanValue(formValue.cep)) {
-      collaboratorData.cep = cleanValue(formValue.cep).replace(/\D/g, '');
-    }
-    if (cleanValue(formValue.logradouro)) {
-      collaboratorData.logradouro = cleanValue(formValue.logradouro);
-    }
-    if (formValue.numero) {
-      collaboratorData.numero = formValue.numero;
-    }
-    if (cleanValue(formValue.complemento)) {
-      collaboratorData.complemento = cleanValue(formValue.complemento);
-    }
-    if (cleanValue(formValue.bairro)) {
-      collaboratorData.bairro = cleanValue(formValue.bairro);
-    }
-    if (cleanValue(formValue.cidade)) {
-      collaboratorData.cidade = cleanValue(formValue.cidade);
-    }
-    if (cleanValue(formValue.estado)) {
-      collaboratorData.estado = cleanValue(formValue.estado).toUpperCase();
-    }
+    // 2) Montar payload(s) do ColaboradorDetalhe (POST /api/ColaboradorDetalhe)
+    const postos: number[] = formValue.postos && Array.isArray(formValue.postos) ? formValue.postos : [];
+    const valorDiaria = parseFloat(String(formValue.valorDiaria).replace(',', '.'));
+    const funcaoId = formValue.funcao;
+    const supervisorId = formValue.supervisor;
 
     if (this.isEditMode && this.collaboratorId) {
-      this.collaboratorService.update(this.collaboratorId, collaboratorData as any).subscribe({
+      // Atualizar colaborador existente
+      this.collaboratorService.update(this.collaboratorId, colaboradorPayload).subscribe({
         next: () => {
           this.loading = false;
-          this.snackBar.open('Colaborador atualizado com sucesso!', 'OK', { duration: 2000 });
+          this.notify.success('Colaborador atualizado com sucesso!');
           this.collaboratorUpdated.emit();
         },
         error: (err) => {
           this.loading = false;
-          console.error('Erro ao atualizar colaborador:', err);
-          this.snackBar.open('Erro ao atualizar colaborador', 'Fechar', { duration: 3000 });
+          const errorMsg = this.extractErrorMessage(err, 'Erro ao atualizar colaborador');
+          this.notify.error(errorMsg);
         }
       });
     } else {
-      this.collaboratorService.create(collaboratorData as any).subscribe({
+      // Criar colaborador, depois criar detalhe(s)
+      this.collaboratorService.create(colaboradorPayload).pipe(
+        switchMap((newId: number) => {
+          if (newId && typeof newId === 'number' && newId > 0) {
+            return this.createDetails(newId, postos, valorDiaria, funcaoId, supervisorId);
+          }
+
+          return this.collaboratorService.getAll().pipe(
+            switchMap((all) => {
+              const found = all
+                .filter(c => c.nome?.trim().toLowerCase() === cleanValue(formValue.nome).toLowerCase() && !c.excluido)
+                .sort((a, b) => (b.id || 0) - (a.id || 0));
+              const id = found[0]?.id;
+              if (!id) throw new Error('Colaborador criado mas ID não encontrado');
+              return this.createDetails(id, postos, valorDiaria, funcaoId, supervisorId);
+            })
+          );
+        })
+      ).subscribe({
         next: () => {
           this.loading = false;
-          this.snackBar.open('Colaborador cadastrado com sucesso!', 'OK', { duration: 2000 });
+          this.notify.success('Colaborador cadastrado com sucesso!');
           this.form.reset();
           this.collaboratorAdded.emit();
         },
         error: (err) => {
           this.loading = false;
-          console.error('Erro ao criar colaborador:', err);
-          this.snackBar.open('Erro ao cadastrar colaborador', 'Fechar', { duration: 3000 });
+          const errorMsg = this.extractErrorMessage(err, 'Erro ao cadastrar colaborador');
+          this.notify.error(errorMsg);
         }
       });
     }
+  }
+
+  private createDetails(idColaborador: number, postos: number[], valorDiaria: number, funcaoId: number, supervisorId: number) {
+    const detailRequests = postos.map(postoId => {
+      const detailPayload: Partial<CollaboratorDetail> = {
+        id: 0,
+        idColaborador: idColaborador,
+        valorDiaria: valorDiaria,
+        idFuncao: funcaoId,
+        idSupervisor: supervisorId,
+        idPosto: postoId
+      };
+      return this.detailService.create(detailPayload);
+    });
+    return forkJoin(detailRequests);
+  }
+
+  private extractErrorMessage(err: { error?: { errors?: Record<string, string[]>; title?: string; message?: string }; statusText?: string }, fallback: string): string {
+    if (err?.error?.errors) {
+      const errors = err.error.errors;
+      const messages = Object.keys(errors).map(key => `${key}: ${errors[key].join(', ')}`);
+      return messages.join(' | ');
+    }
+    return err?.error?.title || err?.error?.message || err?.statusText || fallback;
   }
 
   reset() {
@@ -231,44 +260,8 @@ export class AddCollaborator implements OnInit {
   }
 
   formatarValor(valor: string): string {
-    if (!valor) return '';
-    const num = parseFloat(valor.replace(/\./g, '').replace(',', '.'));
-    if (isNaN(num)) return '';
-    return num.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    return formatNumberToCurrency(valor);
   }
 
-  getSelectedStationNames(): string[] {
-    const postoIds = this.form.get('postos')?.value || [];
-    return this.stations
-      .filter(s => postoIds.includes(s.id))
-      .map(s => s.nome);
-  }
 
-  togglePosto(stationId: number) {
-    const control = this.form.get('postos');
-    const currentValue = control?.value || [];
-    const index = currentValue.indexOf(stationId);
-    
-    if (index === -1) {
-      currentValue.push(stationId);
-    } else {
-      currentValue.splice(index, 1);
-    }
-    
-    control?.setValue([...currentValue]);
-  }
-
-  isPostoSelected(stationId: number): boolean {
-    const postoIds = this.form.get('postos')?.value || [];
-    return postoIds.includes(stationId);
-  }
-
-  getStationNameById(stationId: number): string {
-    return this.stations.find(s => s.id === stationId)?.nome || '';
-  }
-
-  getUnselectedStations(): Station[] {
-    const postoIds = this.form.get('postos')?.value || [];
-    return this.stations.filter(s => !postoIds.includes(s.id));
-  }
 }

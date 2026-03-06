@@ -1,5 +1,5 @@
-import { Component, ViewChild, AfterViewInit, OnInit, inject } from '@angular/core';
-import { CommonModule, CurrencyPipe, DecimalPipe, registerLocaleData } from '@angular/common';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ViewChild, AfterViewInit, OnInit, inject } from '@angular/core';
+import { CurrencyPipe, registerLocaleData } from '@angular/common';
 import localePt from '@angular/common/locales/pt';
 import { MatCardModule } from '@angular/material/card';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
@@ -7,14 +7,15 @@ import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
 import { MatSort, MatSortModule } from '@angular/material/sort';
 import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { LOCALE_ID } from '@angular/core';
-import { DailyService } from '../../services/daily.service';
-import { CollaboratorService } from '../../services/collaborator.service';
+import { DailyService, Daily } from '../../services/daily.service';
+import { CollaboratorService, Collaborator } from '../../services/collaborator.service';
 import { CollaboratorDetailService, CollaboratorDetail } from '../../services/collaborator-detail.service';
-import { AdiantamentoService } from '../../services/adiantamento.service';
-import { forkJoin } from 'rxjs';
+import { AdiantamentoService, Adiantamento } from '../../services/adiantamento.service';
+import { NotificationService } from '../../services/notification.service';
+import { forkJoin, of, catchError } from 'rxjs';
 
 registerLocaleData(localePt);
 
@@ -32,30 +33,31 @@ export interface ConsolidatedData {
   selector: 'app-consolidated-report',
   standalone: true,
   imports: [
-    CommonModule,
+    CurrencyPipe,
     MatCardModule,
     MatTableModule,
     MatPaginatorModule,
     MatSortModule,
     MatInputModule,
     MatFormFieldModule,
-    MatIconModule,
-    MatSnackBarModule
+    MatButtonModule,
+    MatIconModule
   ],
   providers: [
     { provide: LOCALE_ID, useValue: 'pt-BR' },
-    CurrencyPipe,
-    DecimalPipe
+    CurrencyPipe
   ],
   templateUrl: './consolidated-report.html',
-  styleUrl: './consolidated-report.scss'
+  styleUrl: './consolidated-report.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ConsolidatedReport implements OnInit, AfterViewInit {
   private dailyService = inject(DailyService);
   private collaboratorService = inject(CollaboratorService);
   private collaboratorDetailService = inject(CollaboratorDetailService);
   private adiantamentoService = inject(AdiantamentoService);
-  private snackBar = inject(MatSnackBar);
+  private notify = inject(NotificationService);
+  private cdr = inject(ChangeDetectorRef);
   
   displayedColumns: string[] = ['codigo', 'nome', 'valorTotal', 'adiantamento', 'valorDiaria', 'quantidade', 'pix', 'actions'];
   loading = false;
@@ -84,15 +86,12 @@ export class ConsolidatedReport implements OnInit, AfterViewInit {
     
     // Buscar todos os dados necessários em paralelo
     forkJoin({
-      diarias: this.dailyService.getAll(),
-      colaboradores: this.collaboratorService.getAll(),
-      detalhes: this.collaboratorDetailService.getAll(),
-      adiantamentos: this.adiantamentoService.getAll()
+      diarias: this.dailyService.getAll().pipe(catchError(() => of([] as Daily[]))),
+      colaboradores: this.collaboratorService.getAll().pipe(catchError(() => of([] as Collaborator[]))),
+      detalhes: this.collaboratorDetailService.getAll().pipe(catchError(() => of([] as CollaboratorDetail[]))),
+      adiantamentos: this.adiantamentoService.getAll().pipe(catchError(() => of([] as Adiantamento[])))
     }).subscribe({
       next: (result) => {
-        console.log('Dados recebidos para consolidated-report:', result);
-        
-        // Consolidar por colaborador
         const consolidado = this.consolidarPorColaborador(
           result.diarias,
           result.colaboradores,
@@ -103,17 +102,18 @@ export class ConsolidatedReport implements OnInit, AfterViewInit {
         this.data = consolidado;
         this.dataSource.data = consolidado;
         this.loading = false;
-        this.snackBar.open(`${consolidado.length} registro(s) carregado(s)`, 'OK', { duration: 2000 });
+        this.cdr.markForCheck();
+        this.notify.info(`${consolidado.length} registro(s) carregado(s)`);
       },
-      error: (err) => {
-        console.error('Erro ao carregar dados:', err);
+      error: () => {
         this.loading = false;
-        this.snackBar.open('Erro ao carregar relatório', 'Fechar', { duration: 3000 });
+        this.cdr.markForCheck();
+        this.notify.error('Erro ao carregar relatório');
       }
     });
   }
 
-  private consolidarPorColaborador(diarias: any[], colaboradores: any[], detalhes: CollaboratorDetail[], adiantamentos: any[]): ConsolidatedData[] {
+  private consolidarPorColaborador(diarias: Daily[], colaboradores: Collaborator[], detalhes: CollaboratorDetail[], adiantamentos: Adiantamento[]): ConsolidatedData[] {
     const consolidadoMap = new Map<number, ConsolidatedData>();
 
     // Agrupar diárias por colaborador
@@ -131,7 +131,7 @@ export class ConsolidatedReport implements OnInit, AfterViewInit {
           .reduce((sum, a) => sum + (a.valor || 0), 0);
 
         consolidadoMap.set(detalhe.idColaborador, {
-          codigo: colaborador.codigo || colaborador.id,
+          codigo: colaborador.codigo || colaborador.id || 0,
           nome: colaborador.nome,
           valorTotal: 0,
           adiantamento: adiantamentoTotal,

@@ -1,5 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { ChangeDetectionStrategy, Component, OnInit, inject } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -9,12 +8,12 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule, MAT_DATE_LOCALE } from '@angular/material/core';
-import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatTableModule } from '@angular/material/table';
 import { DailyService, Daily } from '../../services/daily.service';
 import { CollaboratorService, Collaborator } from '../../services/collaborator.service';
 import { CollaboratorDetailService, DetailOption } from '../../services/collaborator-detail.service';
+import { NotificationService } from '../../services/notification.service';
 import { CollaboratorSearchComponent } from '../../shared/collaborator-search/collaborator-search';
 import { forkJoin } from 'rxjs';
 
@@ -22,7 +21,6 @@ import { forkJoin } from 'rxjs';
   selector: 'app-add-single-di',
   standalone: true,
   imports: [
-    CommonModule,
     ReactiveFormsModule,
     MatCardModule,
     MatFormFieldModule,
@@ -32,7 +30,6 @@ import { forkJoin } from 'rxjs';
     MatIconModule,
     MatDatepickerModule,
     MatNativeDateModule,
-    MatSnackBarModule,
     MatTooltipModule,
     MatTableModule,
     CollaboratorSearchComponent
@@ -41,14 +38,15 @@ import { forkJoin } from 'rxjs';
     { provide: MAT_DATE_LOCALE, useValue: 'pt-BR' }
   ],
   templateUrl: './add-single-di.html',
-  styleUrl: './add-single-di.scss'
+  styleUrl: './add-single-di.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AddSingleDi implements OnInit {
   private fb = inject(FormBuilder);
   private dailyService = inject(DailyService);
   private collaboratorService = inject(CollaboratorService);
   private collaboratorDetailService = inject(CollaboratorDetailService);
-  private snackBar = inject(MatSnackBar);
+  private notify = inject(NotificationService);
 
   form!: FormGroup;
   collaborators: Collaborator[] = [];
@@ -81,9 +79,8 @@ export class AddSingleDi implements OnInit {
       next: (data) => {
         this.collaborators = data;
       },
-      error: (err) => {
-        console.error('Erro ao carregar colaboradores:', err);
-        this.snackBar.open('Erro ao carregar colaboradores', 'Fechar', { duration: 3000 });
+      error: () => {
+        this.notify.error('Erro ao carregar colaboradores');
       }
     });
   }
@@ -111,7 +108,7 @@ export class AddSingleDi implements OnInit {
         this.isLoadingDetails = false;
         
         if (this.detailOptions.length === 0) {
-          this.snackBar.open('Nenhum detalhe cadastrado para este colaborador', 'Fechar', { duration: 3000 });
+          this.notify.warn('Nenhum detalhe cadastrado para este colaborador');
           return;
         }
         
@@ -119,8 +116,7 @@ export class AddSingleDi implements OnInit {
       },
       error: (err) => {
         this.isLoadingDetails = false;
-        console.error('Erro ao carregar detalhes:', err);
-        this.snackBar.open('Erro ao carregar detalhes do colaborador', 'Fechar', { duration: 3000 });
+        this.notify.error('Erro ao carregar detalhes do colaborador');
       }
     });
   }
@@ -146,8 +142,7 @@ export class AddSingleDi implements OnInit {
           d => d.dataDiaria.split('T')[0] === dateStr
         ).length;
       },
-      error: (err) => {
-        console.error('Erro ao verificar diárias existentes:', err);
+      error: () => {
         this.existingCount = 0;
       }
     });
@@ -170,7 +165,7 @@ export class AddSingleDi implements OnInit {
 
   save() {
     if (this.form.invalid) {
-      this.snackBar.open('Preencha todos os campos obrigatórios', 'Fechar', { duration: 3000 });
+      this.notify.warn('Preencha todos os campos obrigatórios');
       return;
     }
 
@@ -192,14 +187,13 @@ export class AddSingleDi implements OnInit {
     this.dailyService.saveDailies(dailies).subscribe({
       next: () => {
         this.loading = false;
-        this.snackBar.open(`${valor} diária(s) cadastrada(s) com sucesso!`, 'OK', { duration: 2000 });
+        this.notify.success(`${valor} diária(s) cadastrada(s) com sucesso!`);
         this.reset();
         this.checkExistingDailies(); // Atualizar contagem
       },
-      error: (err) => {
+      error: () => {
         this.loading = false;
-        console.error('Erro ao cadastrar diárias:', err);
-        this.snackBar.open('Erro ao cadastrar diárias', 'Fechar', { duration: 3000 });
+        this.notify.error('Erro ao cadastrar diárias');
       }
     });
   }
