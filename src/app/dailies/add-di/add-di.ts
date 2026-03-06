@@ -134,20 +134,29 @@ export class AddDi implements OnInit, AfterViewInit {
     });
   }
 
-  /** Calcula as 7 datas da semana anterior (segunda a domingo) */
+  /**
+   * Calcula as 7 datas (segunda a domingo) da semana a exibir.
+   * A partir de quinta-feira, exibe a semana corrente.
+   * De segunda a quarta, exibe a semana anterior.
+   */
   getWeekDates(): string[] {
     const today = new Date();
-    const lastMonday = new Date(today);
-    const dayOfWeek = today.getDay();
-    if (dayOfWeek === 0) {
-      lastMonday.setDate(today.getDate() - 6);
-    } else {
-      lastMonday.setDate(today.getDate() - dayOfWeek - 6);
+    const dayOfWeek = today.getDay(); // 0=Dom, 1=Seg, ..., 6=Sáb
+
+    // Calcula a segunda-feira da semana atual
+    const diffToMonday = (dayOfWeek + 6) % 7;
+    const monday = new Date(today);
+    monday.setDate(today.getDate() - diffToMonday);
+
+    // Seg–Qua: mostra semana anterior; Qui–Dom: mostra semana corrente
+    if (dayOfWeek >= 1 && dayOfWeek <= 3) {
+      monday.setDate(monday.getDate() - 7);
     }
+
     const dates: string[] = [];
     for (let i = 0; i < 7; i++) {
-      const date = new Date(lastMonday);
-      date.setDate(lastMonday.getDate() + i);
+      const date = new Date(monday);
+      date.setDate(monday.getDate() + i);
       dates.push(this.formatDateForInput(date.toISOString()));
     }
     return dates;
@@ -250,18 +259,7 @@ export class AddDi implements OnInit, AfterViewInit {
 
   get canSaveDailies(): boolean {
     if (this.isSaving) return false;
-    const today = new Date();
-    const dayOfWeek = today.getDay();
-    return dayOfWeek >= 1 && dayOfWeek <= 3;
-  }
-
-  get deadlineMessage(): string {
-    if (this.canSaveDailies) {
-      const today = new Date();
-      const daysLeft = 3 - today.getDay();
-      return daysLeft === 0 ? 'Último dia para salvar!' : `Faltam ${daysLeft} dia(s) para o prazo.`;
-    }
-    return 'Prazo encerrado. O caixa fecha toda quinta-feira.';
+    return this.selection.selected.length > 0;
   }
 
   saveDailies() {
@@ -269,11 +267,6 @@ export class AddDi implements OnInit, AfterViewInit {
       this.notify.warn('Selecione um colaborador primeiro');
       return;
     }
-    if (!this.canSaveDailies) {
-      this.notify.warn('O prazo para salvar diárias desta semana já expirou.');
-      return;
-    }
-
     const selectedRows = this.selection.selected;
     if (selectedRows.length === 0) {
       this.notify.warn('Selecione ao menos uma diária para enviar');
