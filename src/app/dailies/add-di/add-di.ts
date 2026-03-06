@@ -84,6 +84,10 @@ export class AddDi implements OnInit, AfterViewInit {
   isSaving: boolean = false;
   isLoadingDailies: boolean = false;
 
+  // Limites do datepicker de adiantamento (range da grid)
+  minDateAdiantamento: Date = new Date();
+  maxDateAdiantamento: Date = new Date();
+
   formatarValorAdiantamento() {
     if (!this.valorAdiantamentoStr) {
       this._valorAdiantamento = 0;
@@ -159,6 +163,14 @@ export class AddDi implements OnInit, AfterViewInit {
       date.setDate(monday.getDate() + i);
       dates.push(this.formatDateForInput(date.toISOString()));
     }
+
+    // Atualiza limites do datepicker de adiantamento
+    this.minDateAdiantamento = new Date(monday);
+    const sunday = new Date(monday);
+    sunday.setDate(monday.getDate() + 6);
+    this.maxDateAdiantamento = sunday;
+    this.dataAdiantamento = new Date(monday);
+
     return dates;
   }
 
