@@ -10,6 +10,7 @@ import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule, MAT_DATE_LOCALE } from '@angular/material/core';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatTableModule } from '@angular/material/table';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { DailyService, Daily } from '../../services/daily.service';
 import { CollaboratorService, Collaborator } from '../../services/collaborator.service';
 import { CollaboratorDetailService, DetailOption } from '../../services/collaborator-detail.service';
@@ -32,6 +33,7 @@ import { forkJoin } from 'rxjs';
     MatNativeDateModule,
     MatTooltipModule,
     MatTableModule,
+    MatProgressBarModule,
     CollaboratorSearchComponent
   ],
   providers: [

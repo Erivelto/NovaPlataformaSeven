@@ -51,6 +51,11 @@ body {
     'opsz' 24;
 }
 
+// Progress bar acima das tabelas — posição consistente
+mat-progress-bar {
+  border-radius: 2px;
+}
+
 // Global: Cor Branca para escrita em botões primários
 .mat-mdc-raised-button.mat-primary,
 .mat-mdc-unelevated-button.mat-primary,

@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, DestroyRef, ViewChild, AfterViewInit, OnInit, inject } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, DestroyRef, ViewChild, AfterViewInit, OnInit, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
@@ -10,6 +10,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { SupervisorService, Supervisor } from '../../services/supervisor.service';
 import { NotificationService } from '../../services/notification.service';
 import { ConfirmService } from '../../services/confirm.service';
@@ -27,7 +28,8 @@ import { ConfirmService } from '../../services/confirm.service';
     MatFormFieldModule,
     MatButtonModule,
     MatIconModule,
-    MatTooltipModule
+    MatTooltipModule,
+    MatProgressBarModule
   ],
   templateUrl: './supervisor-registration.html',
   styleUrl: './supervisor-registration.scss',
@@ -38,8 +40,10 @@ export class SupervisorRegistration implements OnInit, AfterViewInit {
   private notify = inject(NotificationService);
   private confirmService = inject(ConfirmService);
   private destroyRef = inject(DestroyRef);
+  private cdr = inject(ChangeDetectorRef);
 
   novoSupervisor: string = '';
+  loading = false;
   displayedColumns: string[] = ['codigo', 'nome', 'actions'];
   dataSource = new MatTableDataSource<Supervisor>([]);
 
@@ -56,11 +60,16 @@ export class SupervisorRegistration implements OnInit, AfterViewInit {
   }
 
   loadSupervisors() {
+    this.loading = true;
     this.supervisorService.getAll().subscribe({
       next: (data) => {
         this.dataSource.data = data;
+        this.loading = false;
+        this.cdr.markForCheck();
       },
       error: () => {
+        this.loading = false;
+        this.cdr.markForCheck();
         this.notify.error('Erro ao carregar supervisores da API');
       }
     });

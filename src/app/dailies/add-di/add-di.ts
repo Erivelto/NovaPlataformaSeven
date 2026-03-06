@@ -12,6 +12,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule, MAT_DATE_LOCALE } from '@angular/material/core';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { SelectionModel } from '@angular/cdk/collections';
 import { forkJoin } from 'rxjs';
 import { CollaboratorService, Collaborator } from '../../services/collaborator.service';
@@ -48,6 +49,7 @@ export interface DailyRow {
     MatDatepickerModule,
     MatNativeDateModule,
     MatTooltipModule,
+    MatProgressBarModule,
     CollaboratorSearchComponent
   ],
   providers: [

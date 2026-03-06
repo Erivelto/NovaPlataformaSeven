@@ -25,6 +25,10 @@
     </div>
     }
 
+    @if (isLoadingDetails) {
+      <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+    }
+
     @if (selectedCollaboratorId && !isLoadingDetails) {
     <form [formGroup]="form" (ngSubmit)="save()" class="form-container" aria-label="Adicionar diária">
       <div class="table-container">

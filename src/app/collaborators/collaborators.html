@@ -18,6 +18,10 @@
       <mat-icon matSuffix>search</mat-icon>
     </mat-form-field>
 
+    @if (loading) {
+      <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+    }
+
     <div class="table-container">
       <table mat-table [dataSource]="dataSource" matSort multiTemplateDataRows aria-label="Lista de colaboradores">
 

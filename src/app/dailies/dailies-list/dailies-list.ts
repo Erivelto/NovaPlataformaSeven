@@ -10,6 +10,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { DailyService, Daily } from '../../services/daily.service';
 import { CollaboratorService } from '../../services/collaborator.service';
 import { CollaboratorDetailService } from '../../services/collaborator-detail.service';
@@ -30,7 +31,8 @@ import { forkJoin } from 'rxjs';
     MatFormFieldModule,
     MatButtonModule,
     MatIconModule,
-    MatTooltipModule
+    MatTooltipModule,
+    MatProgressBarModule
   ],
   templateUrl: './dailies-list.html',
   styleUrl: './dailies-list.scss',
@@ -45,6 +47,7 @@ export class DailiesList implements OnInit, AfterViewInit {
   private destroyRef = inject(DestroyRef);
   private cdr = inject(ChangeDetectorRef);
 
+  loading = false;
   displayedColumns: string[] = ['codigo', 'colaborador', 'dataDiaria', 'userCadastro', 'actions'];
   dataSource = new MatTableDataSource<Daily>([]);
 
@@ -61,6 +64,7 @@ export class DailiesList implements OnInit, AfterViewInit {
   }
 
   loadDailies() {
+    this.loading = true;
     // Busca Diárias e Colaboradores em paralelo para fazer o "Join" de nomes
     forkJoin({
       dailies: this.dailyService.getAll(),
@@ -80,9 +84,11 @@ export class DailiesList implements OnInit, AfterViewInit {
         });
 
         this.dataSource.data = processedDailies;
+        this.loading = false;
         this.cdr.markForCheck();
       },
       error: () => {
+        this.loading = false;
         this.notify.error('Erro ao sincronizar dados da API');
         this.cdr.markForCheck();
       }

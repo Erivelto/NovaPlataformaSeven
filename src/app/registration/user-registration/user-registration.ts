@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, DestroyRef, ViewChild, AfterViewInit, OnInit, inject } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, DestroyRef, ViewChild, AfterViewInit, OnInit, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
@@ -11,6 +11,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { UserService, User } from '../../services/user.service';
 import { NotificationService } from '../../services/notification.service';
 import { ConfirmService } from '../../services/confirm.service';
@@ -34,7 +35,8 @@ const TIPO_OPCOES = [
     MatSelectModule,
     MatButtonModule,
     MatIconModule,
-    MatTooltipModule
+    MatTooltipModule,
+    MatProgressBarModule
   ],
   templateUrl: './user-registration.html',
   styleUrl: './user-registration.scss',
@@ -45,6 +47,7 @@ export class UserRegistration implements OnInit, AfterViewInit {
   private notify = inject(NotificationService);
   private confirmService = inject(ConfirmService);
   private destroyRef = inject(DestroyRef);
+  private cdr = inject(ChangeDetectorRef);
 
   // Modelo para o formulário
   novoUsuario: string = '';
@@ -52,6 +55,7 @@ export class UserRegistration implements OnInit, AfterViewInit {
   tipoSelecionado: string = '';
   tipos = TIPO_OPCOES;
   hidePassword: boolean = true;
+  loading = false;
 
   displayedColumns: string[] = ['codigo', 'usuario', 'tipo', 'actions'];
   dataSource = new MatTableDataSource<User>([]);
@@ -69,11 +73,16 @@ export class UserRegistration implements OnInit, AfterViewInit {
   }
 
   loadUsers() {
+    this.loading = true;
     this.userService.getAll().subscribe({
       next: (data) => {
         this.dataSource.data = data;
+        this.loading = false;
+        this.cdr.markForCheck();
       },
       error: () => {
+        this.loading = false;
+        this.cdr.markForCheck();
         this.notify.error('Erro ao carregar usuários da API');
       }
     });

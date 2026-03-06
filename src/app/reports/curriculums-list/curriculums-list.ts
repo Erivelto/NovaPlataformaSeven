@@ -9,6 +9,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
 
 export interface CurriculumData {
   codigo: number;
@@ -37,13 +38,15 @@ const ELEMENT_DATA: CurriculumData[] = [
     MatFormFieldModule,
     MatButtonModule,
     MatIconModule,
-    MatTooltipModule
+    MatTooltipModule,
+    MatProgressBarModule
   ],
   templateUrl: './curriculums-list.html',
   styleUrl: './curriculums-list.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CurriculumsList implements AfterViewInit {
+  loading = false;
   displayedColumns: string[] = ['codigo', 'nome', 'idade', 'profissao', 'whatsapp', 'dataAtualizacao', 'actions'];
   dataSource = new MatTableDataSource<CurriculumData>(ELEMENT_DATA);
 

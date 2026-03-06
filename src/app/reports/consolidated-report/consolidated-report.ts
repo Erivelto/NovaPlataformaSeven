@@ -9,6 +9,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { LOCALE_ID } from '@angular/core';
 import { DailyService, Daily } from '../../services/daily.service';
 import { CollaboratorService, Collaborator } from '../../services/collaborator.service';
@@ -41,7 +42,8 @@ export interface ConsolidatedData {
     MatInputModule,
     MatFormFieldModule,
     MatButtonModule,
-    MatIconModule
+    MatIconModule,
+    MatProgressBarModule
   ],
   providers: [
     { provide: LOCALE_ID, useValue: 'pt-BR' },

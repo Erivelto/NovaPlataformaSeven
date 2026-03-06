@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, DestroyRef, ViewChild, AfterViewInit, OnInit, inject } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, DestroyRef, ViewChild, AfterViewInit, OnInit, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CurrencyPipe, DatePipe, registerLocaleData } from '@angular/common';
 import localePt from '@angular/common/locales/pt';
@@ -12,6 +12,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { CollaboratorService, Collaborator } from '../services/collaborator.service';
 import { CollaboratorDetailService, CollaboratorDetail } from '../services/collaborator-detail.service';
 import { NotificationService } from '../services/notification.service';
@@ -33,7 +34,8 @@ registerLocaleData(localePt);
     MatInputModule,
     MatFormFieldModule,
     MatButtonModule,
-    MatIconModule
+    MatIconModule,
+    MatProgressBarModule
   ],
   providers: [
     { provide: LOCALE_ID, useValue: 'pt-BR' }
@@ -56,12 +58,14 @@ export class Collaborators implements OnInit, AfterViewInit {
   private router = inject(Router);
   private confirmService = inject(ConfirmService);
   private destroyRef = inject(DestroyRef);
+  private cdr = inject(ChangeDetectorRef);
 
   displayedColumns: string[] = ['codigo', 'nome', 'dataCadastro', 'userCad', 'dataAlteracao', 'userAlt', 'actions'];
   dataSource = new MatTableDataSource<Collaborator>([]);
   expandedElement: Collaborator | null = null;
   elementDetail: CollaboratorDetail | null = null;
   loadingDetail = false;
+  loading = false;
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
@@ -76,11 +80,16 @@ export class Collaborators implements OnInit, AfterViewInit {
   }
 
   loadCollaborators() {
+    this.loading = true;
     this.collaboratorService.getAll().subscribe({
       next: (data) => {
         this.dataSource.data = data;
+        this.loading = false;
+        this.cdr.markForCheck();
       },
       error: () => {
+        this.loading = false;
+        this.cdr.markForCheck();
         this.notify.error('Erro ao carregar colaboradores da API');
       }
     });

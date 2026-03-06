@@ -35,6 +35,10 @@
       </mat-form-field>
     </div>
 
+    @if (loading) {
+      <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+    }
+
     <div class="table-container">
       <table mat-table [dataSource]="dataSource" matSort aria-label="Lista de funções">
 

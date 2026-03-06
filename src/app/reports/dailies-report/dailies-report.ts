@@ -12,6 +12,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule, MAT_DATE_LOCALE, DateAdapter, MAT_DATE_FORMATS } from '@angular/material/core';
 import { MatButtonModule } from '@angular/material/button';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { DailyService } from '../../services/daily.service';
 import { CollaboratorService, Collaborator } from '../../services/collaborator.service';
 import { StationService, Station } from '../../services/station.service';
@@ -84,6 +85,7 @@ export const BRAZILIAN_DATE_FORMATS = {
     MatDatepickerModule,
     MatNativeDateModule,
     MatButtonModule,
+    MatProgressBarModule,
     CollaboratorSearchComponent,
     StationSelectComponent
   ],

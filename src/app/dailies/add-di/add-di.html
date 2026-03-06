@@ -25,6 +25,10 @@
     </div>
     }
 
+    @if (isLoadingDailies) {
+      <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+    }
+
     @if (selectedCollaboratorId && !isLoadingDailies) {
     <div class="table-container">
       <table mat-table [dataSource]="dataSource" matSort aria-label="Diárias semanais">
