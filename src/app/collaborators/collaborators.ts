@@ -103,6 +103,7 @@ export class Collaborators implements OnInit, AfterViewInit {
       this.expandedElement = element;
       this.fetchDetails(element);
     }
+    this.cdr.markForCheck();
   }
 
   fetchDetails(element: Collaborator) {
@@ -115,10 +116,12 @@ export class Collaborators implements OnInit, AfterViewInit {
       next: (details) => {
         this.elementDetail = details.length > 0 ? details[0] : { idColaborador: element.id! };
         this.loadingDetail = false;
+        this.cdr.markForCheck();
       },
       error: () => {
         this.loadingDetail = false;
         this.elementDetail = { idColaborador: element.id! };
+        this.cdr.markForCheck();
       }
     });
   }

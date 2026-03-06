@@ -114,9 +114,19 @@ export class Dashboard implements OnInit, OnDestroy {
   }
 
   loadDashboardStats() {
+    // Calcular período: 1º dia do mês anterior até hoje
+    const now = new Date();
+    const currentMonth = now.getMonth();
+    const currentYear = now.getFullYear();
+    const previousMonth = currentMonth === 0 ? 11 : currentMonth - 1;
+    const previousYear = currentMonth === 0 ? currentYear - 1 : currentYear;
+
+    const startDate = `${previousYear}-${String(previousMonth + 1).padStart(2, '0')}-01`;
+    const endDate = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+
     forkJoin({
       collaborators: this.collaboratorService.getAll(),
-      dailies: this.dailyService.getAll(),
+      dailies: this.dailyService.getByPeriod(startDate, endDate),
       stations: this.stationService.getAll(),
       details: this.collaboratorDetailService.getAll()
     }).subscribe({
