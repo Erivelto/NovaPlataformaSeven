@@ -8,17 +8,17 @@ export interface DiariaDisponivel {
   id?: number;
   quantidadeDiaria: number;
   dataReferencia: string;
-  idFuncao: number;
-  idSupervisor: number;
-  idPosto: number;
+  idFuncao?: number;
+  idSupervisor?: number;
+  idPosto?: number;
   usuarioCadAlt?: string;
   dataCadastro?: string;
   dataAlteracao?: string;
   excluido?: boolean;
-  // Campos auxiliares para exibição
-  nomeFuncao?: string;
-  nomeSupervisor?: string;
-  nomePosto?: string;
+  // Campos retornados pelo endpoint /lista
+  funcao?: string;
+  supervisor?: string;
+  posto?: string;
 }
 
 @Injectable({
