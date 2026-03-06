@@ -7,7 +7,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatDatepickerModule } from '@angular/material/datepicker';
-import { MatNativeDateModule, MAT_DATE_LOCALE } from '@angular/material/core';
+import { MAT_DATE_LOCALE, provideNativeDateAdapter } from '@angular/material/core';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { forkJoin, Observable } from 'rxjs';
 import { DiariaDisponivelService, DiariaDisponivel } from '../../services/diaria-disponivel.service';
@@ -32,10 +32,10 @@ export interface DiariaDisponivelEditData {
     MatButtonModule,
     MatIconModule,
     MatDatepickerModule,
-    MatNativeDateModule,
     MatProgressBarModule
   ],
   providers: [
+    provideNativeDateAdapter(),
     { provide: MAT_DATE_LOCALE, useValue: 'pt-BR' }
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -55,12 +55,15 @@ export interface DiariaDisponivelEditData {
 
           <mat-form-field appearance="outline" class="full-width">
             <mat-label>Data Referência *</mat-label>
-            <input matInput [matDatepicker]="picker" formControlName="dataReferencia">
+            <input matInput [matDatepicker]="picker" formControlName="dataReferencia" [min]="today">
             <mat-hint>DD/MM/AAAA</mat-hint>
             <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
             <mat-datepicker #picker></mat-datepicker>
             @if (form.get('dataReferencia')?.hasError('required')) {
               <mat-error>Data Referência é obrigatória</mat-error>
+            }
+            @if (form.get('dataReferencia')?.hasError('matDatepickerMin')) {
+              <mat-error>Data deve ser hoje ou futura</mat-error>
             }
           </mat-form-field>
 
@@ -193,6 +196,7 @@ export class DiariaDisponivelEditDialog implements OnInit {
   postos: Station[] = [];
   loadingOptions = true;
   saving = false;
+  readonly today = new Date();
 
   get isNew(): boolean { return !this.data.item?.id; }
 
@@ -209,7 +213,7 @@ export class DiariaDisponivelEditDialog implements OnInit {
   buildForm() {
     const item = this.data.item;
     this.form = this.fb.group({
-      dataReferencia: [item?.dataReferencia ? new Date(item.dataReferencia) : null, Validators.required],
+      dataReferencia: [item?.dataReferencia ? new Date(item.dataReferencia) : new Date(), Validators.required],
       quantidadeDiaria: [item?.quantidadeDiaria ?? null, [Validators.required, Validators.min(1)]],
       idPosto: [item?.idPosto ?? null, Validators.required],
       idFuncao: [item?.idFuncao ?? null, Validators.required],

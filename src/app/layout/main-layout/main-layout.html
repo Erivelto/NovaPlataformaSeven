@@ -53,7 +53,7 @@
         <!-- Nível 2: Lista de categorias sob Operacional -->
         <mat-nav-list class="sub-menu-list">
           
-          <!-- Colaborador (Agora com 3º nível) -->
+          <!-- Colaborador -->
           <mat-expansion-panel class="mat-elevation-z0 nested-panel" [disabled]="isCollapsed() && !isHandset()">
             <mat-expansion-panel-header class="nested-header">
               <mat-panel-title>
@@ -73,6 +73,21 @@
                   <span matListItemTitle>Lista Colaboradores</span>
                 }
               </a>
+            </mat-nav-list>
+          </mat-expansion-panel>
+
+          <!-- Diárias -->
+          <mat-expansion-panel class="mat-elevation-z0 nested-panel" [disabled]="isCollapsed() && !isHandset()">
+            <mat-expansion-panel-header class="nested-header">
+              <mat-panel-title>
+                <mat-icon matListItemIcon>calendar_today</mat-icon>
+                @if (!isCollapsed() || isHandset()) {
+                  <span>Diárias</span>
+                }
+              </mat-panel-title>
+            </mat-expansion-panel-header>
+
+            <mat-nav-list class="nested-list">
               <a mat-list-item routerLink="/adicionar-diaria" routerLinkActive="active-link" [matTooltip]="isCollapsed() ? 'Adicionar Diária' : ''" matTooltipPosition="right">
                 <mat-icon matListItemIcon>today</mat-icon>
                 @if (!isCollapsed() || isHandset()) {
@@ -91,25 +106,10 @@
                   <span matListItemTitle>Lista de Diárias</span>
                 }
               </a>
-            </mat-nav-list>
-          </mat-expansion-panel>
-
-          <!-- Controle de Vagas -->
-          <mat-expansion-panel class="mat-elevation-z0 nested-panel" [disabled]="isCollapsed() && !isHandset()">
-            <mat-expansion-panel-header class="nested-header">
-              <mat-panel-title>
+              <a mat-list-item routerLink="/diaria-disponivel" routerLinkActive="active-link" [matTooltip]="isCollapsed() ? 'Diárias Disponíveis' : ''" matTooltipPosition="right">
                 <mat-icon matListItemIcon>event_available</mat-icon>
                 @if (!isCollapsed() || isHandset()) {
-                  <span>Controle de Vagas</span>
-                }
-              </mat-panel-title>
-            </mat-expansion-panel-header>
-
-            <mat-nav-list class="nested-list">
-              <a mat-list-item routerLink="/diaria-disponivel" routerLinkActive="active-link" [matTooltip]="isCollapsed() ? 'Vagas Disponíveis' : ''" matTooltipPosition="right">
-                <mat-icon matListItemIcon>list_alt</mat-icon>
-                @if (!isCollapsed() || isHandset()) {
-                  <span matListItemTitle>Vagas Disponíveis</span>
+                  <span matListItemTitle>Diárias Disponíveis</span>
                 }
               </a>
             </mat-nav-list>
