@@ -104,7 +104,11 @@ export class DiariaDisponivelComponent implements OnInit, AfterViewInit {
   }
 
   editVaga(item: DiariaDisponivel) {
-    this.openDialog(item);
+    if (!item.id) return;
+    this.diariaDisponivelService.getById(item.id).subscribe({
+      next: (fullItem) => this.openDialog(fullItem),
+      error: () => this.notify.error('Erro ao carregar dados da vaga')
+    });
   }
 
   deleteVaga(item: DiariaDisponivel) {
