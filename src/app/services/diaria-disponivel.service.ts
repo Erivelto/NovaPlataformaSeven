@@ -34,6 +34,10 @@ export class DiariaDisponivelService {
     return this.http.get<DiariaDisponivel[]>(this.apiUrl);
   }
 
+  getLista(): Observable<DiariaDisponivel[]> {
+    return this.http.get<DiariaDisponivel[]>(`${this.apiUrl}/lista`);
+  }
+
   getById(id: number): Observable<DiariaDisponivel> {
     return this.http.get<DiariaDisponivel>(`${this.apiUrl}/${id}`);
   }

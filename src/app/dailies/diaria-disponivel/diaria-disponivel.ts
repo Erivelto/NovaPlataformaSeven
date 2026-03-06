@@ -12,11 +12,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
-import { forkJoin } from 'rxjs';
 import { DiariaDisponivelService, DiariaDisponivel } from '../../services/diaria-disponivel.service';
-import { RoleService } from '../../services/role.service';
-import { SupervisorService } from '../../services/supervisor.service';
-import { StationService } from '../../services/station.service';
 import { NotificationService } from '../../services/notification.service';
 import { ConfirmService } from '../../services/confirm.service';
 import { DiariaDisponivelEditDialog } from './diaria-disponivel-edit-dialog';
@@ -44,9 +40,6 @@ import { DiariaDisponivelEditDialog } from './diaria-disponivel-edit-dialog';
 })
 export class DiariaDisponivelComponent implements OnInit, AfterViewInit {
   private diariaDisponivelService = inject(DiariaDisponivelService);
-  private roleService = inject(RoleService);
-  private supervisorService = inject(SupervisorService);
-  private stationService = inject(StationService);
   private notify = inject(NotificationService);
   private confirmService = inject(ConfirmService);
   private dialog = inject(MatDialog);
@@ -72,29 +65,9 @@ export class DiariaDisponivelComponent implements OnInit, AfterViewInit {
   loadData() {
     this.loading = true;
 
-    forkJoin({
-      vagas: this.diariaDisponivelService.getAll(),
-      funcoes: this.roleService.getAll(),
-      supervisores: this.supervisorService.getAll(),
-      postos: this.stationService.getAll()
-    }).subscribe({
-      next: (res) => {
-        const processed = res.vagas
-          .filter(v => !v.excluido)
-          .map(item => {
-            const funcao = res.funcoes.find(f => f.id === item.idFuncao);
-            const supervisor = res.supervisores.find(s => s.id === item.idSupervisor);
-            const posto = res.postos.find(p => p.id === item.idPosto);
-
-            return {
-              ...item,
-              nomeFuncao: funcao?.nome || '-',
-              nomeSupervisor: supervisor?.nome || '-',
-              nomePosto: posto?.nome || '-'
-            };
-          });
-
-        this.dataSource.data = processed;
+    this.diariaDisponivelService.getLista().subscribe({
+      next: (vagas) => {
+        this.dataSource.data = vagas.filter(v => !v.excluido);
         this.loading = false;
         this.cdr.markForCheck();
       },
