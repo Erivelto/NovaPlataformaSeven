@@ -6,6 +6,7 @@ import { CollaboratorService } from '../../services/collaborator.service';
 import { DailyService } from '../../services/daily.service';
 import { StationService } from '../../services/station.service';
 import { CollaboratorDetailService, CollaboratorDetail } from '../../services/collaborator-detail.service';
+import { DiariaDisponivelService } from '../../services/diaria-disponivel.service';
 import { forkJoin, Subscription } from 'rxjs';
 import { filter } from 'rxjs/operators';
 
@@ -25,6 +26,7 @@ export class Dashboard implements OnInit, OnDestroy {
   private dailyService = inject(DailyService);
   private stationService = inject(StationService);
   private collaboratorDetailService = inject(CollaboratorDetailService);
+  private diariaDisponivelService = inject(DiariaDisponivelService);
   private router = inject(Router);
   private cdr = inject(ChangeDetectorRef);
   private routerSubscription?: Subscription;
@@ -128,7 +130,8 @@ export class Dashboard implements OnInit, OnDestroy {
       collaborators: this.collaboratorService.getAll(),
       dailies: this.dailyService.getByPeriod(startDate, endDate),
       stations: this.stationService.getAll(),
-      details: this.collaboratorDetailService.getAll()
+      details: this.collaboratorDetailService.getAll(),
+      diariasPendentes: this.diariaDisponivelService.getLista()
     }).subscribe({
       next: (res) => {
         const now = new Date();
@@ -155,6 +158,10 @@ export class Dashboard implements OnInit, OnDestroy {
           const dailyDate = new Date(daily.dataDiaria);
           return dailyDate.getMonth() === previousMonth && dailyDate.getFullYear() === previousYear;
         });
+
+        // Diárias Pendentes (total de registros em DiariaDisponivel)
+        this.kpis[1].value = res.diariasPendentes.filter(v => !v.excluido).length;
+        this.kpis[1].change = `${res.diariasPendentes.filter(v => !v.excluido).length} vagas cadastradas`;
 
         this.kpis[2].value = dailiesThisMonth.length;
         const percentChange = dailiesLastMonth.length > 0 
