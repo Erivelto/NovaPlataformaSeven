@@ -169,3 +169,75 @@
   transform: scale(0.85) !important;
   color: #1976d2 !important;
 }
+
+// Estilos da tabela de contratações
+.contracts-container {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  margin-top: 16px;
+}
+
+.contracts-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+
+  th {
+    background-color: #f5f5f5;
+    color: #333;
+    font-weight: 600;
+    text-align: left;
+    padding: 12px 16px;
+    border-bottom: 2px solid #e0e0e0;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  td {
+    padding: 12px 16px;
+    border-bottom: 1px solid #e0e0e0;
+    font-size: 14px;
+
+    &:last-child {
+      border-right: none;
+    }
+  }
+
+  tr:hover {
+    background-color: #f9f9f9;
+  }
+
+  tr:last-child td {
+    border-bottom: none;
+  }
+}
+
+.actions-cell {
+  display: flex;
+  gap: 4px;
+  justify-content: center;
+
+  button {
+    &[color="warn"] {
+      color: #d32f2f;
+    }
+  }
+}
+
+.actions-header {
+  text-align: center !important;
+
+  button {
+    mat-icon {
+      font-size: 22px;
+      width: 22px;
+      height: 22px;
+    }
+  }
+}

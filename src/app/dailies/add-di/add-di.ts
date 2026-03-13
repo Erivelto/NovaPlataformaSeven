@@ -68,7 +68,7 @@ export class AddDi implements OnInit, AfterViewInit {
   private notify = inject(NotificationService);
   private cdr = inject(ChangeDetectorRef);
 
-  displayedColumns: string[] = ['select', 'data', 'diaria', 'existentes', 'posto'];
+  displayedColumns: string[] = ['select', 'data', 'dias', 'existentes', 'posto'];
   dataSource = new MatTableDataSource<DailyRow>([]);
   selection = new SelectionModel<DailyRow>(true, []);
 

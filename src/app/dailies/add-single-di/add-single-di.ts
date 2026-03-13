@@ -59,7 +59,7 @@ export class AddSingleDi implements OnInit {
   isLoadingDetails = false;
 
   // MatTable properties
-  displayedColumns: string[] = ['data', 'quantidade', 'existentes', 'posto'];
+  displayedColumns: string[] = ['data', 'dias', 'existentes', 'posto'];
   singleRowData = [{ id: 1 }]; // Single row data for the table
 
   ngOnInit() {

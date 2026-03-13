@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, OnInit, inject } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
@@ -21,15 +21,17 @@ import { AddCollaborator } from '../add-collaborator/add-collaborator';
 export class AddCollaboratorPage implements OnInit {
   private router = inject(Router);
   private route = inject(ActivatedRoute);
+  private cdr = inject(ChangeDetectorRef);
   
   collaboratorId: number | null = null;
   isEditMode = false;
 
   ngOnInit() {
-    const id = this.route.snapshot.paramMap.get('id');
-    if (id) {
-      this.collaboratorId = parseInt(id);
+    const idFromRoute = this.route.snapshot.paramMap.get('id');
+    if (idFromRoute) {
+      this.collaboratorId = parseInt(idFromRoute, 10);
       this.isEditMode = true;
+      this.cdr.markForCheck();
     }
   }
 

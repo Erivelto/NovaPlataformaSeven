@@ -45,7 +45,8 @@
     </div>
     
     <div class="form-grid">
-      <mat-form-field appearance="outline" class="third-width">
+      <!-- Linha 1: CEP + Logradouro + Número -->
+      <mat-form-field appearance="outline" class="quarter-width">
         <mat-label>CEP</mat-label>
         <input matInput formControlName="cep" placeholder="12345-678">
         <mat-icon matPrefix>mail_outline</mat-icon>
@@ -54,9 +55,9 @@
         }
       </mat-form-field>
 
-      <mat-form-field appearance="outline" class="two-thirds-width">
+      <mat-form-field appearance="outline" class="half-width">
         <mat-label>Logradouro</mat-label>
-        <input matInput formControlName="endereco" placeholder="Ex. Avenida Paulista, Rua das Flores, Travessa X">
+        <input matInput formControlName="endereco" placeholder="Ex. Avenida Paulista, Rua das Flores">
         <mat-icon matPrefix>road</mat-icon>
       </mat-form-field>
 
@@ -64,30 +65,29 @@
         <mat-label>Número</mat-label>
         <input matInput formControlName="numero" type="text" placeholder="123">
         <mat-icon matPrefix>home_outlined</mat-icon>
-        @if (form.get('numero')?.hasError('pattern')) {
-          <mat-error>Apenas números</mat-error>
-        }
       </mat-form-field>
 
-      <mat-form-field appearance="outline" class="three-quarters-width">
+      <!-- Linha 2: Complemento -->
+      <mat-form-field appearance="outline" class="full-width">
         <mat-label>Complemento</mat-label>
         <input matInput formControlName="complemento" placeholder="Ex. Apartamento 42, Sala 102, Casa B">
         <mat-icon matPrefix>apartment</mat-icon>
       </mat-form-field>
 
-      <mat-form-field appearance="outline" class="half-width">
+      <!-- Linha 3: Bairro + Cidade + Estado -->
+      <mat-form-field appearance="outline" class="third-width">
         <mat-label>Bairro</mat-label>
         <input matInput formControlName="bairro" placeholder="Ex. Centro">
         <mat-icon matPrefix>domain</mat-icon>
       </mat-form-field>
 
-      <mat-form-field appearance="outline" class="half-width">
+      <mat-form-field appearance="outline" class="third-width">
         <mat-label>Cidade</mat-label>
         <input matInput formControlName="cidade" placeholder="Ex. São Paulo">
         <mat-icon matPrefix>location_city</mat-icon>
       </mat-form-field>
 
-      <mat-form-field appearance="outline" class="quarter-width">
+      <mat-form-field appearance="outline" class="third-width">
         <mat-label>Estado</mat-label>
         <input matInput formControlName="uf" placeholder="SP" maxlength="2" [value]="form.get('uf')?.value?.toUpperCase()">
         <mat-icon matPrefix>location_on</mat-icon>
@@ -105,58 +105,126 @@
       <h3>Contratação</h3>
     </div>
     
-    <div class="form-grid">
-      <mat-form-field appearance="outline" class="quarter-width">
-        <mat-label>Valor da Diária *</mat-label>
-        <span matPrefix>R$ </span>
-        <input matInput 
-               type="text" 
-               formControlName="valorDiaria" 
-               (blur)="$event.target.value = formatarValor($event.target.value)"
-               placeholder="0,00">
-        @if (form.get('valorDiaria')?.hasError('required')) {
-          <mat-error>Valor é obrigatório</mat-error>
-        }
-      </mat-form-field>
-
-      <mat-form-field appearance="outline" class="third-width">
-        <mat-label>Função *</mat-label>
-        <mat-select formControlName="funcao">
-          <mat-option></mat-option>
-          @for (role of roles; track role.id) {
-            <mat-option [value]="role.id">
-              {{role.nome}}
-            </mat-option>
+    @if (!isEditMode) {
+      <!-- MODO CADASTRO: Formulário simples -->
+      <div class="form-grid">
+        <mat-form-field appearance="outline" class="quarter-width">
+          <mat-label>Valor da Diária *</mat-label>
+          <span matPrefix>R$ </span>
+          <input matInput 
+                 type="text" 
+                 formControlName="valorDiaria" 
+                 (blur)="$event.target.value = formatarValor($event.target.value)"
+                 placeholder="0,00">
+          @if (form.get('valorDiaria')?.hasError('required')) {
+            <mat-error>Valor é obrigatório</mat-error>
           }
-        </mat-select>
-        <mat-icon matPrefix>work_outline</mat-icon>
-        @if (form.get('funcao')?.hasError('required')) {
-          <mat-error>Função é obrigatória</mat-error>
-        }
-      </mat-form-field>
+        </mat-form-field>
 
-      <mat-form-field appearance="outline" class="third-width">
-        <mat-label>Supervisor *</mat-label>
-        <mat-select formControlName="supervisor">
-          <mat-option></mat-option>
-          @for (supervisor of supervisors; track supervisor.id) {
-            <mat-option [value]="supervisor.id">
-              {{supervisor.nome}}
-            </mat-option>
+        <mat-form-field appearance="outline" class="third-width">
+          <mat-label>Função *</mat-label>
+          <input matInput formControlName="funcao" [matAutocomplete]="funcaoAuto" placeholder="Buscar função...">
+          <mat-icon matPrefix>work_outline</mat-icon>
+          @if (form.get('funcao')?.hasError('required')) {
+            <mat-error>Função é obrigatória</mat-error>
           }
-        </mat-select>
-        <mat-icon matPrefix>supervisor_account</mat-icon>
-        @if (form.get('supervisor')?.hasError('required')) {
-          <mat-error>Supervisor é obrigatório</mat-error>
-        }
-      </mat-form-field>
+          <mat-autocomplete #funcaoAuto="matAutocomplete" [displayWith]="displayRoleName">
+            @for (role of filteredRoles$ | async; track role.id) {
+              <mat-option [value]="role.id">
+                {{role.nome}}
+              </mat-option>
+            }
+          </mat-autocomplete>
+        </mat-form-field>
 
-      <app-station-select
-        class="full-width"
-        [stations]="stations"
-        formControlName="postos">
-      </app-station-select>
-    </div>
+        <mat-form-field appearance="outline" class="third-width">
+          <mat-label>Supervisor *</mat-label>
+          <input matInput formControlName="supervisor" [matAutocomplete]="supervisorAuto" placeholder="Buscar supervisor...">
+          <mat-icon matPrefix>supervisor_account</mat-icon>
+          @if (form.get('supervisor')?.hasError('required')) {
+            <mat-error>Supervisor é obrigatório</mat-error>
+          }
+          <mat-autocomplete #supervisorAuto="matAutocomplete" [displayWith]="displaySupervisorName">
+            @for (supervisor of filteredSupervisors$ | async; track supervisor.id) {
+              <mat-option [value]="supervisor.id">
+                {{supervisor.nome}}
+              </mat-option>
+            }
+          </mat-autocomplete>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="third-width">
+          <mat-label>Posto *</mat-label>
+          <input matInput formControlName="posto" [matAutocomplete]="postoAuto" placeholder="Buscar posto...">
+          <mat-icon matPrefix>location_on</mat-icon>
+          @if (form.get('posto')?.hasError('required')) {
+            <mat-error>Posto é obrigatório</mat-error>
+          }
+          <mat-autocomplete #postoAuto="matAutocomplete" [displayWith]="displayStationName">
+            @for (station of filteredStations$ | async; track station.id) {
+              <mat-option [value]="station.id">
+                {{station.nome}}
+              </mat-option>
+            }
+          </mat-autocomplete>
+        </mat-form-field>
+      </div>
+    } @else {
+      <!-- MODO EDIÇÃO: Grid de contratações com ações via modal -->
+      <div class="contracts-container">
+        <table mat-table [dataSource]="contractsDataSource" class="contracts-table">
+          <!-- ID Column -->
+          <ng-container matColumnDef="id">
+            <th mat-header-cell *matHeaderCellDef>Código</th>
+            <td mat-cell *matCellDef="let element">{{element.id}}</td>
+          </ng-container>
+
+          <!-- Valor Diária Column -->
+          <ng-container matColumnDef="valorDiaria">
+            <th mat-header-cell *matHeaderCellDef>Valor Diária</th>
+            <td mat-cell *matCellDef="let element">R$ {{element.valorDiaria | number: '1.2-2'}}</td>
+          </ng-container>
+
+          <!-- Função Column -->
+          <ng-container matColumnDef="funcao">
+            <th mat-header-cell *matHeaderCellDef>Função</th>
+            <td mat-cell *matCellDef="let element">{{getRoleName(element.idFuncao)}}</td>
+          </ng-container>
+
+          <!-- Supervisor Column -->
+          <ng-container matColumnDef="supervisor">
+            <th mat-header-cell *matHeaderCellDef>Supervisor</th>
+            <td mat-cell *matCellDef="let element">{{getSupervisorName(element.idSupervisor)}}</td>
+          </ng-container>
+
+          <!-- Posto Column -->
+          <ng-container matColumnDef="posto">
+            <th mat-header-cell *matHeaderCellDef>Posto</th>
+            <td mat-cell *matCellDef="let element">{{getStationName(element.idPosto)}}</td>
+          </ng-container>
+
+          <!-- Actions Column -->
+          <ng-container matColumnDef="actions">
+            <th mat-header-cell *matHeaderCellDef class="actions-header">
+              <button mat-icon-button type="button" color="primary" (click)="openContractDialog()" title="Adicionar Contratação">
+                <mat-icon>add_circle</mat-icon>
+              </button>
+            </th>
+            <td mat-cell *matCellDef="let element" class="actions-cell">
+              <button mat-icon-button type="button" (click)="openContractDialog(element)" title="Editar">
+                <mat-icon>edit</mat-icon>
+              </button>
+              <button mat-icon-button type="button" (click)="deleteContract(element)" title="Excluir" color="warn">
+                <mat-icon>delete</mat-icon>
+              </button>
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+        </table>
+      </div>
+    }
   </div>
 
   <!-- BOTÕES DE AÇÃO -->

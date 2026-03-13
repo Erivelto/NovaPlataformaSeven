@@ -1,11 +1,16 @@
-import { ChangeDetectionStrategy, Component, OnInit, Output, EventEmitter, Input, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, OnChanges, SimpleChanges, Output, EventEmitter, Input, inject, ChangeDetectorRef } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
+import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { StationSelectComponent } from '../../shared/station-select/station-select';
+import { MatTableModule, MatTableDataSource } from '@angular/material/table';
+import { MatPaginatorModule } from '@angular/material/paginator';
+import { MatSortModule } from '@angular/material/sort';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { AsyncPipe, CommonModule } from '@angular/common';
 import { CollaboratorService, Collaborator } from '../../services/collaborator.service';
 import { CollaboratorDetailService, CollaboratorDetail } from '../../services/collaborator-detail.service';
 import { RoleService, Role } from '../../services/role.service';
@@ -14,25 +19,34 @@ import { StationService, Station } from '../../services/station.service';
 import { AuthService } from '../../services/auth.service';
 import { NotificationService } from '../../services/notification.service';
 import { formatNumberToCurrency, parseCurrencyToNumber } from '../../shared/utils/currency.utils';
-import { forkJoin, switchMap } from 'rxjs';
+import { ContractDialog, ContractDialogData } from './contract-dialog';
+import { ConfirmDialog } from '../../shared/confirm-dialog/confirm-dialog';
+import { forkJoin, switchMap, debounceTime, startWith, map, of } from 'rxjs';
+import { Observable } from 'rxjs';
 
 @Component({
   selector: 'app-add-collaborator',
   standalone: true,
   imports: [
+    AsyncPipe,
+    CommonModule,
     ReactiveFormsModule,
     MatFormFieldModule,
     MatInputModule,
     MatSelectModule,
+    MatAutocompleteModule,
     MatButtonModule,
     MatIconModule,
-    StationSelectComponent
+    MatTableModule,
+    MatPaginatorModule,
+    MatSortModule,
+    MatDialogModule
   ],
   templateUrl: './add-collaborator.html',
   styleUrl: './add-collaborator.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class AddCollaborator implements OnInit {
+export class AddCollaborator implements OnInit, OnChanges {
   @Input() collaboratorId: number | null = null;
   @Input() isEditMode = false;
   @Output() collaboratorAdded = new EventEmitter<void>();
@@ -46,6 +60,8 @@ export class AddCollaborator implements OnInit {
   private stationService = inject(StationService);
   private authService = inject(AuthService);
   private notify = inject(NotificationService);
+  private cdr = inject(ChangeDetectorRef);
+  private dialog = inject(MatDialog);
 
   form!: FormGroup;
   roles: Role[] = [];
@@ -53,11 +69,29 @@ export class AddCollaborator implements OnInit {
   stations: Station[] = [];
   loading = false;
 
+  filteredRoles$ = of<Role[]>([]);
+  filteredSupervisors$ = of<Supervisor[]>([]);
+  filteredStations$ = of<Station[]>([]);
+
+  // Tabela de contratações
+  contractsDataSource = new MatTableDataSource<CollaboratorDetail>();
+  displayedColumns: string[] = ['id', 'valorDiaria', 'funcao', 'supervisor', 'posto', 'actions'];
+  contracts: CollaboratorDetail[] = [];
+
+  private dataLoaded = false;
+  private selectDataLoaded = false;
+
   ngOnInit() {
     this.initForm();
     this.loadSelectData();
-    if (this.isEditMode && this.collaboratorId) {
-      this.loadCollaboratorData();
+  }
+
+  ngOnChanges(changes: SimpleChanges) {
+    if ((changes['collaboratorId'] || changes['isEditMode']) && this.isEditMode && this.collaboratorId && !this.dataLoaded) {
+      if (this.selectDataLoaded) {
+        this.dataLoaded = true;
+        this.loadCollaboratorData();
+      }
     }
   }
 
@@ -81,7 +115,7 @@ export class AddCollaborator implements OnInit {
       valorDiaria: ['', Validators.required],
       funcao: ['', Validators.required],
       supervisor: ['', Validators.required],
-      postos: [[], Validators.required]
+      posto: ['', Validators.required]
     });
   }
 
@@ -95,6 +129,44 @@ export class AddCollaborator implements OnInit {
         this.roles = res.roles;
         this.supervisors = res.supervisors;
         this.stations = res.stations;
+
+        // Configurar observables de filtro para autocomplete
+        const funcaoControl = this.form.get('funcao');
+        const postoControl = this.form.get('posto');
+
+        if (funcaoControl) {
+          this.filteredRoles$ = funcaoControl.valueChanges.pipe(
+            debounceTime(200),
+            startWith(''),
+            map(val => this._filterRoles(val))
+          );
+        }
+
+        if (postoControl) {
+          this.filteredStations$ = postoControl.valueChanges.pipe(
+            debounceTime(200),
+            startWith(''),
+            map(val => this._filterStations(val))
+          );
+        }
+
+        const supervisorControl = this.form.get('supervisor');
+        if (supervisorControl) {
+          this.filteredSupervisors$ = supervisorControl.valueChanges.pipe(
+            debounceTime(200),
+            startWith(''),
+            map(val => this._filterSupervisors(val))
+          );
+        }
+
+        this.selectDataLoaded = true;
+        this.cdr.markForCheck();
+
+        // Se já temos o collaboratorId mas os dados ainda não foram carregados
+        if (this.isEditMode && this.collaboratorId && !this.dataLoaded) {
+          this.dataLoaded = true;
+          this.loadCollaboratorData();
+        }
       },
       error: () => {
         this.notify.error('Erro ao carregar opções do formulário');
@@ -102,8 +174,64 @@ export class AddCollaborator implements OnInit {
     });
   }
 
+  private _filterRoles(value: any): Role[] {
+    const filterValue = typeof value === 'string' ? value.toLowerCase() : '';
+    return filterValue
+      ? this.roles.filter(role => role.nome.toLowerCase().includes(filterValue))
+      : this.roles;
+  }
+
+  private _filterStations(value: any): Station[] {
+    const filterValue = typeof value === 'string' ? value.toLowerCase() : '';
+    return filterValue
+      ? this.stations.filter(station => station.nome.toLowerCase().includes(filterValue))
+      : this.stations;
+  }
+
+  private _filterSupervisors(value: any): Supervisor[] {
+    const filterValue = typeof value === 'string' ? value.toLowerCase() : '';
+    return filterValue
+      ? this.supervisors.filter(supervisor => supervisor.nome.toLowerCase().includes(filterValue))
+      : this.supervisors;
+  }
+
+  getRoleName(id: number): string {
+    return this.roles.find(r => r.id === id)?.nome || '';
+  }
+
+  displayRoleName = (id: any): string => {
+    if (typeof id === 'number') {
+      return this.getRoleName(id);
+    }
+    return '';
+  };
+
+  getStationName(id: number): string {
+    return this.stations.find(s => s.id === id)?.nome || '';
+  }
+
+  displayStationName = (id: any): string => {
+    if (typeof id === 'number') {
+      return this.getStationName(id);
+    }
+    return '';
+  };
+
+  getSupervisorName(id: number): string {
+    return this.supervisors.find(s => s.id === id)?.nome || '';
+  }
+
+  displaySupervisorName = (id: any): string => {
+    if (typeof id === 'number') {
+      return this.getSupervisorName(id);
+    }
+    return '';
+  };
+
   loadCollaboratorData() {
-    if (!this.collaboratorId) return;
+    if (!this.collaboratorId) {
+      return;
+    }
     
     forkJoin({
       collaborator: this.collaboratorService.getById(this.collaboratorId),
@@ -111,7 +239,10 @@ export class AddCollaborator implements OnInit {
     }).subscribe({
       next: (res) => {
         const collaborator = res.collaborator;
-        const detail = res.details.length > 0 ? res.details[0] : null;
+        const details = res.details || [];
+        
+        // Carregar dados pessoais do primeiro detalhe (se existir)
+        const detail = details.length > 0 ? details[0] : null;
         
         this.form.patchValue({
           nome: collaborator.nome,
@@ -123,21 +254,33 @@ export class AddCollaborator implements OnInit {
           complemento: collaborator.complemento || '',
           bairro: collaborator.bairro || detail?.bairro || '',
           cidade: collaborator.cidade || detail?.cidade || '',
-          uf: collaborator.uf || detail?.uf || '',
-          valorDiaria: detail?.valorDiaria || '',
-          funcao: detail?.idFuncao || '',
-          supervisor: detail?.idSupervisor || '',
-          postos: detail?.idPosto ? [detail.idPosto] : []
+          uf: collaborator.uf || detail?.uf || ''
         });
+
+        // Desabilitar campos de contratação (uses-se apenas a tabela)
+        this.form.get('valorDiaria')?.disable();
+        this.form.get('funcao')?.disable();
+        this.form.get('supervisor')?.disable();
+        this.form.get('posto')?.disable();
+
+        // Carregar tabela de contratações
+        this.contracts = details;
+        this.contractsDataSource.data = details;
+        this.cdr.markForCheck();
       },
-      error: () => {
+      error: (err) => {
         this.notify.error('Erro ao carregar dados do colaborador');
       }
     });
   }
 
   onSubmit() {
-    if (this.form.invalid) {
+    // Em modo edição, campos de contratação não são validados
+    const isFormValid = this.isEditMode 
+      ? this.form.get('nome')?.valid && this.form.get('pix')?.valid
+      : this.form.valid;
+
+    if (!isFormValid) {
       this.notify.warn('Formulário inválido. Verifique os campos obrigatórios.');
       return;
     }
@@ -158,7 +301,7 @@ export class AddCollaborator implements OnInit {
     const userName = userData?.user || '';
 
     const colaboradorPayload: Partial<Collaborator> = {
-      id: 0,
+      id: this.isEditMode && this.collaboratorId ? this.collaboratorId : 0,
       nome: cleanValue(formValue.nome),
       pix: cleanValue(formValue.pix) || undefined,
       referencia: cleanValue(formValue.referencia) || undefined,
@@ -176,8 +319,8 @@ export class AddCollaborator implements OnInit {
       excluido: false
     };
 
-    // 2) Montar payload(s) do ColaboradorDetalhe (POST /api/ColaboradorDetalhe)
-    const postos: number[] = formValue.postos && Array.isArray(formValue.postos) ? formValue.postos : [];
+    // 2) Montar payload do ColaboradorDetalhe (POST /api/ColaboradorDetalhe)
+    const postoId: number = formValue.posto;
     const valorDiaria = parseFloat(String(formValue.valorDiaria).replace(',', '.'));
     const funcaoId = formValue.funcao;
     const supervisorId = formValue.supervisor;
@@ -201,7 +344,7 @@ export class AddCollaborator implements OnInit {
       this.collaboratorService.create(colaboradorPayload).pipe(
         switchMap((newId: number) => {
           if (newId && typeof newId === 'number' && newId > 0) {
-            return this.createDetails(newId, postos, valorDiaria, funcaoId, supervisorId);
+            return this.createDetail(newId, postoId, valorDiaria, funcaoId, supervisorId);
           }
 
           return this.collaboratorService.getAll().pipe(
@@ -211,7 +354,7 @@ export class AddCollaborator implements OnInit {
                 .sort((a, b) => (b.id || 0) - (a.id || 0));
               const id = found[0]?.id;
               if (!id) throw new Error('Colaborador criado mas ID não encontrado');
-              return this.createDetails(id, postos, valorDiaria, funcaoId, supervisorId);
+              return this.createDetail(id, postoId, valorDiaria, funcaoId, supervisorId);
             })
           );
         })
@@ -231,19 +374,16 @@ export class AddCollaborator implements OnInit {
     }
   }
 
-  private createDetails(idColaborador: number, postos: number[], valorDiaria: number, funcaoId: number, supervisorId: number) {
-    const detailRequests = postos.map(postoId => {
-      const detailPayload: Partial<CollaboratorDetail> = {
-        id: 0,
-        idColaborador: idColaborador,
-        valorDiaria: valorDiaria,
-        idFuncao: funcaoId,
-        idSupervisor: supervisorId,
-        idPosto: postoId
-      };
-      return this.detailService.create(detailPayload);
-    });
-    return forkJoin(detailRequests);
+  private createDetail(idColaborador: number, postoId: number, valorDiaria: number, funcaoId: number, supervisorId: number) {
+    const detailPayload: Partial<CollaboratorDetail> = {
+      id: 0,
+      idColaborador: idColaborador,
+      valorDiaria: valorDiaria,
+      idFuncao: funcaoId,
+      idSupervisor: supervisorId,
+      idPosto: postoId
+    };
+    return this.detailService.create(detailPayload);
   }
 
   private extractErrorMessage(err: { error?: { errors?: Record<string, string[]>; title?: string; message?: string }; statusText?: string }, fallback: string): string {
@@ -263,5 +403,106 @@ export class AddCollaborator implements OnInit {
     return formatNumberToCurrency(valor);
   }
 
+  // ===== MÉTODOS DA TABELA DE CONTRATAÇÕES =====
+
+  openContractDialog(contract?: CollaboratorDetail) {
+    if (!this.collaboratorId) return;
+
+    const dialogData: ContractDialogData = {
+      contract: contract,
+      roles: this.roles,
+      supervisors: this.supervisors,
+      stations: this.stations,
+      collaboratorId: this.collaboratorId
+    };
+
+    const dialogRef = this.dialog.open(ContractDialog, {
+      width: '500px',
+      disableClose: true,
+      data: dialogData
+    });
+
+    dialogRef.afterClosed().subscribe((result: Partial<CollaboratorDetail> | undefined) => {
+      if (!result) return;
+
+      this.loading = true;
+
+      if (result.id) {
+        // Editar existente
+        const existing = this.contracts.find(c => c.id === result.id);
+        const updated: CollaboratorDetail = { ...existing!, ...result };
+        this.detailService.update(result.id, updated).subscribe({
+          next: () => {
+            this.loading = false;
+            this.notify.success('Contratação atualizada com sucesso!');
+            this.loadContractionsTable();
+          },
+          error: (err) => {
+            this.loading = false;
+            this.notify.error(this.extractErrorMessage(err, 'Erro ao atualizar contratação'));
+          }
+        });
+      } else {
+        // Adicionar nova
+        const payload: Partial<CollaboratorDetail> = { id: 0, ...result };
+        this.detailService.create(payload).subscribe({
+          next: () => {
+            this.loading = false;
+            this.notify.success('Contratação adicionada com sucesso!');
+            this.loadContractionsTable();
+          },
+          error: (err) => {
+            this.loading = false;
+            this.notify.error(this.extractErrorMessage(err, 'Erro ao adicionar contratação'));
+          }
+        });
+      }
+    });
+  }
+
+  deleteContract(contract: CollaboratorDetail) {
+    if (!contract.id) return;
+
+    const dialogRef = this.dialog.open(ConfirmDialog, {
+      width: '400px',
+      data: {
+        title: 'Excluir Contratação',
+        message: 'Tem certeza que deseja excluir esta contratação?',
+        confirmText: 'Excluir',
+        cancelText: 'Cancelar'
+      }
+    });
+
+    dialogRef.afterClosed().subscribe(confirmed => {
+      if (!confirmed) return;
+      this.loading = true;
+      this.detailService.delete(contract.id!).subscribe({
+        next: () => {
+          this.loading = false;
+          this.notify.success('Contratação excluída com sucesso!');
+          this.loadContractionsTable();
+        },
+        error: (err) => {
+          this.loading = false;
+          this.notify.error(this.extractErrorMessage(err, 'Erro ao excluir contratação'));
+        }
+      });
+    });
+  }
+
+  private loadContractionsTable() {
+    if (!this.collaboratorId) return;
+
+    this.detailService.getByCollaboratorId(this.collaboratorId).subscribe({
+      next: (details) => {
+        this.contracts = details;
+        this.contractsDataSource.data = details;
+        this.cdr.markForCheck();
+      },
+      error: () => {
+        this.notify.error('Erro ao carregar contratações');
+      }
+    });
+  }
 
 }

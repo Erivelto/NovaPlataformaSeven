@@ -54,10 +54,11 @@
         </ng-container>
 
         <!-- Dias Column (editável) -->
-        <ng-container matColumnDef="diaria">
+        <ng-container matColumnDef="dias">
           <th mat-header-cell *matHeaderCellDef mat-sort-header> Dias </th>
           <td mat-cell *matCellDef="let row">
             <mat-form-field appearance="fill" class="inline-edit">
+              <mat-label>Dias</mat-label>
               <input matInput [(ngModel)]="row.valor" type="number" min="0" step="1">
             </mat-form-field>
           </td>

@@ -140,9 +140,11 @@ export class Collaborators implements OnInit, AfterViewInit {
   }
 
   editCollaborator(collaborator: Collaborator) {
-    if (collaborator.id) {
-      this.router.navigate(['/colaboradores', collaborator.id, 'editar']);
+    if (!collaborator?.id) {
+      this.notify.error('Erro: Colaborador sem ID');
+      return;
     }
+    this.router.navigate(['/colaboradores', collaborator.id, 'editar']);
   }
 
   deleteCollaborator(collaborator: Collaborator) {
