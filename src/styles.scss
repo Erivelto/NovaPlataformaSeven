@@ -290,3 +290,20 @@ hr {
   margin: 0;
   font: inherit;
 }
+
+/* Override específico para garantir layout dos botões de ação nas tabelas */
+/* Colocado no final para ter maior precedência sobre estilos gerados */
+.mat-mdc-table .mat-mdc-cell.mat-column-actions .action-container,
+.mat-mdc-table .mat-mdc-header-cell.mat-column-actions .action-container,
+.header .mat-mdc-cell.mat-column-actions .action-container,
+.header .mat-mdc-header-cell.mat-column-actions .action-container,
+.title .mat-mdc-cell.mat-column-actions .action-container,
+.title .mat-mdc-header-cell.mat-column-actions .action-container,
+mat-card-header .mat-mdc-cell.mat-column-actions .action-container,
+mat-card-header .mat-mdc-header-cell.mat-column-actions .action-container {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  justify-content: flex-end !important;
+  gap: 4px !important;
+}
