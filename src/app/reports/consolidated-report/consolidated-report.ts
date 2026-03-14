@@ -61,7 +61,7 @@ export class ConsolidatedReport implements OnInit, AfterViewInit {
   private notify = inject(NotificationService);
   private cdr = inject(ChangeDetectorRef);
   
-  displayedColumns: string[] = ['codigo', 'nome', 'valorTotal', 'adiantamento', 'valorDiaria', 'quantidade', 'pix', 'actions'];
+  displayedColumns: string[] = ['codigo', 'nome', 'valorTotal', 'adiantamento', 'valorDiaria', 'quantidade', 'pix'];
   loading = false;
   data: ConsolidatedData[] = [];
   dataSource = new MatTableDataSource<ConsolidatedData>(this.data);
@@ -214,4 +214,22 @@ export class ConsolidatedReport implements OnInit, AfterViewInit {
     a.remove();
     URL.revokeObjectURL(url);
   }
+
+  exportRow(row: ConsolidatedData) {
+    if (!row) return;
+    const headers = ['Código','Nome','Valor Total','Adiantamento','Valor Diária','Quantidade','PIX'];
+    const line = [
+      row.codigo,
+      '"' + (String(row.nome).replace(/"/g, '""')) + '"',
+      (row.valorTotal ?? 0).toFixed(2),
+      (row.adiantamento ?? 0).toFixed(2),
+      (row.valorDiaria ?? 0).toFixed(2),
+      row.quantidade ?? 0,
+      '"' + (String(row.pix || '-').replace(/"/g, '""')) + '"'
+    ];
+    const csv = [headers.join(','), line.join(',')].join('\r\n');
+    const filename = `consolidado-row-${row.codigo || 'row'}.csv`;
+    this.downloadFile(csv, filename);
+  }
+
 }
