@@ -156,4 +156,62 @@ export class ConsolidatedReport implements OnInit, AfterViewInit {
     const filterValue = (event.target as HTMLInputElement).value;
     this.dataSource.filter = filterValue.trim().toLowerCase();
   }
+
+  exportCsv() {
+    // Export all registros carregados na tabela (todas as páginas), não apenas a página atual
+    const rows = (this.dataSource && this.dataSource.data && this.dataSource.data.length) ? this.dataSource.data : this.data;
+    if (!rows || rows.length === 0) {
+      this.notify.info('Nenhum registro para exportar');
+      return;
+    }
+
+    const headers = ['Código','Nome','Valor Total','Adiantamento','Valor Diária','Quantidade','PIX'];
+    const csvLines = [headers.join(',')];
+
+    rows.forEach(r => {
+      const line = [
+        r.codigo,
+        '"' + (String(r.nome).replace(/"/g, '""')) + '"',
+        (r.valorTotal ?? 0).toFixed(2),
+        (r.adiantamento ?? 0).toFixed(2),
+        (r.valorDiaria ?? 0).toFixed(2),
+        r.quantidade ?? 0,
+        '"' + (String(r.pix || '-').replace(/"/g, '""')) + '"'
+      ];
+      csvLines.push(line.join(','));
+    });
+
+    // Linha de totais
+    const totalValorTotal = rows.reduce((s, v) => s + (v.valorTotal ?? 0), 0);
+    const totalAdiantamento = rows.reduce((s, v) => s + (v.adiantamento ?? 0), 0);
+    const totalValorDiaria = rows.reduce((s, v) => s + (v.valorDiaria ?? 0), 0);
+    const totalQuantidade = rows.reduce((s, v) => s + (v.quantidade ?? 0), 0);
+
+    const totalsLine = [
+      '',
+      '"TOTAL"',
+      totalValorTotal.toFixed(2),
+      totalAdiantamento.toFixed(2),
+      totalValorDiaria.toFixed(2),
+      totalQuantidade,
+      '""'
+    ];
+    csvLines.push(totalsLine.join(','));
+
+    const csv = csvLines.join('\r\n');
+    const filename = `consolidado-${new Date().toISOString().slice(0,10)}.csv`;
+    this.downloadFile(csv, filename);
+  }
+
+  private downloadFile(content: string, filename: string) {
+    const blob = new Blob([content], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.setAttribute('download', filename);
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  }
 }

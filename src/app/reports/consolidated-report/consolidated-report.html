@@ -5,6 +5,12 @@
         <h2 id="consolidated-title">Lista de Consolidado</h2>
         <p>Resumo de diárias e valores por colaborador</p>
       </div>
+      <div class="header-actions">
+        <button mat-raised-button color="primary" type="button" (click)="exportCsv()" aria-label="Exportar consolidados">
+          <mat-icon>file_download</mat-icon>
+          Exportar
+        </button>
+      </div>
     </div>
     <hr>
     
@@ -52,6 +58,13 @@
       <input matInput (keyup)="applyFilter($event)" placeholder="Ex. Ricardo..." #input>
       <mat-icon matSuffix>search</mat-icon>
     </mat-form-field>
+
+    <div class="table-toolbar">
+      <button mat-stroked-button color="primary" type="button" (click)="exportCsv()" aria-label="Exportar consolidados">
+        <mat-icon>file_download</mat-icon>
+        Exportar (CSV)
+      </button>
+    </div>
 
     @if (loading) {
       <mat-progress-bar mode="indeterminate"></mat-progress-bar>

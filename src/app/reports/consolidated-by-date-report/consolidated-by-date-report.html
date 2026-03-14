@@ -41,6 +41,12 @@
 
     @if (showResults) {
     <div class="table-container">
+      <div class="table-toolbar">
+        <button mat-stroked-button color="primary" type="button" (click)="exportCsv()" aria-label="Exportar consolidados por data">
+          <mat-icon>file_download</mat-icon>
+          Exportar (CSV)
+        </button>
+      </div>
       <table mat-table [dataSource]="dataSource" matSort aria-label="Consolidado por data">
         <ng-container matColumnDef="codigo">
           <th mat-header-cell *matHeaderCellDef mat-sort-header> Código </th>

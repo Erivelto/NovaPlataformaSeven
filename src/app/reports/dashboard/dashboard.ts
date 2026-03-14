@@ -2,13 +2,15 @@ import { Component, OnInit, OnDestroy, ChangeDetectionStrategy, ChangeDetectorRe
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { Router, NavigationEnd } from '@angular/router';
-import { CollaboratorService } from '../../services/collaborator.service';
-import { DailyService } from '../../services/daily.service';
-import { StationService } from '../../services/station.service';
+import { CollaboratorService, Collaborator } from '../../services/collaborator.service';
+import { DailyService, Daily } from '../../services/daily.service';
+import { StationService, Station } from '../../services/station.service';
 import { CollaboratorDetailService, CollaboratorDetail } from '../../services/collaborator-detail.service';
-import { DiariaDisponivelService } from '../../services/diaria-disponivel.service';
-import { forkJoin, Subscription } from 'rxjs';
+import { DiariaDisponivelService, DiariaDisponivel } from '../../services/diaria-disponivel.service';
+import { forkJoin, Subscription, of } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 import { filter } from 'rxjs/operators';
+import { NotificationService } from '../../services/notification.service';
 
 @Component({
   selector: 'app-dashboard',
@@ -29,6 +31,7 @@ export class Dashboard implements OnInit, OnDestroy {
   private diariaDisponivelService = inject(DiariaDisponivelService);
   private router = inject(Router);
   private cdr = inject(ChangeDetectorRef);
+  private notify = inject(NotificationService);
   private routerSubscription?: Subscription;
 
   stats = [
@@ -127,13 +130,13 @@ export class Dashboard implements OnInit, OnDestroy {
     const endDate = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
 
     forkJoin({
-      collaborators: this.collaboratorService.getAll(),
-      dailies: this.dailyService.getByPeriod(startDate, endDate),
-      stations: this.stationService.getAll(),
-      details: this.collaboratorDetailService.getAll(),
-      diariasPendentes: this.diariaDisponivelService.getLista()
+      collaborators: this.collaboratorService.getAll().pipe(catchError(() => of([] as any))),
+      dailies: this.dailyService.getByPeriod(startDate, endDate).pipe(catchError(() => of([] as any))),
+      stations: this.stationService.getAll().pipe(catchError(() => of([] as any))),
+      details: this.collaboratorDetailService.getAll().pipe(catchError(() => of([] as any))),
+      diariasPendentes: this.diariaDisponivelService.getLista().pipe(catchError(() => of([] as any)))
     }).subscribe({
-      next: (res) => {
+      next: (res: { collaborators: Collaborator[]; dailies: Daily[]; stations: Station[]; details: CollaboratorDetail[]; diariasPendentes: DiariaDisponivel[] }) => {
         const now = new Date();
         const currentMonth = now.getMonth();
         const currentYear = now.getFullYear();
@@ -279,8 +282,10 @@ export class Dashboard implements OnInit, OnDestroy {
         this.alerts = alerts.length > 0 ? alerts : this.alerts;
         this.cdr.markForCheck();
       },
-      error: () => {
-        // Erro silencioso - dashboard continua com dados padrão
+      error: (err) => {
+        console.error('Erro carregando dashboard:', err);
+        this.notify.error('Erro ao carregar dados do dashboard. Verifique o console.');
+        this.cdr.markForCheck();
       }
     });
   }
