@@ -116,6 +116,7 @@
     grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
     gap: 24px;
     margin-bottom: 24px;
+    align-items: start;
   }
 
   .card-header {
@@ -252,6 +253,13 @@
 
   .side-card {
     padding: 24px;
+    align-self: start;
+    position: relative;
+  }
+
+  .main-card {
+    position: relative;
+    overflow: visible;
   }
 
   .alert-list {
@@ -356,4 +364,32 @@
   .dashboard-container { padding: 16px; }
   .content-grid { grid-template-columns: 1fr; }
   .chart-axis { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+
+  /* Mobile-specific tweaks */
+  .main-card { padding: 16px; min-height: 220px; }
+  .hero-card { padding: 16px; }
+  .hero-metrics { grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; }
+  .stats-grid { grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; }
+  .kpi-grid .kpi-card { padding: 12px; }
+  .metric-value { font-size: 14px; }
+  .metric-label { font-size: 12px; }
+  .chart-svg { height: 140px; }
+  .chart-grid { inset: 12px 12px 48px 12px; }
+  .chart-axis { grid-template-columns: repeat(auto-fit, minmax(80px, 1fr)); }
+  .header-badge { display: none; }
+  .list-row { padding-bottom: 8px; }
+
+  /* Force boxes/cards to 100% width on small screens */
+  .stats-grid .stat-card,
+  .hero-metrics .hero-metric,
+  .kpi-grid .kpi-card,
+  .status-grid .status-card,
+  .details-grid .detail-card,
+  .main-card,
+  .side-card {
+    width: 100% !important;
+    grid-column: 1 / -1 !important;
+    min-width: 0 !important;
+    box-sizing: border-box;
+  }
 }
