@@ -1,0 +1,12 @@
+{
+  "id": 123,
+  "quantidadeDiaria": 10,
+  "dataReferencia": "2026-03-20T00:00:00Z",
+  "idFuncao": 1,
+  "idSupervisor": 2,
+  "idPosto": 3,
+  "usuarioCadAlt": "admin",
+  "dataCadastro": "2026-03-20T10:00:00Z",
+  "dataAlteracao": "2026-03-20T12:00:00Z",
+  "excluido": false
+}

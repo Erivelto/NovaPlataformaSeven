@@ -1,0 +1,38 @@
+[
+  {
+    "id": 1,
+    "nome": "Carlos Andrade",
+    "pix": "carlos@pix.com",
+    "referencia": "REF123",
+    "endereco": "Rua das Flores, 100",
+    "numero": "100",
+    "complemento": "Apto 202",
+    "bairro": "Centro",
+    "cidade": "São Paulo",
+    "uf": "SP",
+    "cep": "01000-000",
+    "dataCadastro": "2026-03-20T10:00:00Z",
+    "dataAlteracao": "2026-03-20T12:00:00Z",
+    "userCad": "admin",
+    "userAlt": "admin",
+    "excluido": false
+  },
+  {
+    "id": 2,
+    "nome": "Ana Lima",
+    "pix": "ana@pix.com",
+    "referencia": "REF456",
+    "endereco": "Av. Brasil, 200",
+    "numero": "200",
+    "complemento": "Casa",
+    "bairro": "Jardim",
+    "cidade": "Rio de Janeiro",
+    "uf": "RJ",
+    "cep": "20000-000",
+    "dataCadastro": "2026-03-21T10:00:00Z",
+    "dataAlteracao": "2026-03-21T12:00:00Z",
+    "userCad": "admin",
+    "userAlt": "admin",
+    "excluido": false
+  }
+]

@@ -1,0 +1,18 @@
+{
+  "id": 1,
+  "nome": "Carlos Andrade",
+  "pix": "carlos@pix.com",
+  "referencia": "REF123",
+  "endereco": "Rua das Flores, 100",
+  "numero": "100",
+  "complemento": "Apto 202",
+  "bairro": "Centro",
+  "cidade": "São Paulo",
+  "uf": "SP",
+  "cep": "01000-000",
+  "dataCadastro": "2026-03-20T10:00:00Z",
+  "dataAlteracao": "2026-03-20T12:00:00Z",
+  "userCad": "admin",
+  "userAlt": "admin",
+  "excluido": false
+}

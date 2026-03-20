@@ -1,0 +1,18 @@
+[
+  {
+    "id": 123,
+    "quantidadeDiaria": 10,
+    "dataReferencia": "2026-03-20T00:00:00Z",
+    "funcao": "Supervisor",
+    "supervisor": "João Silva",
+    "posto": "Posto Central"
+  },
+  {
+    "id": 124,
+    "quantidadeDiaria": 5,
+    "dataReferencia": "2026-03-21T00:00:00Z",
+    "funcao": "Auxiliar",
+    "supervisor": "Maria Souza",
+    "posto": "Posto Norte"
+  }
+]
