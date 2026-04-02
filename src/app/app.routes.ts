@@ -1,10 +1,15 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './services/auth.guard';
+import { adminGuard } from './services/admin.guard';
 
 export const routes: Routes = [
   {
     path: 'login',
     loadComponent: () => import('./login/login').then(m => m.Login)
+  },
+  {
+    path: 'acesso-negado',
+    loadComponent: () => import('./access-denied/access-denied').then(m => m.AccessDeniedComponent)
   },
   {
     path: '',
@@ -23,6 +28,16 @@ export const routes: Routes = [
       { path: 'cadastro-supervisor', loadComponent: () => import('./registration/supervisor-registration/supervisor-registration').then(m => m.SupervisorRegistration) },
       { path: 'cadastro-funcao', loadComponent: () => import('./registration/role-registration/role-registration').then(m => m.RoleRegistration) },
       { path: 'cadastro-usuario', loadComponent: () => import('./registration/user-registration/user-registration').then(m => m.UserRegistration) },
+      {
+        path: 'controle-acesso',
+        canActivate: [adminGuard],
+        loadComponent: () => import('./permissions/user-permissions/user-permissions').then(m => m.UserPermissionsComponent)
+      },
+      {
+        path: 'gestao-permissoes',
+        canActivate: [adminGuard],
+        loadComponent: () => import('./permissions/user-permissions/user-permissions').then(m => m.UserPermissionsComponent)
+      },
       { path: 'relatorio-dashboard', loadComponent: () => import('./reports/dashboard/dashboard').then(m => m.Dashboard) },
       { path: 'relatorio-curriculos', loadComponent: () => import('./reports/curriculums-list/curriculums-list').then(m => m.CurriculumsList) },
       { path: 'relatorio-diarias', loadComponent: () => import('./reports/dailies-report/dailies-report').then(m => m.DailiesReport) },

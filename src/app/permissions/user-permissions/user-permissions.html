@@ -1,0 +1,80 @@
+<section class="user-permissions-container" aria-labelledby="user-permissions-title">
+  <div class="permissions-root">
+      <mat-card class="list-card">
+        @if (loading()) {
+          <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+        }
+
+        <div class="header">
+          <div class="title">
+            <h2 id="user-permissions-title">Gestão de Permissões de Usuário</h2>
+            <p>Selecione um usuário para configurar as áreas de acesso e nível de leitura.</p>
+          </div>
+        </div>
+        <hr>
+
+        @if (loadError()) {
+          <div class="error-state">
+            <mat-icon color="warn">cloud_off</mat-icon>
+            <p>{{ loadError() }}</p>
+            <button mat-stroked-button color="warn" (click)="loadData()">
+              <mat-icon>refresh</mat-icon>
+              Tentar novamente
+            </button>
+          </div>
+        } @else if (filteredUsers().length === 0) {
+          <div class="empty-state">
+            <mat-icon>inbox</mat-icon>
+            <p>Nenhum usuario encontrado com os filtros informados.</p>
+          </div>
+        } @else {
+          <div class="table-container">
+            <table mat-table [dataSource]="filteredUsers()" aria-label="Lista de usuarios para gestao de permissoes">
+              <ng-container matColumnDef="idUsuario">
+                <th mat-header-cell *matHeaderCellDef>ID</th>
+                <td mat-cell *matCellDef="let row">{{ row.idUsuario }}</td>
+              </ng-container>
+
+              <ng-container matColumnDef="nomeUsuario">
+                <th mat-header-cell *matHeaderCellDef>Usuário</th>
+                <td mat-cell *matCellDef="let row">{{ row.nomeUsuario }}</td>
+              </ng-container>
+
+              <ng-container matColumnDef="tipo">
+                <th mat-header-cell *matHeaderCellDef>Tipo</th>
+                <td mat-cell *matCellDef="let row">
+                  <span class="type-pill"
+                        [class.type-pill-admin]="row.tipo === 'A'"
+                        [class.type-pill-gerencial]="row.tipo === 'G'"
+                        [class.type-pill-operacional]="row.tipo === 'O'">
+                    {{ tipoLabel(row.tipo) }}
+                  </span>
+                </td>
+              </ng-container>
+
+              <ng-container matColumnDef="areasAtivas">
+                <th mat-header-cell *matHeaderCellDef>Áreas ativas</th>
+                <td mat-cell *matCellDef="let row">{{ getActiveAreasCount(row) }}/{{ row.permissoes.length }}</td>
+              </ng-container>
+
+              <ng-container matColumnDef="actions">
+                <th mat-header-cell *matHeaderCellDef class="actions-col">Ações</th>
+                <td mat-cell *matCellDef="let row" class="actions-col">
+                  <button type="button" mat-flat-button color="primary"
+                          [disabled]="!canEditUser(row)"
+                          [matTooltip]="!canEditUser(row) ? 'Não é possível editar permissões deste usuário' : ''"
+                          (click)="$event.stopPropagation(); openPermissionDrawer(row)">
+                    <mat-icon>tune</mat-icon>
+                    Editar permissões
+                  </button>
+                </td>
+              </ng-container>
+
+              <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+              <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+            </table>
+          </div>
+        }
+      </mat-card>
+      </div>
+</section>

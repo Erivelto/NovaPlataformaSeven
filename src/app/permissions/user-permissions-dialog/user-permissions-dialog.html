@@ -1,0 +1,52 @@
+<h2 mat-dialog-title class="dialog-title">
+  <span>Permissões — {{ user().nomeUsuario }}</span>
+  <button type="button" mat-icon-button (click)="close()" aria-label="Fechar">
+    <mat-icon>close</mat-icon>
+  </button>
+</h2>
+
+<mat-dialog-content class="dialog-content">
+  @if (saving()) {
+    <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+  }
+
+  <div class="user-context">
+    <span class="user-meta">Usuário #{{ user().idUsuario }} · {{ user().tipo === 'A' ? 'Admin' : user().tipo === 'G' ? 'Gerencial' : user().tipo === 'O' ? 'Operacional' : 'Comum' }}</span>
+    <mat-chip-set>
+      <mat-chip color="primary" highlighted>{{ activePermissionsCount() }} área(s) ativa(s)</mat-chip>
+    </mat-chip-set>
+  </div>
+
+  <mat-divider></mat-divider>
+
+  <div class="permission-list">
+    @for (permission of user().permissoes; track permission.id) {
+      <article class="permission-item"
+               [class.permission-disabled]="!permission.ativo"
+               [class.permission-readonly]="permission.ativo && permission.apenasLeitura">
+        <div class="permission-title-row">
+          <h4>{{ permission.nomeAmigavelArea || permission.controller }}</h4>
+          <span class="status-pill"
+                [class.pill-inactive]="!permission.ativo"
+                [class.pill-readonly]="permission.ativo && permission.apenasLeitura"
+                [class.pill-full]="permission.ativo && !permission.apenasLeitura">
+            {{ !permission.ativo ? 'Sem acesso' : (permission.apenasLeitura ? 'Somente leitura' : 'Edição completa') }}
+          </span>
+        </div>
+        <p class="controller-text">Controller: {{ permission.controller }}</p>
+        <div class="permission-controls">
+          <mat-slide-toggle [checked]="permission.ativo" (change)="toggleAtivo(permission, $event.checked)">Ativo</mat-slide-toggle>
+          <mat-slide-toggle [checked]="permission.apenasLeitura" [disabled]="!permission.ativo" (change)="toggleApenasLeitura(permission, $event.checked)">Apenas leitura</mat-slide-toggle>
+        </div>
+      </article>
+    }
+  </div>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button type="button" mat-stroked-button (click)="close()">Cancelar</button>
+  <button type="button" mat-raised-button color="primary" class="apply-btn" [disabled]="saving()" (click)="applyPermissions()">
+    <mat-icon>check</mat-icon>
+    {{ saving() ? 'Salvando...' : 'Aplicar' }}
+  </button>
+</mat-dialog-actions>

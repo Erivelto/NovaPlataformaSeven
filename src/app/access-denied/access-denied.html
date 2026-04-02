@@ -1,0 +1,18 @@
+<section class="access-denied-container" aria-labelledby="access-denied-title">
+  <mat-card class="access-denied-card">
+    <mat-icon class="access-denied-icon" aria-hidden="true">gpp_bad</mat-icon>
+    <h1 id="access-denied-title">Acesso Negado</h1>
+    <p>Seu perfil nao possui permissao para acessar esta area.</p>
+
+    <div class="actions">
+      <a mat-stroked-button routerLink="/relatorio-dashboard">
+        <mat-icon>arrow_back</mat-icon>
+        Voltar para Home
+      </a>
+      <a mat-flat-button color="primary" routerLink="/login">
+        <mat-icon>login</mat-icon>
+        Ir para Login
+      </a>
+    </div>
+  </mat-card>
+</section>

@@ -152,6 +152,12 @@
                     <span matListItemTitle>Cadastro Usuário</span>
                   }
                 </a>
+                <a mat-list-item routerLink="/controle-acesso" routerLinkActive="active-link" [matTooltip]="isCollapsed() ? 'Controle de Acesso' : ''" matTooltipPosition="right">
+                  <mat-icon matListItemIcon>admin_panel_settings</mat-icon>
+                  @if (!isCollapsed() || isHandset()) {
+                    <span matListItemTitle>Controle de Acesso</span>
+                  }
+                </a>
               </mat-nav-list>
             </mat-expansion-panel>
           }

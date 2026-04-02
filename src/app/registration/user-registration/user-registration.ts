@@ -12,14 +12,23 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { UserService, User } from '../../services/user.service';
 import { NotificationService } from '../../services/notification.service';
 import { ConfirmService } from '../../services/confirm.service';
 
 const TIPO_OPCOES = [
-  { label: 'Admin', value: 'A' },
-  { label: 'Comum', value: 'C' }
+  { label: 'Admin',       value: 'A' },
+  { label: 'Gerencial',   value: 'G' },
+  { label: 'Operacional', value: 'O' }
 ];
+
+const TIPO_LABELS: Record<string, string> = {
+  'A': 'Admin',
+  'G': 'Gerencial',
+  'O': 'Operacional',
+  'C': 'Operacional'  // Tipo legado mapeado para Operacional
+};
 
 @Component({
   selector: 'app-user-registration',
@@ -36,7 +45,8 @@ const TIPO_OPCOES = [
     MatButtonModule,
     MatIconModule,
     MatTooltipModule,
-    MatProgressBarModule
+    MatProgressBarModule,
+    MatDialogModule
   ],
   templateUrl: './user-registration.html',
   styleUrl: './user-registration.scss',
@@ -48,6 +58,7 @@ export class UserRegistration implements OnInit, AfterViewInit {
   private confirmService = inject(ConfirmService);
   private destroyRef = inject(DestroyRef);
   private cdr = inject(ChangeDetectorRef);
+  private dialog = inject(MatDialog);
 
   // Modelo para o formulário
   novoUsuario: string = '';
@@ -161,9 +172,34 @@ export class UserRegistration implements OnInit, AfterViewInit {
     });
   }
 
+  async editUser(user: User) {
+    const mod = await import('./edit-user-dialog/edit-user-dialog');
+    const DialogCmp = mod.EditUserDialogComponent;
+
+    const dialogRef = this.dialog.open(DialogCmp, {
+      data: { user, tipoOpcoes: TIPO_OPCOES },
+      width: '400px',
+      maxWidth: '96vw'
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result && result.tipo && result.tipo !== user.tipo) {
+        const updatedUser = { ...user, tipo: result.tipo };
+        this.userService.update(user.id!, updatedUser).subscribe({
+          next: () => {
+            this.notify.success('Tipo de usuário atualizado com sucesso');
+            this.loadUsers();
+          },
+          error: () => {
+            this.notify.error('Erro ao atualizar tipo de usuário');
+          }
+        });
+      }
+    });
+  }
+
   getTipoLabel(tipoValue: string): string {
-    const tipo = TIPO_OPCOES.find(t => t.value === tipoValue);
-    return tipo ? tipo.label : tipoValue;
+    return TIPO_LABELS[tipoValue] ?? tipoValue;
   }
 
   togglePasswordVisibility() {
