@@ -16,6 +16,8 @@ import { NotificationService } from '../../services/notification.service';
 import { User, UserService } from '../../services/user.service';
 import { UsuarioPermissao, ControllerItem, UsuarioPermissaoService } from '../../services/usuario-permissao.service';
 import { AuthService } from '../../services/auth.service';
+import { MenuService } from '../../services/menu.service';
+import { SubMenu } from '../../models/menu.model';
 
 /** Rank numérico: maior = mais privilegiado */
 const TIPO_RANK: Record<string, number> = { A: 3, G: 2, O: 1, C: 1 };
@@ -26,19 +28,6 @@ export const TIPO_LABELS: Record<string, string> = {
   O: 'Operacional',
   C: 'Operacional'  // Tipo legado mapeado para Operacional
 };
-
-const KNOWN_CONTROLLERS: ControllerItem[] = [
-  { valor: 1,  nome: 'Colaborador' },
-  { valor: 2,  nome: 'ColaboradorDetalhe' },
-  { valor: 3,  nome: 'Funcao' },
-  { valor: 4,  nome: 'Posto' },
-  { valor: 5,  nome: 'Supervisor' },
-  { valor: 6,  nome: 'Usuario' },
-  { valor: 7,  nome: 'Diaria' },
-  { valor: 8,  nome: 'DiariaDisponivel' },
-  { valor: 9,  nome: 'DiariaDesconto' },
-  { valor: 10, nome: 'Relatorio' }
-];
 
 interface IUsuarioPermissao {
   id: number;
@@ -83,6 +72,7 @@ export class UserPermissionsComponent implements OnInit {
   private cdr = inject(ChangeDetectorRef);
   private readonly userService = inject(UserService);
   private readonly permissaoService = inject(UsuarioPermissaoService);
+  private readonly menuService = inject(MenuService);
   private readonly notify = inject(NotificationService);
   private readonly dialog = inject(MatDialog);
   private readonly authService = inject(AuthService);
@@ -134,13 +124,14 @@ export class UserPermissionsComponent implements OnInit {
         })
       ),
       permissoes: this.permissaoService.getAll().pipe(catchError(() => of([] as UsuarioPermissao[]))),
-      controllers: of(KNOWN_CONTROLLERS)
+      subMenus: this.menuService.getSubMenus()
     })
       .pipe(finalize(() => {
         this.loading.set(false);
         this.cdr.markForCheck();
       }))
-      .subscribe(({ usuarios, permissoes, controllers }) => {
+      .subscribe(({ usuarios, permissoes, subMenus }) => {
+        const controllers: ControllerItem[] = subMenus.map(s => ({ valor: s.codigo, nome: s.descricao }));
         this.controllers.set(controllers);
         this.users.set(this.buildUserSummary(usuarios, permissoes, controllers));
         this.cdr.markForCheck();
@@ -269,14 +260,11 @@ export class UserPermissionsComponent implements OnInit {
   }
 
   private buildUserSummary(users: User[], permissoes: UsuarioPermissao[], controllers: ControllerItem[]): UserPermissionSummary[] {
-    const resolved = controllers.length > 0 ? controllers : KNOWN_CONTROLLERS;
-
     return users.map(user => {
       const userPermissoes = permissoes.filter(p => p.idUsuario === user.id);
-      // Lookup por codigoSubMenu (novo contrato da API)
       const byCodigoSubMenu = new Map(userPermissoes.map(p => [p.codigoSubMenu, p]));
 
-      const normalizedPermissoes = resolved.map(ct => {
+      const normalizedPermissoes = controllers.map(ct => {
         const current = byCodigoSubMenu.get(ct.valor);
         return {
           id: current?.id ?? 0,
@@ -286,7 +274,7 @@ export class UserPermissionsComponent implements OnInit {
           apenasLeitura: current?.apenasLeitura ?? false,
           ativo: current?.ativo ?? false,
           dataCadastro: current?.dataCadastro ?? '',
-          nomeAmigavelArea: this.toFriendlyArea(ct.nome)
+          nomeAmigavelArea: ct.nome
         };
       });
 
@@ -299,15 +287,4 @@ export class UserPermissionsComponent implements OnInit {
     });
   }
 
-  toFriendlyArea(controller: string): string {
-    if (!controller) {
-      return '';
-    }
-
-    const normalized = controller.replace(/Controller$/i, '');
-    return normalized
-      .replace(/([a-z])([A-Z])/g, '$1 $2')
-      .replace(/[-_]/g, ' ')
-      .trim();
-  }
 }
