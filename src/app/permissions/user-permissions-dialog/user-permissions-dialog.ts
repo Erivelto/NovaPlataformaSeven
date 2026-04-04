@@ -9,7 +9,7 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatDialogModule, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { UsuarioPermissaoService, UsuarioPermissao } from '../../services/usuario-permissao.service';
 import { NotificationService } from '../../services/notification.service';
-import { catchError, finalize, forkJoin, of } from 'rxjs';
+import { catchError, finalize, forkJoin, of, switchMap } from 'rxjs';
 
 interface DialogData {
   user: {
@@ -62,8 +62,7 @@ export class UserPermissionsDialogComponent {
 
     const payload = editedUser.permissoes.map(permissao => ({
       idUsuario: editedUser.idUsuario,
-      controller: permissao.controller,
-      apenasLeitura: permissao.apenasLeitura,
+      codigoSubMenu: (permissao as any).codigoSubMenu ?? 0,
       ativo: permissao.ativo
     }));
 
@@ -71,25 +70,19 @@ export class UserPermissionsDialogComponent {
 
     this.permissaoService.deleteByUserId(editedUser.idUsuario).pipe(
       catchError(() => of(void 0)),
+      switchMap(() => payload.length === 0
+        ? of([])
+        : forkJoin(payload.map(item => this.permissaoService.create(item)))
+      ),
       finalize(() => this.saving.set(false))
-    ).subscribe(() => {
-      if (payload.length === 0) {
+    ).subscribe({
+      next: () => {
         this.notify.success('Permissões atualizadas com sucesso.');
         this.dialogRef.close({ saved: true });
-        return;
-      }
-
-      forkJoin(payload.map(item => this.permissaoService.create(item))).pipe(
-        finalize(() => this.saving.set(false)),
-        catchError(() => of([]))
-      ).subscribe(() => {
-        this.notify.success('Permissões atualizadas com sucesso.');
-        this.dialogRef.close({ saved: true });
-      }, () => {
+      },
+      error: () => {
         this.notify.error('Não foi possível salvar as permissões.');
-      });
-    }, () => {
-      this.notify.error('Não foi possível salvar as permissões.');
+      }
     });
   }
 }

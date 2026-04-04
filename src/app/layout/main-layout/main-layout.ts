@@ -14,6 +14,8 @@ import { MatExpansionModule } from '@angular/material/expansion';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { AuthService } from '../../services/auth.service';
 import { LoadingService } from '../../services/loading.service';
+import { PermissionService } from '../../services/permission.service';
+import { HasPermissionDirective } from '../../shared/directives/has-permission.directive';
 
 @Component({
   selector: 'app-main-layout',
@@ -32,7 +34,8 @@ import { LoadingService } from '../../services/loading.service';
     MatProgressBarModule,
     RouterModule,
     RouterLink,
-    RouterLinkActive
+    RouterLinkActive,
+    HasPermissionDirective
   ]
 })
 export class MainLayoutComponent {
@@ -40,6 +43,7 @@ export class MainLayoutComponent {
   private router = inject(Router);
   private authService = inject(AuthService);
   public loadingService = inject(LoadingService);
+  readonly permissionService = inject(PermissionService);
 
   private userData = signal(this.authService.getUserData());
   private userType = signal<string>(this.userData()?.tipo ?? '');
@@ -55,6 +59,13 @@ export class MainLayoutComponent {
   );
 
   isCollapsed = signal(false);
+
+  readonly menus = computed(() => this.permissionService.permissionsSignal());
+
+  /** Verifica permissão de um submenu — delegado ao PermissionService */
+  hasPerm(codigoSubMenu: number): boolean {
+    return this.permissionService.hasPermission(codigoSubMenu);
+  }
 
   hasAccess(roles: string[]): boolean {
     const tipo = this.userType();
@@ -76,5 +87,10 @@ export class MainLayoutComponent {
   logout() {
     this.authService.logout();
     this.router.navigate(['/login']);
+  }
+
+  constructor() {
+    // initialize menus and permissions for current user
+    void this.permissionService.initializeForCurrentUser();
   }
 }

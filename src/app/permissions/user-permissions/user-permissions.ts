@@ -44,6 +44,7 @@ interface IUsuarioPermissao {
   id: number;
   idUsuario: number;
   controller: string;
+  codigoSubMenu: number;
   apenasLeitura: boolean;
   ativo: boolean;
   dataCadastro: string;
@@ -89,6 +90,7 @@ export class UserPermissionsComponent implements OnInit {
   readonly displayedColumns: string[] = ['idUsuario', 'nomeUsuario', 'tipo', 'areasAtivas', 'actions'];
 
   readonly users = signal<UserPermissionSummary[]>([]);
+  readonly controllers = signal<ControllerItem[]>([]);
   readonly loadError = signal<string | null>(null);
   readonly selectedUser = signal<UserPermissionSummary | null>(null);
   readonly loading = signal(false);
@@ -139,6 +141,7 @@ export class UserPermissionsComponent implements OnInit {
         this.cdr.markForCheck();
       }))
       .subscribe(({ usuarios, permissoes, controllers }) => {
+        this.controllers.set(controllers);
         this.users.set(this.buildUserSummary(usuarios, permissoes, controllers));
         this.cdr.markForCheck();
       });
@@ -218,8 +221,7 @@ export class UserPermissionsComponent implements OnInit {
 
     const payload = editedUser.permissoes.map(permissao => ({
       idUsuario: editedUser.idUsuario,
-      controller: permissao.controller,
-      apenasLeitura: permissao.apenasLeitura,
+      codigoSubMenu: permissao.codigoSubMenu,
       ativo: permissao.ativo
     }));
 
@@ -268,24 +270,23 @@ export class UserPermissionsComponent implements OnInit {
 
   private buildUserSummary(users: User[], permissoes: UsuarioPermissao[], controllers: ControllerItem[]): UserPermissionSummary[] {
     const resolved = controllers.length > 0 ? controllers : KNOWN_CONTROLLERS;
-    const controllerBase = new Set<string>(resolved.map(c => c.nome));
-    permissoes.forEach(permissao => controllerBase.add(permissao.controller));
 
     return users.map(user => {
       const userPermissoes = permissoes.filter(p => p.idUsuario === user.id);
-      const byController = new Map(userPermissoes.map(p => [p.controller, p]));
+      // Lookup por codigoSubMenu (novo contrato da API)
+      const byCodigoSubMenu = new Map(userPermissoes.map(p => [p.codigoSubMenu, p]));
 
-      const normalizedPermissoes = Array.from(controllerBase).map(controller => {
-        const current = byController.get(controller);
-
+      const normalizedPermissoes = resolved.map(ct => {
+        const current = byCodigoSubMenu.get(ct.valor);
         return {
           id: current?.id ?? 0,
           idUsuario: user.id ?? 0,
-          controller,
+          controller: ct.nome,
+          codigoSubMenu: ct.valor,
           apenasLeitura: current?.apenasLeitura ?? false,
           ativo: current?.ativo ?? false,
           dataCadastro: current?.dataCadastro ?? '',
-          nomeAmigavelArea: this.toFriendlyArea(controller)
+          nomeAmigavelArea: this.toFriendlyArea(ct.nome)
         };
       });
 

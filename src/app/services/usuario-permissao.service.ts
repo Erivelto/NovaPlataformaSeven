@@ -1,13 +1,15 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, of } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 import { environment } from '../environments/environment';
 
 export interface UsuarioPermissao {
   id?: number;
   idUsuario: number;
-  controller: string;
-  apenasLeitura: boolean;
+  codigoSubMenu: number;
+  controller?: string;     // legado — pode não vir do backend
+  apenasLeitura?: boolean; // legado — pode não vir do backend
   ativo: boolean;
   dataCadastro?: string;
   nomeAmigavelArea?: string;
@@ -38,7 +40,9 @@ export class UsuarioPermissaoService {
   }
 
   getControllers(): Observable<ControllerItem[]> {
-    return this.http.get<ControllerItem[]>(`${this.apiUrl}/controllers`);
+    return this.http.get<ControllerItem[]>(`${this.apiUrl}/controllers`).pipe(
+      catchError(() => of([] as ControllerItem[]))
+    );
   }
 
   create(permissao: UsuarioPermissao): Observable<number> {
