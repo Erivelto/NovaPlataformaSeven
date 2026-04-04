@@ -18,11 +18,22 @@ export class PermissionService {
   /** Permissões do usuário logado — fonte de verdade */
   readonly permissionsSignal = signal<UsuarioPermissao[]>([]);
 
+  private _loadingPromise: Promise<void> | null = null;
+  private _loadedForUserId: number | null = null;
+
   /** Observable wrapper para compatibilidade RxJS */
   readonly permissions$ = toObservable(this.permissionsSignal);
 
   /** true enquanto o primeiro carregamento está em andamento */
   readonly loading = signal(false);
+
+  constructor() {
+    this.authService.loggedOut$.subscribe(() => {
+      this.permissionsSignal.set([]);
+      this._loadedForUserId = null;
+      this._loadingPromise = null;
+    });
+  }
 
   private get usuarioPermissaoUrl() {
     return `${environment.apiBaseUrl}/UsuarioPermissao`;
@@ -32,7 +43,14 @@ export class PermissionService {
   async initializeForCurrentUser(): Promise<void> {
     const user = this.authService.getUserData();
     if (!user?.id) return;
-    await this.loadPermissionsForUser(user.id);
+    if (this._loadingPromise) return this._loadingPromise;
+    if (this._loadedForUserId === user.id && this.permissionsSignal().length > 0) return;
+
+    this._loadingPromise = this.loadPermissionsForUser(user.id).finally(() => {
+      this._loadedForUserId = user.id ?? null;
+      this._loadingPromise = null;
+    });
+    return this._loadingPromise;
   }
 
   async loadPermissionsForUser(idUsuario: number): Promise<void> {

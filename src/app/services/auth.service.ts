@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, tap } from 'rxjs';
+import { Observable, Subject, tap } from 'rxjs';
 import { environment } from '../environments/environment';
 
 export interface LoginRequest {
@@ -38,6 +38,8 @@ export interface ChangePasswordRequest {
 })
 export class AuthService {
   private readonly apiUrl = `${environment.apiBaseUrl}/Autenticacao`; 
+
+  readonly loggedOut$ = new Subject<void>();
 
   constructor(private http: HttpClient) {}
 
@@ -88,6 +90,7 @@ export class AuthService {
     localStorage.removeItem('auth_token');
     localStorage.removeItem('refresh_token');
     localStorage.removeItem('user_data');
+    this.loggedOut$.next();
   }
 
   isLoggedIn(): boolean {

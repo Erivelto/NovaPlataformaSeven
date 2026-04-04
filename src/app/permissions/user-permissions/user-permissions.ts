@@ -134,7 +134,7 @@ export class UserPermissionsComponent implements OnInit {
         })
       ),
       permissoes: this.permissaoService.getAll().pipe(catchError(() => of([] as UsuarioPermissao[]))),
-      controllers: this.permissaoService.getControllers().pipe(catchError(() => of([] as ControllerItem[])))
+      controllers: of(KNOWN_CONTROLLERS)
     })
       .pipe(finalize(() => {
         this.loading.set(false);

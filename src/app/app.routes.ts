@@ -1,6 +1,8 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './services/auth.guard';
 import { adminGuard } from './services/admin.guard';
+import { permissionGuard } from './services/permission.guard';
+import { homeGuard } from './services/home.guard';
 
 export const routes: Routes = [
   {
@@ -16,7 +18,7 @@ export const routes: Routes = [
     loadComponent: () => import('./layout/main-layout/main-layout').then(m => m.MainLayoutComponent),
     canActivateChild: [authGuard],
     children: [
-      { path: '', redirectTo: 'relatorio-dashboard', pathMatch: 'full' },
+      { path: '', canActivate: [homeGuard], children: [] },
       { path: 'colaboradores', loadComponent: () => import('./collaborators/collaborators').then(m => m.Collaborators) },
       { path: 'colaboradores/novo', loadComponent: () => import('./collaborators/add-collaborator-page/add-collaborator-page').then(m => m.AddCollaboratorPage) },
       { path: 'colaboradores/:id/editar', loadComponent: () => import('./collaborators/add-collaborator-page/add-collaborator-page').then(m => m.AddCollaboratorPage) },
@@ -38,7 +40,7 @@ export const routes: Routes = [
         canActivate: [adminGuard],
         loadComponent: () => import('./permissions/user-permissions/user-permissions').then(m => m.UserPermissionsComponent)
       },
-      { path: 'relatorio-dashboard', loadComponent: () => import('./reports/dashboard/dashboard').then(m => m.Dashboard) },
+      { path: 'relatorio-dashboard', canActivate: [permissionGuard], data: { requiredCodigoSubMenu: 10 }, loadComponent: () => import('./reports/dashboard/dashboard').then(m => m.Dashboard) },
       { path: 'relatorio-curriculos', loadComponent: () => import('./reports/curriculums-list/curriculums-list').then(m => m.CurriculumsList) },
       { path: 'relatorio-diarias', loadComponent: () => import('./reports/dailies-report/dailies-report').then(m => m.DailiesReport) },
       { path: 'relatorio-consolidado', loadComponent: () => import('./reports/consolidated-report/consolidated-report').then(m => m.ConsolidatedReport) },
