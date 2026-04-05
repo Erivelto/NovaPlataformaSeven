@@ -20,7 +20,7 @@
   <mat-divider></mat-divider>
 
   <div class="permission-list">
-    @for (permission of user().permissoes; track permission.id) {
+    @for (permission of filteredPermissions(); track permission.id) {
       <article class="permission-item"
                [class.permission-disabled]="!permission.ativo"
                [class.permission-readonly]="permission.ativo && permission.apenasLeitura">

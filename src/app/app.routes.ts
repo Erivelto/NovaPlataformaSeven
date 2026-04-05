@@ -29,7 +29,7 @@ export const routes: Routes = [
       { path: 'cadastro-posto', loadComponent: () => import('./registration/station-registration/station-registration').then(m => m.StationRegistration) },
       { path: 'cadastro-supervisor', loadComponent: () => import('./registration/supervisor-registration/supervisor-registration').then(m => m.SupervisorRegistration) },
       { path: 'cadastro-funcao', loadComponent: () => import('./registration/role-registration/role-registration').then(m => m.RoleRegistration) },
-      { path: 'cadastro-usuario', loadComponent: () => import('./registration/user-registration/user-registration').then(m => m.UserRegistration) },
+      { path: 'cadastro-usuario', canActivate: [adminGuard], loadComponent: () => import('./registration/user-registration/user-registration').then(m => m.UserRegistration) },
       {
         path: 'controle-acesso',
         canActivate: [adminGuard],

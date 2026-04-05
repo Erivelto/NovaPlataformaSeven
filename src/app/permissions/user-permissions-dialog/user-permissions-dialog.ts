@@ -38,7 +38,23 @@ export class UserPermissionsDialogComponent {
   readonly user = signal(this.data.user);
   readonly saving = signal(false);
 
-  readonly activePermissionsCount = computed(() => this.user().permissoes.filter(p => p.ativo).length);
+  readonly filteredPermissions = computed(() => {
+    const permissions = this.user().permissoes;
+    const editedUserType = this.user().tipo;
+    
+    // Se o usuário sendo editado é Admin, mostra tudo
+    if (editedUserType === 'A') {
+      return permissions;
+    }
+    
+    // Se não for Admin, filtra removendo "Cadastro Usuário" (9) e "Controle de Acesso" (10)
+    return permissions.filter(p => {
+      const codigoSubMenu = (p as any).codigoSubMenu;
+      return codigoSubMenu !== 9 && codigoSubMenu !== 10;
+    });
+  });
+
+  readonly activePermissionsCount = computed(() => this.filteredPermissions().filter(p => p.ativo).length);
 
   close(): void {
     this.dialogRef.close({ saved: false });
