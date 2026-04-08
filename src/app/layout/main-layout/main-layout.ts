@@ -15,7 +15,31 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { AuthService } from '../../services/auth.service';
 import { LoadingService } from '../../services/loading.service';
 import { PermissionService } from '../../services/permission.service';
+import { MenuService } from '../../services/menu.service';
 import { HasPermissionDirective } from '../../shared/directives/has-permission.directive';
+import { SubMenu } from '../../models/menu.model';
+
+/**
+ * Mapa SubMenu.codigo → rota Angular.
+ * Fallback para quando a API não retorna o campo `url` no SubMenu.
+ */
+const SUBMENU_ROUTE_MAP: Record<number, string> = {
+  1:  '/colaboradores',
+  2:  '/adicionar-diaria',
+  3:  '/adicionar-unica-diaria',
+  4:  '/lista-diarias',
+  5:  '/diaria-disponivel',
+  6:  '/cadastro-posto',
+  7:  '/cadastro-supervisor',
+  8:  '/cadastro-funcao',
+  9:  '/cadastro-usuario',
+  10: '/gestao-permissoes',
+  11: '/relatorio-dashboard',
+  12: '/relatorio-curriculos',
+  13: '/relatorio-diarias',
+  14: '/relatorio-consolidado',
+  15: '/relatorio-consolidado-data',
+};
 
 @Component({
   selector: 'app-main-layout',
@@ -44,6 +68,7 @@ export class MainLayoutComponent {
   private authService = inject(AuthService);
   public loadingService = inject(LoadingService);
   readonly permissionService = inject(PermissionService);
+  readonly menuService = inject(MenuService);
 
   private userData = signal(this.authService.getUserData());
   private userType = signal<string>(this.userData()?.tipo ?? '');
@@ -60,7 +85,56 @@ export class MainLayoutComponent {
 
   isCollapsed = signal(false);
 
-  readonly menus = computed(() => this.permissionService.permissionsSignal());
+  /** Menus agrupados com submenus visíveis — alimenta o sidenav dinâmico */
+  readonly menuGroups = computed(() => {
+    const menus = this.menuService.menuSignal();
+    const userTipo = this.userType();
+
+    const groups = menus
+      .filter(m => m.subMenus && m.subMenus.length > 0)
+      .sort((a, b) => (a.ordem ?? 0) - (b.ordem ?? 0))
+      .map(m => {
+        const visibleSubMenus = (m.subMenus ?? [])
+          .filter(sub => {
+            const resolvedUrl = sub.url || SUBMENU_ROUTE_MAP[sub.codigo];
+            if (!resolvedUrl) return false;
+            return true;
+          })
+          .sort((a, b) => (a.ordem ?? 0) - (b.ordem ?? 0))
+          .map(sub => ({
+            ...sub,
+            url: sub.url || SUBMENU_ROUTE_MAP[sub.codigo] || ''
+          }));
+
+        return {
+          codigo: m.codigo,
+          descricao: m.descricao ?? '',
+          icone: m.icone ?? 'folder',
+          subMenuCodes: visibleSubMenus.map(s => s.codigo),
+          subMenus: visibleSubMenus,
+          virtual: false
+        };
+      })
+      .filter(m => m.subMenus.length > 0);
+
+    // Grupo virtual "Liberação" — visível apenas para admins
+    if (userTipo === 'A') {
+      groups.push({
+        codigo: -1,
+        descricao: 'Liberação',
+        icone: 'verified',
+        subMenuCodes: [-1, -3],
+        subMenus: [
+          { codigo: -1, codigoMenu: -1, descricao: 'Pendentes de Liberação',  icone: 'pending_actions',    url: '/aprovacoes/pendentes',  ordem: 1, ativo: true },
+          // { codigo: -2, codigoMenu: -1, descricao: 'Minhas Solicitações',      icone: 'history',            url: '/aprovacoes/minhas',     ordem: 2, ativo: true },
+          { codigo: -3, codigoMenu: -1, descricao: 'Configurar Liberação',     icone: 'settings',           url: '/aprovacoes/configurar', ordem: 3, ativo: true },
+        ],
+        virtual: true
+      });
+    }
+
+    return groups;
+  });
 
   /** Verifica permissão de um submenu — delegado ao PermissionService */
   hasPerm(codigoSubMenu: number): boolean {
@@ -90,7 +164,7 @@ export class MainLayoutComponent {
   }
 
   constructor() {
-    // initialize menus and permissions for current user
     void this.permissionService.initializeForCurrentUser();
+    void this.menuService.initialize();
   }
 }

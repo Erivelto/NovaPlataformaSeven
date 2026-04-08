@@ -5,14 +5,14 @@ import { AuthService } from './auth.service';
 
 /** Prioridade de rotas para o redirecionamento inicial */
 const HOME_ROUTE_MAP: Array<{ codigoSubMenu: number; path: string }> = [
-  { codigoSubMenu: 10, path: 'relatorio-dashboard' },
+  { codigoSubMenu: 11, path: 'relatorio-dashboard' },
   { codigoSubMenu: 1,  path: 'colaboradores' },
-  { codigoSubMenu: 7,  path: 'lista-diarias' },
-  { codigoSubMenu: 8,  path: 'diaria-disponivel' },
-  { codigoSubMenu: 4,  path: 'cadastro-posto' },
-  { codigoSubMenu: 5,  path: 'cadastro-supervisor' },
-  { codigoSubMenu: 3,  path: 'cadastro-funcao' },
-  { codigoSubMenu: 6,  path: 'cadastro-usuario' },
+  { codigoSubMenu: 4,  path: 'lista-diarias' },
+  { codigoSubMenu: 5,  path: 'diaria-disponivel' },
+  { codigoSubMenu: 6,  path: 'cadastro-posto' },
+  { codigoSubMenu: 7,  path: 'cadastro-supervisor' },
+  { codigoSubMenu: 8,  path: 'cadastro-funcao' },
+  { codigoSubMenu: 9,  path: 'cadastro-usuario' },
 ];
 
 export const homeGuard: CanActivateFn = async () => {

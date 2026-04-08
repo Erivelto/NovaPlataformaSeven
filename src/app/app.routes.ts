@@ -40,11 +40,14 @@ export const routes: Routes = [
         canActivate: [adminGuard],
         loadComponent: () => import('./permissions/user-permissions/user-permissions').then(m => m.UserPermissionsComponent)
       },
-      { path: 'relatorio-dashboard', canActivate: [permissionGuard], data: { requiredCodigoSubMenu: 10 }, loadComponent: () => import('./reports/dashboard/dashboard').then(m => m.Dashboard) },
+      { path: 'relatorio-dashboard', canActivate: [permissionGuard], data: { requiredCodigoSubMenu: 11 }, loadComponent: () => import('./reports/dashboard/dashboard').then(m => m.Dashboard) },
       { path: 'relatorio-curriculos', loadComponent: () => import('./reports/curriculums-list/curriculums-list').then(m => m.CurriculumsList) },
       { path: 'relatorio-diarias', loadComponent: () => import('./reports/dailies-report/dailies-report').then(m => m.DailiesReport) },
       { path: 'relatorio-consolidado', loadComponent: () => import('./reports/consolidated-report/consolidated-report').then(m => m.ConsolidatedReport) },
-      { path: 'relatorio-consolidado-data', loadComponent: () => import('./reports/consolidated-by-date-report/consolidated-by-date-report').then(m => m.ConsolidatedByDateReport) }
+      { path: 'relatorio-consolidado-data', loadComponent: () => import('./reports/consolidated-by-date-report/consolidated-by-date-report').then(m => m.ConsolidatedByDateReport) },
+      { path: 'aprovacoes/pendentes', canActivate: [adminGuard], loadComponent: () => import('./aprovacoes/aprovacoes-pendentes/aprovacoes-pendentes').then(m => m.AprovacoesPendentesComponent) },
+      { path: 'aprovacoes/minhas', loadComponent: () => import('./aprovacoes/minhas-solicitacoes/minhas-solicitacoes').then(m => m.MinhasSolicitacoesComponent) },
+      { path: 'aprovacoes/configurar', canActivate: [adminGuard], loadComponent: () => import('./aprovacoes/configurar-liberacao/configurar-liberacao').then(m => m.ConfigurarLiberacaoComponent) }
     ]
   },
   { path: '**', redirectTo: 'login' }

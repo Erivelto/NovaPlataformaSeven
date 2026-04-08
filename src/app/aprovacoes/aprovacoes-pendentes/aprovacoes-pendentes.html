@@ -1,0 +1,78 @@
+<section class="aprovacoes-container" aria-labelledby="aprovacoes-title">
+  <mat-card class="list-card">
+    <div class="header">
+      <div class="title">
+        <h2 id="aprovacoes-title">Liberação de Solicitações</h2>
+        <p>Solicitações pendentes de aprovação</p>
+      </div>
+
+      <mat-form-field appearance="outline" class="search-field">
+        <mat-label>Filtrar</mat-label>
+        <input matInput (keyup)="applyFilter($event)" placeholder="Buscar..." #input>
+        <mat-icon matSuffix>search</mat-icon>
+      </mat-form-field>
+    </div>
+    <hr>
+
+    @if (loading) {
+      <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+    }
+
+    <div class="table-container">
+      <table mat-table [dataSource]="dataSource" matSort aria-label="Solicitações pendentes">
+
+        <!-- Entidade Column -->
+        <ng-container matColumnDef="entidade">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header> Entidade </th>
+          <td mat-cell *matCellDef="let row">
+            <mat-chip-set>
+              <mat-chip color="primary" highlighted>{{row.entidade}}</mat-chip>
+            </mat-chip-set>
+          </td>
+        </ng-container>
+
+        <!-- Descrição Column -->
+        <ng-container matColumnDef="descricao">
+          <th mat-header-cell *matHeaderCellDef> Descrição </th>
+          <td mat-cell *matCellDef="let row"> {{parsePayload(row.payloadJson)}} </td>
+        </ng-container>
+
+        <!-- Solicitante Column -->
+        <ng-container matColumnDef="solicitante">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header> Solicitante </th>
+          <td mat-cell *matCellDef="let row"> {{row.nomeSolicitante || '—'}} </td>
+        </ng-container>
+
+        <!-- Data Column -->
+        <ng-container matColumnDef="dataSolicitacao">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header> Data </th>
+          <td mat-cell *matCellDef="let row"> {{row.dataSolicitacao | date:'dd/MM/yyyy HH:mm'}} </td>
+        </ng-container>
+
+        <!-- Actions Column -->
+        <ng-container matColumnDef="actions">
+          <th mat-header-cell *matHeaderCellDef class="mat-column-actions"> Ações </th>
+          <td mat-cell *matCellDef="let row" class="mat-column-actions">
+            <div class="action-container">
+              <button mat-icon-button color="primary" (click)="aprovar(row)" matTooltip="Aprovar" aria-label="Aprovar solicitação">
+                <mat-icon>check_circle</mat-icon>
+              </button>
+              <button mat-icon-button color="warn" (click)="rejeitar(row)" matTooltip="Rejeitar" aria-label="Rejeitar solicitação">
+                <mat-icon>cancel</mat-icon>
+              </button>
+            </div>
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+
+        <tr class="mat-row" *matNoDataRow>
+          <td class="mat-cell no-data" colspan="5">Nenhuma solicitação pendente</td>
+        </tr>
+      </table>
+
+      <mat-paginator [pageSizeOptions]="[5, 10, 25]" aria-label="Selecionar página"></mat-paginator>
+    </div>
+  </mat-card>
+</section>

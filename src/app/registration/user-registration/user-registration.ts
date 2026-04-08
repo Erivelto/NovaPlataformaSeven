@@ -16,6 +16,7 @@ import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { UserService, User } from '../../services/user.service';
 import { NotificationService } from '../../services/notification.service';
 import { ConfirmService } from '../../services/confirm.service';
+import { PermissionService } from '../../services/permission.service';
 
 const TIPO_OPCOES = [
   { label: 'Admin',       value: 'A' },
@@ -56,9 +57,12 @@ export class UserRegistration implements OnInit, AfterViewInit {
   private userService = inject(UserService);
   private notify = inject(NotificationService);
   private confirmService = inject(ConfirmService);
+  private permissionService = inject(PermissionService);
   private destroyRef = inject(DestroyRef);
   private cdr = inject(ChangeDetectorRef);
   private dialog = inject(MatDialog);
+
+  readonly readOnly = this.permissionService.isReadOnlySignal(9);
 
   // Modelo para o formulário
   novoUsuario: string = '';

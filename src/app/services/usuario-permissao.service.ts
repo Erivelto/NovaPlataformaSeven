@@ -60,4 +60,8 @@ export class UsuarioPermissaoService {
   deleteByUserId(idUsuario: number): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/usuario/${idUsuario}`);
   }
+
+  salvarLote(idUsuario: number, permissoes: { codigoSubMenu: number; apenasLeitura: boolean }[]): Observable<void> {
+    return this.http.post<void>(`${this.apiUrl}/salvar-lote`, { idUsuario, permissoes });
+  }
 }

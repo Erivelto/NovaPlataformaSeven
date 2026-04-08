@@ -92,4 +92,20 @@ export class PermissionService {
   hasPermissionSignal(codigoSubMenu: number | number[]) {
     return computed(() => this.hasPermission(codigoSubMenu));
   }
+
+  /**
+   * Retorna true se o usuário tem permissão ativa com apenasLeitura=true para o codigoSubMenu.
+   * Admins (tipo 'A') nunca são somente leitura.
+   */
+  isReadOnly(codigoSubMenu: number | number[]): boolean {
+    const user = this.authService.getUserData();
+    if (user?.tipo === 'A') return false;
+    const perms = this.permissionsSignal();
+    const codes = Array.isArray(codigoSubMenu) ? codigoSubMenu : [codigoSubMenu];
+    return perms.some(p => p.ativo && p.apenasLeitura && codes.includes(p.codigoSubMenu));
+  }
+
+  isReadOnlySignal(codigoSubMenu: number | number[]) {
+    return computed(() => this.isReadOnly(codigoSubMenu));
+  }
 }

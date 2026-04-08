@@ -17,6 +17,7 @@ import { CollaboratorService, Collaborator } from '../services/collaborator.serv
 import { CollaboratorDetailService, CollaboratorDetail } from '../services/collaborator-detail.service';
 import { NotificationService } from '../services/notification.service';
 import { ConfirmService } from '../services/confirm.service';
+import { PermissionService } from '../services/permission.service';
 import { LOCALE_ID } from '@angular/core';
 
 registerLocaleData(localePt);
@@ -57,8 +58,11 @@ export class Collaborators implements OnInit, AfterViewInit {
   private notify = inject(NotificationService);
   private router = inject(Router);
   private confirmService = inject(ConfirmService);
+  private permissionService = inject(PermissionService);
   private destroyRef = inject(DestroyRef);
   private cdr = inject(ChangeDetectorRef);
+
+  readonly readOnly = this.permissionService.isReadOnlySignal(1);
 
   displayedColumns: string[] = ['codigo', 'nome', 'dataCadastro', 'userCad', 'dataAlteracao', 'userAlt', 'actions'];
   dataSource = new MatTableDataSource<Collaborator>([]);

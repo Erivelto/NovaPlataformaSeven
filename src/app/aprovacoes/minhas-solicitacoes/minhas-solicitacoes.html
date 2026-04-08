@@ -1,0 +1,71 @@
+<section class="solicitacoes-container" aria-labelledby="solicitacoes-title">
+  <mat-card class="list-card">
+    <div class="header">
+      <div class="title">
+        <h2 id="solicitacoes-title">Minhas Solicitações</h2>
+        <p>Acompanhe o status das suas solicitações de cadastro</p>
+      </div>
+
+      <mat-form-field appearance="outline" class="search-field">
+        <mat-label>Filtrar</mat-label>
+        <input matInput (keyup)="applyFilter($event)" placeholder="Buscar..." #input>
+        <mat-icon matSuffix>search</mat-icon>
+      </mat-form-field>
+    </div>
+    <hr>
+
+    @if (loading) {
+      <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+    }
+
+    <div class="table-container">
+      <table mat-table [dataSource]="dataSource" matSort aria-label="Minhas solicitações">
+
+        <!-- Entidade Column -->
+        <ng-container matColumnDef="entidade">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header> Entidade </th>
+          <td mat-cell *matCellDef="let row"> {{row.entidade}} </td>
+        </ng-container>
+
+        <!-- Descrição Column -->
+        <ng-container matColumnDef="descricao">
+          <th mat-header-cell *matHeaderCellDef> Descrição </th>
+          <td mat-cell *matCellDef="let row"> {{parsePayload(row.payloadJson)}} </td>
+        </ng-container>
+
+        <!-- Data Column -->
+        <ng-container matColumnDef="dataSolicitacao">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header> Data </th>
+          <td mat-cell *matCellDef="let row"> {{row.dataSolicitacao | date:'dd/MM/yyyy HH:mm'}} </td>
+        </ng-container>
+
+        <!-- Status Column -->
+        <ng-container matColumnDef="status">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header> Status </th>
+          <td mat-cell *matCellDef="let row">
+            <mat-chip-set>
+              <mat-chip [class]="'status-' + row.status.toLowerCase()">
+                {{row.status}}
+              </mat-chip>
+            </mat-chip-set>
+          </td>
+        </ng-container>
+
+        <!-- Motivo Column -->
+        <ng-container matColumnDef="motivo">
+          <th mat-header-cell *matHeaderCellDef> Motivo Rejeição </th>
+          <td mat-cell *matCellDef="let row"> {{row.observacao || row.motivoRejeicao || '—'}} </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+
+        <tr class="mat-row" *matNoDataRow>
+          <td class="mat-cell no-data" colspan="5">Nenhuma solicitação encontrada</td>
+        </tr>
+      </table>
+
+      <mat-paginator [pageSizeOptions]="[5, 10, 25]" aria-label="Selecionar página"></mat-paginator>
+    </div>
+  </mat-card>
+</section>

@@ -22,6 +22,7 @@ export class HasPermissionDirective implements OnInit, OnDestroy {
     effect(() => {
       const codes = this.codigosSignal();
       // Lê permissionsSignal — registra dependência reativa
+      const permsForTracking = this.permissionService.permissionsSignal();
       const allowed = codes.length > 0 && this.permissionService.hasPermission(codes);
       if (allowed && !this.viewCreated) {
         this.vcr.createEmbeddedView(this.templateRef);

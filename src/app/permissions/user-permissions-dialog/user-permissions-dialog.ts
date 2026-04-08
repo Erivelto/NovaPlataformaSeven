@@ -9,7 +9,7 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatDialogModule, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { UsuarioPermissaoService, UsuarioPermissao } from '../../services/usuario-permissao.service';
 import { NotificationService } from '../../services/notification.service';
-import { catchError, finalize, forkJoin, of, switchMap } from 'rxjs';
+import { finalize } from 'rxjs';
 
 interface DialogData {
   user: {
@@ -48,10 +48,7 @@ export class UserPermissionsDialogComponent {
     }
     
     // Se não for Admin, filtra removendo "Cadastro Usuário" (9) e "Controle de Acesso" (10)
-    return permissions.filter(p => {
-      const codigoSubMenu = (p as any).codigoSubMenu;
-      return codigoSubMenu !== 9 && codigoSubMenu !== 10;
-    });
+    return permissions.filter(p => p.codigoSubMenu !== 9 && p.codigoSubMenu !== 10);
   });
 
   readonly activePermissionsCount = computed(() => this.filteredPermissions().filter(p => p.ativo).length);
@@ -76,20 +73,16 @@ export class UserPermissionsDialogComponent {
     const editedUser = this.user();
     if (!editedUser) return;
 
-    const payload = editedUser.permissoes.map(permissao => ({
-      idUsuario: editedUser.idUsuario,
-      codigoSubMenu: (permissao as any).codigoSubMenu ?? 0,
-      ativo: permissao.ativo
-    }));
+    const permissoesAtivas = editedUser.permissoes
+      .filter(p => p.ativo)
+      .map(p => ({
+        codigoSubMenu: p.codigoSubMenu ?? 0,
+        apenasLeitura: p.apenasLeitura ?? false
+      }));
 
     this.saving.set(true);
 
-    this.permissaoService.deleteByUserId(editedUser.idUsuario).pipe(
-      catchError(() => of(void 0)),
-      switchMap(() => payload.length === 0
-        ? of([])
-        : forkJoin(payload.map(item => this.permissaoService.create(item)))
-      ),
+    this.permissaoService.salvarLote(editedUser.idUsuario, permissoesAtivas).pipe(
       finalize(() => this.saving.set(false))
     ).subscribe({
       next: () => {

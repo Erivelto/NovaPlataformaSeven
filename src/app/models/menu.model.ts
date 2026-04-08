@@ -14,7 +14,7 @@ export interface MenuComSubMenus {
   icone?: string;
   url?: string;
   ordem?: number;
-  subMenus?: MenuItem[];
+  subMenus?: SubMenu[];
 }
 
 export interface SubMenu {

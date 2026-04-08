@@ -1,0 +1,70 @@
+<mat-card>
+  <mat-card-header>
+    <mat-card-title>Configurar Fluxo de Liberação</mat-card-title>
+    <mat-card-subtitle>Defina quais entidades precisam de aprovação e quem aprova</mat-card-subtitle>
+  </mat-card-header>
+  <hr>
+
+  <mat-card-content>
+    @if (loading()) {
+      <mat-progress-bar mode="indeterminate" />
+    }
+
+    <!-- Formulário para nova configuração -->
+    <div class="form-row">
+      <mat-form-field appearance="outline">
+        <mat-label>Entidade</mat-label>
+        <mat-select [(ngModel)]="novaEntidade">
+          @for (e of entidades; track e) {
+            <mat-option [value]="e">{{ e }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Aprovador</mat-label>
+        <mat-select [(ngModel)]="novoAprovadorId">
+          @for (admin of admins(); track admin.id) {
+            <mat-option [value]="admin.id">{{ admin.user }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+
+      <button mat-flat-button color="primary" (click)="adicionar()" [disabled]="saving()">
+        <mat-icon>add</mat-icon>
+        Adicionar
+      </button>
+    </div>
+
+    <!-- Tabela de configurações existentes -->
+    <table mat-table [dataSource]="configs()" class="configs-table">
+      <ng-container matColumnDef="entidade">
+        <th mat-header-cell *matHeaderCellDef>Entidade</th>
+        <td mat-cell *matCellDef="let row">{{ row.entidade }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="aprovador">
+        <th mat-header-cell *matHeaderCellDef>Aprovador</th>
+        <td mat-cell *matCellDef="let row">{{ nomeAprovador(row.idUsuarioAprovador) }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="actions">
+        <th mat-header-cell *matHeaderCellDef></th>
+        <td mat-cell *matCellDef="let row">
+          <button mat-icon-button color="warn" (click)="remover(row)" matTooltip="Remover">
+            <mat-icon>delete</mat-icon>
+          </button>
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+
+      <tr class="mat-row" *matNoDataRow>
+        <td class="mat-cell empty-row" [attr.colspan]="displayedColumns.length">
+          Nenhuma configuração cadastrada.
+        </td>
+      </tr>
+    </table>
+  </mat-card-content>
+</mat-card>

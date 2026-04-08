@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, Subject, tap } from 'rxjs';
 import { environment } from '../environments/environment';
+import { MenuComSubMenus } from '../models/menu.model';
 
 export interface LoginRequest {
   user: string;
@@ -20,6 +21,7 @@ export interface LoginResponse {
   token: string;
   refreshToken?: string;
   user?: UserData;
+  menu?: MenuComSubMenus[];
 }
 
 export interface RegisterRequest {
@@ -53,6 +55,9 @@ export class AuthService {
           }
           if (response.user) {
             this.saveUserData(response.user);
+          }
+          if (response.menu) {
+            this.saveMenuData(response.menu);
           }
         }
       })
@@ -90,6 +95,7 @@ export class AuthService {
     localStorage.removeItem('auth_token');
     localStorage.removeItem('refresh_token');
     localStorage.removeItem('user_data');
+    localStorage.removeItem('menu_data');
     this.loggedOut$.next();
   }
 
@@ -99,6 +105,21 @@ export class AuthService {
 
   getToken(): string | null {
     return localStorage.getItem('auth_token');
+  }
+
+  saveMenuData(menu: MenuComSubMenus[]): void {
+    localStorage.setItem('menu_data', JSON.stringify(menu));
+  }
+
+  getMenuData(): MenuComSubMenus[] {
+    const data = localStorage.getItem('menu_data');
+    if (!data) return [];
+    try {
+      return JSON.parse(data) as MenuComSubMenus[];
+    } catch {
+      localStorage.removeItem('menu_data');
+      return [];
+    }
   }
 
   saveUserData(user: UserData): void {

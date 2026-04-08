@@ -307,3 +307,28 @@ mat-card-header .mat-mdc-header-cell.mat-column-actions .action-container {
   justify-content: flex-end !important;
   gap: 4px !important;
 }
+
+// Botões desabilitados (modo somente leitura) — aspecto cinza explícito
+.mat-mdc-raised-button:disabled,
+.mat-mdc-raised-button[disabled] {
+  background-color: #c8c8c8 !important;
+  color: #888888 !important;
+  cursor: not-allowed !important;
+  pointer-events: auto !important; // Mantém cursor visível mesmo sem evento
+
+  .mdc-button__label,
+  mat-icon {
+    color: #888888 !important;
+  }
+}
+
+.mat-mdc-icon-button:disabled,
+.mat-mdc-icon-button[disabled] {
+  color: #bbbbbb !important;
+  cursor: not-allowed !important;
+  pointer-events: auto !important;
+
+  mat-icon {
+    color: #bbbbbb !important;
+  }
+}

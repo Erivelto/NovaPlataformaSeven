@@ -14,6 +14,7 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { SupervisorService, Supervisor } from '../../services/supervisor.service';
 import { NotificationService } from '../../services/notification.service';
 import { ConfirmService } from '../../services/confirm.service';
+import { PermissionService } from '../../services/permission.service';
 
 @Component({
   selector: 'app-supervisor-registration',
@@ -39,8 +40,11 @@ export class SupervisorRegistration implements OnInit, AfterViewInit {
   private supervisorService = inject(SupervisorService);
   private notify = inject(NotificationService);
   private confirmService = inject(ConfirmService);
+  private permissionService = inject(PermissionService);
   private destroyRef = inject(DestroyRef);
   private cdr = inject(ChangeDetectorRef);
+
+  readonly readOnly = this.permissionService.isReadOnlySignal(7);
 
   novoSupervisor: string = '';
   loading = false;

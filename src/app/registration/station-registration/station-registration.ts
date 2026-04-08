@@ -14,6 +14,9 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { StationService, Station } from '../../services/station.service';
 import { NotificationService } from '../../services/notification.service';
 import { ConfirmService } from '../../services/confirm.service';
+import { AprovacaoService } from '../../services/aprovacao.service';
+import { AuthService } from '../../services/auth.service';
+import { PermissionService } from '../../services/permission.service';
 
 @Component({
   selector: 'app-station-registration',
@@ -39,8 +42,13 @@ export class StationRegistration implements OnInit, AfterViewInit {
   private stationService = inject(StationService);
   private notify = inject(NotificationService);
   private confirmService = inject(ConfirmService);
+  private aprovacaoService = inject(AprovacaoService);
+  private authService = inject(AuthService);
+  private permissionService = inject(PermissionService);
   private destroyRef = inject(DestroyRef);
   private cdr = inject(ChangeDetectorRef);
+
+  readonly readOnly = this.permissionService.isReadOnlySignal(6);
 
   novoPosto: string = '';
   loading = false;
@@ -102,10 +110,19 @@ export class StationRegistration implements OnInit, AfterViewInit {
       return;
     }
 
-    const newStation: Station = {
-      nome: this.novoPosto.trim()
-    };
-    
+    const nomePosto = this.novoPosto.trim();
+    const user = this.authService.getUserData();
+
+    // Admin cria diretamente; demais perfis enviam para aprovação
+    if (user?.tipo === 'A') {
+      this.criarPostoDireto(nomePosto);
+    } else {
+      this.solicitarAprovacao(nomePosto);
+    }
+  }
+
+  private criarPostoDireto(nome: string) {
+    const newStation: Station = { nome };
     this.stationService.create(newStation).subscribe({
       next: () => {
         this.notify.success('Posto adicionado com sucesso!');
@@ -114,6 +131,18 @@ export class StationRegistration implements OnInit, AfterViewInit {
       },
       error: () => {
         this.notify.error('Erro ao cadastrar posto');
+      }
+    });
+  }
+
+  private solicitarAprovacao(nome: string) {
+    this.aprovacaoService.solicitar({ entidade: 'Posto', payloadJson: JSON.stringify({ nome }) }).subscribe({
+      next: () => {
+        this.notify.info('Solicitação de cadastro enviada! Aguardando liberação do responsável.');
+        this.novoPosto = '';
+      },
+      error: () => {
+        this.notify.error('Erro ao enviar solicitação de aprovação');
       }
     });
   }
