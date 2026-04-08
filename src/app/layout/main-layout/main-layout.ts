@@ -41,6 +41,14 @@ const SUBMENU_ROUTE_MAP: Record<number, string> = {
   15: '/relatorio-consolidado-data',
 };
 
+/**
+ * Sobrescreve o nome exibido no menu por código de submenu.
+ * Use para renomear itens sem alterar o backend.
+ */
+const SUBMENU_LABEL_OVERRIDE: Record<number, string> = {
+  5: 'Solicitações',
+};
+
 @Component({
   selector: 'app-main-layout',
   templateUrl: './main-layout.html',
@@ -103,6 +111,7 @@ export class MainLayoutComponent {
           .sort((a, b) => (a.ordem ?? 0) - (b.ordem ?? 0))
           .map(sub => ({
             ...sub,
+            descricao: SUBMENU_LABEL_OVERRIDE[sub.codigo] ?? sub.descricao,
             url: sub.url || SUBMENU_ROUTE_MAP[sub.codigo] || ''
           }));
 
