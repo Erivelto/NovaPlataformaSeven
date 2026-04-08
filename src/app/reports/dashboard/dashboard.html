@@ -34,7 +34,7 @@
     @for (stat of stats; track stat.label) {
       <mat-card class="stat-card">
         <div class="stat-content">
-          <div class="stat-icon" [style.color]="stat.color">
+          <div class="stat-icon" [style.color]="stat.color" [style.background]="stat.color + '14'">
             <mat-icon>{{ stat.icon }}</mat-icon>
           </div>
           <div class="stat-info">

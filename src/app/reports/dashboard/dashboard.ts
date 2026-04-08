@@ -7,6 +7,7 @@ import { DailyService, Daily } from '../../services/daily.service';
 import { StationService, Station } from '../../services/station.service';
 import { CollaboratorDetailService, CollaboratorDetail } from '../../services/collaborator-detail.service';
 import { DiariaDisponivelService, DiariaDisponivel } from '../../services/diaria-disponivel.service';
+import { AprovacaoService, AprovacaoStage } from '../../services/aprovacao.service';
 import { forkJoin, Subscription, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { filter } from 'rxjs/operators';
@@ -29,15 +30,17 @@ export class Dashboard implements OnInit, OnDestroy {
   private stationService = inject(StationService);
   private collaboratorDetailService = inject(CollaboratorDetailService);
   private diariaDisponivelService = inject(DiariaDisponivelService);
+  private aprovacaoService = inject(AprovacaoService);
   private router = inject(Router);
   private cdr = inject(ChangeDetectorRef);
   private notify = inject(NotificationService);
   private routerSubscription?: Subscription;
 
   stats = [
-    { label: 'Total de Colaboradores', value: 0, icon: 'people', color: '#850000' },
-    { label: 'Diárias este Mês', value: 0, icon: 'today', color: '#850000' },
-    { label: 'Postos Ativos', value: 0, icon: 'location_on', color: '#850000' }
+    { label: 'Total de Colaboradores', value: 0, icon: 'people',        color: '#850000' },
+    { label: 'Diárias este Mês',        value: 0, icon: 'today',         color: '#850000' },
+    { label: 'Postos Ativos',           value: 0, icon: 'location_on',   color: '#850000' },
+    { label: 'Liberações Pendentes',    value: 0, icon: 'pending_actions', color: '#ed6c02' }
   ];
 
   kpis = [
@@ -134,9 +137,10 @@ export class Dashboard implements OnInit, OnDestroy {
       dailies: this.dailyService.getByPeriod(startDate, endDate).pipe(catchError(() => of([] as any))),
       stations: this.stationService.getAll().pipe(catchError(() => of([] as any))),
       details: this.collaboratorDetailService.getAll().pipe(catchError(() => of([] as any))),
-      diariasPendentes: this.diariaDisponivelService.getLista().pipe(catchError(() => of([] as any)))
+      diariasPendentes: this.diariaDisponivelService.getLista().pipe(catchError(() => of([] as any))),
+      aprovacoesPendentes: this.aprovacaoService.pendentes().pipe(catchError(() => of([] as AprovacaoStage[])))
     }).subscribe({
-      next: (res: { collaborators: Collaborator[]; dailies: Daily[]; stations: Station[]; details: CollaboratorDetail[]; diariasPendentes: DiariaDisponivel[] }) => {
+      next: (res: { collaborators: Collaborator[]; dailies: Daily[]; stations: Station[]; details: CollaboratorDetail[]; diariasPendentes: DiariaDisponivel[]; aprovacoesPendentes: AprovacaoStage[] }) => {
         const now = new Date();
         const currentMonth = now.getMonth();
         const currentYear = now.getFullYear();
@@ -155,6 +159,9 @@ export class Dashboard implements OnInit, OnDestroy {
 
         // Postos Ativos
         this.stats[2].value = res.stations.length;
+
+        // Liberações Pendentes
+        this.stats[3].value = res.aprovacoesPendentes.filter(a => a.entidade === 'Posto').length;
 
         // Calcular KPIs
         const dailiesLastMonth = res.dailies.filter(daily => {

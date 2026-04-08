@@ -15,7 +15,7 @@
 
   .stats-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
     gap: 24px;
     margin-bottom: 24px;
 
@@ -27,7 +27,6 @@
         gap: 16px;
 
         .stat-icon {
-          background: rgba(133, 0, 0, 0.05);
           padding: 12px;
           border-radius: 8px;
           mat-icon { font-size: 32px; width: 32px; height: 32px; }
