@@ -49,14 +49,6 @@ const SUBMENU_LABEL_OVERRIDE: Record<number, string> = {
   5: 'Solicitações',
 };
 
-/**
- * Remapeia submenus para um grupo diferente do retornado pela API.
- * Chave: código do submenu | Valor: trecho da descrição do grupo de destino.
- */
-const SUBMENU_GROUP_REMAP: Record<number, string> = {
-  1: 'Cadastro', // Mover "Lista de Colaboradores" para o grupo Cadastro
-};
-
 @Component({
   selector: 'app-main-layout',
   templateUrl: './main-layout.html',
@@ -133,30 +125,6 @@ export class MainLayoutComponent {
         };
       })
       .filter(m => m.subMenus.length > 0);
-
-    // Remapear submenus para grupos diferentes do retornado pela API
-    for (const [subCodeStr, targetDesc] of Object.entries(SUBMENU_GROUP_REMAP)) {
-      const subCode = Number(subCodeStr);
-      let movedSub: SubMenu | undefined;
-      for (const group of groups) {
-        const idx = group.subMenus.findIndex(s => s.codigo === subCode);
-        if (idx !== -1) {
-          movedSub = group.subMenus.splice(idx, 1)[0];
-          group.subMenuCodes = group.subMenuCodes.filter(c => c !== subCode);
-          break;
-        }
-      }
-      if (movedSub) {
-        const target = groups.find(g =>
-          g.descricao.toLowerCase().includes(targetDesc.toLowerCase())
-        );
-        if (target) {
-          target.subMenus.push({ ...movedSub, url: movedSub.url ?? '' });
-          target.subMenus.sort((a, b) => (a.ordem ?? 0) - (b.ordem ?? 0));
-          target.subMenuCodes.push(movedSub.codigo);
-        }
-      }
-    }
 
     // Grupo virtual "Liberação" — visível apenas para admins
     if (userTipo === 'A') {
