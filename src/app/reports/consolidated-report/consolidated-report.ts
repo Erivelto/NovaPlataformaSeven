@@ -158,15 +158,3 @@ export class ConsolidatedReport implements OnInit, AfterViewInit {
     URL.revokeObjectURL(url);
   }
 }
-  private downloadFile(content: string, filename: string) {
-    const blob = new Blob([content], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.setAttribute('download', filename);
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    URL.revokeObjectURL(url);
-  }
-}
