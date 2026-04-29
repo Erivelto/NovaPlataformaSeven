@@ -40,54 +40,95 @@
     }
 
     @if (showResults) {
-    <div class="table-container">
-      <div class="table-toolbar">
-        <button mat-stroked-button color="primary" type="button" (click)="exportCsv()" aria-label="Exportar consolidados por data">
-          <mat-icon>file_download</mat-icon>
-          Exportar (CSV)
-        </button>
+      <div class="stats-grid">
+        <mat-card class="stat-card">
+          <div class="stat-content">
+            <div class="stat-icon collaborators">
+              <mat-icon>people</mat-icon>
+            </div>
+            <div class="stat-info">
+              <span class="stat-value">{{totalColaboradores}}</span>
+              <span class="stat-label">Colaboradores</span>
+            </div>
+          </div>
+        </mat-card>
+        <mat-card class="stat-card">
+          <div class="stat-content">
+            <div class="stat-icon dailies">
+              <mat-icon>event_note</mat-icon>
+            </div>
+            <div class="stat-info">
+              <span class="stat-value">{{totalDiarias}}</span>
+              <span class="stat-label">Total de Diárias</span>
+            </div>
+          </div>
+        </mat-card>
+        <mat-card class="stat-card">
+          <div class="stat-content">
+            <div class="stat-icon value">
+              <mat-icon>payments</mat-icon>
+            </div>
+            <div class="stat-info">
+              <span class="stat-value">{{valorGeral | currency:'BRL':'symbol':'1.2-2':'pt-BR'}}</span>
+              <span class="stat-label">Valor Total</span>
+            </div>
+          </div>
+        </mat-card>
       </div>
-      <table mat-table [dataSource]="dataSource" matSort aria-label="Consolidado por data">
-        <ng-container matColumnDef="codigo">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header> Código </th>
-          <td mat-cell *matCellDef="let row"> {{row.codigo}} </td>
-        </ng-container>
-        
-        <ng-container matColumnDef="nome">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header> Nome </th>
-          <td mat-cell *matCellDef="let row"> {{row.nome}} </td>
-        </ng-container>
-        
-        <ng-container matColumnDef="valorTotal">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header> Valor Total </th>
-          <td mat-cell *matCellDef="let row"> {{row.valorTotal | currency:'BRL':'symbol':'1.2-2':'pt-BR'}} </td>
-        </ng-container>
-        
-        <ng-container matColumnDef="adiantamento">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header> Adiantamento </th>
-          <td mat-cell *matCellDef="let row"> {{row.adiantamento | currency:'BRL':'symbol':'1.2-2':'pt-BR'}} </td>
-        </ng-container>
-        
-        <ng-container matColumnDef="valorDiaria">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header> Valor da Diária </th>
-          <td mat-cell *matCellDef="let row"> {{row.valorDiaria | currency:'BRL':'symbol':'1.2-2':'pt-BR'}} </td>
-        </ng-container>
-        
-        <ng-container matColumnDef="quantidade">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header> Quantidade </th>
-          <td mat-cell *matCellDef="let row"> {{row.quantidade}} </td>
-        </ng-container>
-        
-        <ng-container matColumnDef="pix">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header> PIX </th>
-          <td mat-cell *matCellDef="let row"> {{row.pix}} </td>
-        </ng-container>
 
-        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-        <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
-      </table>
-      <mat-paginator [pageSizeOptions]="[10, 25, 50]" aria-label="Paginação do consolidado por data"></mat-paginator>
-    </div>
+      <div class="table-section">
+        <mat-form-field appearance="outline" class="search-field">
+          <mat-label>Filtrar consolidados</mat-label>
+          <input matInput (keyup)="applyFilter($event)" placeholder="Ex. Ricardo..." #input>
+          <mat-icon matSuffix>search</mat-icon>
+        </mat-form-field>
+
+        <div class="table-toolbar">
+          <button mat-stroked-button color="primary" type="button" (click)="exportCsv()" aria-label="Exportar consolidados por data">
+            <mat-icon>file_download</mat-icon>
+            Exportar (CSV)
+          </button>
+        </div>
+
+        <div class="table-container">
+          <table mat-table [dataSource]="dataSource" matSort aria-label="Consolidado por data">
+            <ng-container matColumnDef="codigo">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header> Código </th>
+              <td mat-cell *matCellDef="let row"> {{row.codigo}} </td>
+            </ng-container>
+            <ng-container matColumnDef="nome">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header> Nome </th>
+              <td mat-cell *matCellDef="let row"> {{row.nome}} </td>
+            </ng-container>
+            <ng-container matColumnDef="valorTotal">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header> Valor Total </th>
+              <td mat-cell *matCellDef="let row"> {{row.valorTotal | currency:'BRL':'symbol':'1.2-2':'pt-BR'}} </td>
+            </ng-container>
+            <ng-container matColumnDef="adiantamento">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header> Adiantamento </th>
+              <td mat-cell *matCellDef="let row"> {{row.adiantamento | currency:'BRL':'symbol':'1.2-2':'pt-BR'}} </td>
+            </ng-container>
+            <ng-container matColumnDef="valorDiaria">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header> Valor Diária </th>
+              <td mat-cell *matCellDef="let row"> {{row.valorDiaria | currency:'BRL':'symbol':'1.2-2':'pt-BR'}} </td>
+            </ng-container>
+            <ng-container matColumnDef="quantidade">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header> Quantidade </th>
+              <td mat-cell *matCellDef="let row" style="text-align: center;"> {{row.quantidade}} </td>
+            </ng-container>
+            <ng-container matColumnDef="pix">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header> Chave PIX </th>
+              <td mat-cell *matCellDef="let row"> {{row.pix}} </td>
+            </ng-container>
+            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+            <tr class="mat-row" *matNoDataRow>
+              <td class="mat-cell empty-row" [attr.colspan]="displayedColumns.length">Nenhum registro encontrado.</td>
+            </tr>
+          </table>
+          <mat-paginator [pageSizeOptions]="[10, 25, 50]" showFirstLastButtons aria-label="Paginação do consolidado por data"></mat-paginator>
+        </div>
+      </div>
     }
   </mat-card>
 </section>

@@ -11,12 +11,8 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { LOCALE_ID } from '@angular/core';
-import { DailyService, Daily } from '../../services/daily.service';
-import { CollaboratorService, Collaborator } from '../../services/collaborator.service';
-import { CollaboratorDetailService, CollaboratorDetail } from '../../services/collaborator-detail.service';
-import { AdiantamentoService, Adiantamento } from '../../services/adiantamento.service';
+import { RelatorioService } from '../../services/relatorio.service';
 import { NotificationService } from '../../services/notification.service';
-import { forkJoin, of, catchError } from 'rxjs';
 
 registerLocaleData(localePt);
 
@@ -54,10 +50,7 @@ export interface ConsolidatedData {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ConsolidatedReport implements OnInit, AfterViewInit {
-  private dailyService = inject(DailyService);
-  private collaboratorService = inject(CollaboratorService);
-  private collaboratorDetailService = inject(CollaboratorDetailService);
-  private adiantamentoService = inject(AdiantamentoService);
+  private relatorioService = inject(RelatorioService);
   private notify = inject(NotificationService);
   private cdr = inject(ChangeDetectorRef);
   
@@ -85,27 +78,21 @@ export class ConsolidatedReport implements OnInit, AfterViewInit {
 
   carregarDados() {
     this.loading = true;
-    
-    // Buscar todos os dados necessários em paralelo
-    forkJoin({
-      diarias: this.dailyService.getAll().pipe(catchError(() => of([] as Daily[]))),
-      colaboradores: this.collaboratorService.getAll().pipe(catchError(() => of([] as Collaborator[]))),
-      detalhes: this.collaboratorDetailService.getAll().pipe(catchError(() => of([] as CollaboratorDetail[]))),
-      adiantamentos: this.adiantamentoService.getAll().pipe(catchError(() => of([] as Adiantamento[])))
-    }).subscribe({
+    this.relatorioService.getConsolidado().subscribe({
       next: (result) => {
-        const consolidado = this.consolidarPorColaborador(
-          result.diarias,
-          result.colaboradores,
-          result.detalhes,
-          result.adiantamentos
-        );
-        
-        this.data = consolidado;
-        this.dataSource.data = consolidado;
+        this.data = result.map(r => ({
+          codigo: r.idColaborador,
+          nome: r.nome,
+          valorTotal: r.valorTotal,
+          adiantamento: r.adiantamento,
+          valorDiaria: parseFloat(r.valorDiaria) || 0,
+          quantidade: r.quantidadeDiaria,
+          pix: r.pix || '-'
+        }));
+        this.dataSource.data = this.data;
         this.loading = false;
         this.cdr.markForCheck();
-        this.notify.info(`${consolidado.length} registro(s) carregado(s)`);
+        this.notify.info(`${this.data.length} registro(s) carregado(s)`);
       },
       error: () => {
         this.loading = false;
@@ -114,95 +101,51 @@ export class ConsolidatedReport implements OnInit, AfterViewInit {
       }
     });
   }
-
-  private consolidarPorColaborador(diarias: Daily[], colaboradores: Collaborator[], detalhes: CollaboratorDetail[], adiantamentos: Adiantamento[]): ConsolidatedData[] {
-    const consolidadoMap = new Map<number, ConsolidatedData>();
-
-    // Agrupar diárias por colaborador
-    diarias.forEach(diaria => {
-      const detalhe = detalhes.find(d => d.id === diaria.idColaboradorDetalhe);
-      if (!detalhe) return;
-
-      const colaborador = colaboradores.find(c => c.id === detalhe.idColaborador);
-      if (!colaborador || !colaborador.nome || colaborador.nome.trim() === '') return;
-
-      if (!consolidadoMap.has(detalhe.idColaborador)) {
-        // Calcular adiantamento total para este colaborador (todos os períodos)
-        const adiantamentoTotal = adiantamentos
-          .filter(a => a.idColaborador === detalhe.idColaborador)
-          .reduce((sum, a) => sum + (a.valor || 0), 0);
-
-        consolidadoMap.set(detalhe.idColaborador, {
-          codigo: colaborador.codigo || colaborador.id || 0,
-          nome: colaborador.nome,
-          valorTotal: 0,
-          adiantamento: adiantamentoTotal,
-          valorDiaria: detalhe.valorDiaria || 0,
-          quantidade: 0,
-          pix: detalhe?.pix || colaborador?.pix || '-'
-        });
-      }
-
-      const item = consolidadoMap.get(detalhe.idColaborador);
-      if (item) {
-        item.quantidade++;
-        item.valorTotal += (detalhe.valorDiaria || 0);
-      }
-    });
-
-    return Array.from(consolidadoMap.values()).sort((a, b) => a.nome.localeCompare(b.nome));
-  }
   applyFilter(event: Event) {
     const filterValue = (event.target as HTMLInputElement).value;
     this.dataSource.filter = filterValue.trim().toLowerCase();
   }
 
   exportCsv() {
-    // Export all registros carregados na tabela (todas as páginas), não apenas a página atual
     const rows = (this.dataSource && this.dataSource.data && this.dataSource.data.length) ? this.dataSource.data : this.data;
     if (!rows || rows.length === 0) {
       this.notify.info('Nenhum registro para exportar');
       return;
     }
+    const sep = ';';
+    const formatBRL = (value: number) =>
+      new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value ?? 0);
+    const escapeCell = (val: string) => '"' + val.replace(/"/g, '""') + '"';
 
-    const headers = ['Código','Nome','Valor Total','Adiantamento','Valor Diária','Quantidade','PIX'];
-    const csvLines = [headers.join(',')];
-
+    const headers = ['Código', 'Nome', 'Valor Total', 'Adiantamento', 'Valor Diária', 'Quantidade', 'Chave PIX'];
+    const csvLines = [headers.join(sep)];
     rows.forEach(r => {
-      const line = [
+      csvLines.push([
         r.codigo,
-        '"' + (String(r.nome).replace(/"/g, '""')) + '"',
-        (r.valorTotal ?? 0).toFixed(2),
-        (r.adiantamento ?? 0).toFixed(2),
-        (r.valorDiaria ?? 0).toFixed(2),
+        escapeCell(String(r.nome ?? '')),
+        escapeCell(formatBRL(r.valorTotal)),
+        escapeCell(formatBRL(r.adiantamento)),
+        escapeCell(formatBRL(r.valorDiaria)),
         r.quantidade ?? 0,
-        '"' + (String(r.pix || '-').replace(/"/g, '""')) + '"'
-      ];
-      csvLines.push(line.join(','));
+        escapeCell(String(r.pix || '-'))
+      ].join(sep));
     });
-
-    // Linha de totais
     const totalValorTotal = rows.reduce((s, v) => s + (v.valorTotal ?? 0), 0);
     const totalAdiantamento = rows.reduce((s, v) => s + (v.adiantamento ?? 0), 0);
     const totalValorDiaria = rows.reduce((s, v) => s + (v.valorDiaria ?? 0), 0);
     const totalQuantidade = rows.reduce((s, v) => s + (v.quantidade ?? 0), 0);
-
-    const totalsLine = [
-      '',
-      '"TOTAL"',
-      totalValorTotal.toFixed(2),
-      totalAdiantamento.toFixed(2),
-      totalValorDiaria.toFixed(2),
+    csvLines.push([
+      escapeCell('TOTAL'),
+      escapeCell(''),
+      escapeCell(formatBRL(totalValorTotal)),
+      escapeCell(formatBRL(totalAdiantamento)),
+      escapeCell(formatBRL(totalValorDiaria)),
       totalQuantidade,
-      '""'
-    ];
-    csvLines.push(totalsLine.join(','));
-
-    const csv = csvLines.join('\r\n');
-    const filename = `consolidado-${new Date().toISOString().slice(0,10)}.csv`;
-    this.downloadFile(csv, filename);
+      escapeCell('')
+    ].join(sep));
+    const filename = `consolidado-${new Date().toISOString().slice(0, 10)}.csv`;
+    this.downloadFile('\ufeff' + csvLines.join('\r\n'), filename);
   }
-
   private downloadFile(content: string, filename: string) {
     const blob = new Blob([content], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
@@ -214,22 +157,16 @@ export class ConsolidatedReport implements OnInit, AfterViewInit {
     a.remove();
     URL.revokeObjectURL(url);
   }
-
-  exportRow(row: ConsolidatedData) {
-    if (!row) return;
-    const headers = ['Código','Nome','Valor Total','Adiantamento','Valor Diária','Quantidade','PIX'];
-    const line = [
-      row.codigo,
-      '"' + (String(row.nome).replace(/"/g, '""')) + '"',
-      (row.valorTotal ?? 0).toFixed(2),
-      (row.adiantamento ?? 0).toFixed(2),
-      (row.valorDiaria ?? 0).toFixed(2),
-      row.quantidade ?? 0,
-      '"' + (String(row.pix || '-').replace(/"/g, '""')) + '"'
-    ];
-    const csv = [headers.join(','), line.join(',')].join('\r\n');
-    const filename = `consolidado-row-${row.codigo || 'row'}.csv`;
-    this.downloadFile(csv, filename);
+}
+  private downloadFile(content: string, filename: string) {
+    const blob = new Blob([content], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.setAttribute('download', filename);
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
   }
-
 }
