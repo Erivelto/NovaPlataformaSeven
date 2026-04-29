@@ -128,11 +128,11 @@ export class ConsolidatedByDateReport implements OnInit, AfterViewInit {
           quantidade: r.quantidadeDiaria,
           pix: r.pix || '-'
         }));
-        if (this.paginator) this.dataSource.paginator = this.paginator;
-        if (this.sort) this.dataSource.sort = this.sort;
         this.loading = false;
         this.showResults = true;
-        this.cdr.markForCheck();
+        this.cdr.detectChanges();
+        this.dataSource.paginator = this.paginator;
+        this.dataSource.sort = this.sort;
         this.notify.info(`${this.dataSource.data.length} registro(s) encontrado(s)`);
       },
       error: () => {
