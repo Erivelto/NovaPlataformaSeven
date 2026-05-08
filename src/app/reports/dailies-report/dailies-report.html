@@ -27,17 +27,15 @@
         </mat-form-field>
       </div>
 
-      <div class="filter-col filter-col-large">
+      <div class="filter-col">
         <app-collaborator-search 
           [collaborators]="colaboradores"
           label="Colaborador"
           (collaboratorSelected)="onCollaboratorChange($event)">
         </app-collaborator-search>
       </div>
-    </div>
 
-    <div class="filter-row">
-      <div class="filter-col-full">
+      <div class="filter-col">
         <app-station-select
           [stations]="postos"
           label="Posto"
@@ -59,35 +57,50 @@
 
     @if (showResults) {
     <div class="table-section" aria-live="polite">
+      <div class="table-actions">
+        <button mat-stroked-button color="primary" (click)="exportToCsv()">
+          <mat-icon>download</mat-icon>
+          Exportar (CSV)
+        </button>
+      </div>
       <div class="table-container">
         <table aria-label="Relatório de diárias">
           <thead>
             <tr>
               <th scope="col">Código</th>
-              <th scope="col">Data</th>
+              <th scope="col">Quantidade</th>
               <th scope="col">Colaborador</th>
-              <th scope="col">Valor</th>
+              <th scope="col">Dias no Período</th>
+              <th scope="col">Função</th>
+              <th scope="col">GC</th>
               <th scope="col">Posto</th>
+              <th scope="col"></th>
             </tr>
           </thead>
           <tbody>
-            @for (row of getPaginatedData(); track row.codigo) {
+            @for (row of getPaginatedData(); track row.idColaboradorDetalhe) {
             <tr>
-              <td>{{row.codigo}}</td>
-              <td>{{row.data | date:'dd/MM/yyyy'}}</td>
+              <td>{{row.idColaboradorDetalhe}}</td>
+              <td>{{row.quantidade}}</td>
               <td>{{row.colaborador}}</td>
-              <td style="text-align: right;">{{row.valor | currency:'BRL':'symbol':'1.2-2':'pt-BR'}}</td>
+              <td>{{row.periodo}}</td>
+              <td>{{row.funcao}}</td>
+              <td>{{row.supervisor}}</td>
               <td>{{row.posto}}</td>
+              <td>
+                <button mat-icon-button color="primary" title="Visualizar detalhe" (click)="verDetalhe(row)" aria-label="Visualizar detalhe">
+                  <mat-icon>visibility</mat-icon>
+                </button>
+              </td>
             </tr>
             }
           </tbody>
         </table>
-        <mat-paginator [pageSizeOptions]="[10, 25, 50, 100]" [length]="dataSource.data.length" 
+        <mat-paginator [pageSizeOptions]="[10, 25, 50, 100]" [length]="dataSource.data.length"
                        [pageSize]="pageSize" (page)="onPageChange($event)" showFirstLastButtons>
         </mat-paginator>
       </div>
 
-      <!-- Mensagem vazia -->
       @if (dataSource.data.length === 0) {
       <div style="padding: 40px 20px; text-align: center; color: #767676;" role="status">
         <p>Nenhum registro encontrado para o período selecionado.</p>

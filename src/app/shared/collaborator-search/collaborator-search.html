@@ -6,6 +6,9 @@
       {{ getSelectedCollaboratorName() }}
     </mat-select-trigger>
     
+    <!-- Opção vazia para limpar seleção -->
+    <mat-option [value]="null">-- Nenhum --</mat-option>
+
     <!-- Campo de busca dentro do dropdown -->
     <mat-option disabled class="search-option">
       <mat-form-field appearance="outline" class="search-field" (click)="$event.stopPropagation()">

@@ -28,7 +28,7 @@ import { Collaborator } from '../../services/collaborator.service';
 export class CollaboratorSearchComponent implements OnInit, OnChanges {
   @Input() collaborators: Collaborator[] = [];
   @Input() label: string = 'Selecione o Colaborador *';
-  @Output() collaboratorSelected = new EventEmitter<number>();
+  @Output() collaboratorSelected = new EventEmitter<number | null>();
 
   collaboratorFilterControl = new FormControl<string>('');
   filteredCollaborators!: Observable<Collaborator[]>;
@@ -66,8 +66,6 @@ export class CollaboratorSearchComponent implements OnInit, OnChanges {
   }
 
   onCollaboratorSelected() {
-    if (this.selectedCollaboratorId) {
-      this.collaboratorSelected.emit(this.selectedCollaboratorId);
-    }
+    this.collaboratorSelected.emit(this.selectedCollaboratorId ?? null);
   }
 }

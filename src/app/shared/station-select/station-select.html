@@ -1,35 +1,31 @@
-<mat-form-field appearance="outline" class="station-select-field" [floatLabel]="'always'">
+<mat-form-field appearance="outline" class="station-select-field">
   <mat-label>{{ label }}</mat-label>
+  <mat-icon matPrefix>location_on</mat-icon>
+  <mat-select [(ngModel)]="selectedStationId" (selectionChange)="onStationSelected()">
+    <mat-select-trigger>
+      {{ getSelectedStationName() }}
+    </mat-select-trigger>
 
-  <!-- Chips dos postos selecionados -->
-  <mat-chip-set aria-label="Postos selecionados" class="chip-set">
-    @for (id of selectedIds; track id) {
-      <mat-chip (removed)="removeStation(id)">
-        {{ getStationName(id) }}
-        <button matChipRemove [attr.aria-label]="'Remover ' + getStationName(id)">
-          <mat-icon>cancel</mat-icon>
-        </button>
-      </mat-chip>
-    }
-  </mat-chip-set>
+    <!-- Opção vazia para limpar seleção -->
+    <mat-option [value]="null">-- Nenhum --</mat-option>
 
-  <!-- Input com autocomplete para buscar e adicionar -->
-  <input matInput
-         [formControl]="searchControl"
-         [matAutocomplete]="stationAuto"
-         [placeholder]="selectedIds.length > 0 ? 'Buscar posto...' : placeholder"
-         [style]="selectedIds.length > 0 ? 'height: 0; padding: 0; margin: 0; border: none;' : ''"
-         (blur)="onBlur()"
-         aria-label="Buscar posto">
+    <!-- Campo de busca dentro do dropdown -->
+    <mat-option disabled class="search-option">
+      <mat-form-field appearance="outline" class="search-field" (click)="$event.stopPropagation()">
+        <mat-icon matPrefix>search</mat-icon>
+        <input matInput
+               [formControl]="stationFilterControl"
+               placeholder="Buscar posto..."
+               aria-label="Buscar posto"
+               (click)="$event.stopPropagation()"
+               (keydown)="$event.stopPropagation()">
+      </mat-form-field>
+    </mat-option>
 
-  <mat-autocomplete #stationAuto="matAutocomplete">
-    @for (station of filteredStations$ | async; track station.id) {
-      <mat-option (click)="addStation(station.id!); $event.stopPropagation()">
-        {{ station.nome }}
+    @for (station of filteredStations | async; track station.id) {
+      <mat-option [value]="station.id">
+        {{ station.nome }} - Cód: {{ station.id }}
       </mat-option>
     }
-  </mat-autocomplete>
-
-  <mat-icon matPrefix>location_on</mat-icon>
-  <mat-error>{{ errorMessage }}</mat-error>
+  </mat-select>
 </mat-form-field>

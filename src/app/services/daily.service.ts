@@ -21,6 +21,22 @@ export interface PostoFuncaoSuper {
   name: string;
 }
 
+export interface DiariaDetalheItem {
+  data: string;
+  posto: string;
+}
+
+export interface ListaDiariaRelatorio {
+  idColaboradorDetalhe: number;
+  quantidade: number;
+  colaborador: string;
+  periodo: string;
+  funcao: string;
+  supervisor: string;
+  posto: string;
+  detalhe: DiariaDetalheItem[] | string;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -67,6 +83,15 @@ export class DailyService {
 
   getDatasPeriodos(detalheId: number): Observable<string[]> {
     return this.http.get<string[]>(`${environment.apiBaseUrl}/DatasPeriodos?detalhe=${detalheId}`);
+  }
+
+  getListaDiariaRelatorio(dtInicial: string, dtFinal: string, colaborador?: number | null, posto?: number | null): Observable<ListaDiariaRelatorio[]> {
+    let params = new HttpParams()
+      .set('inicial', dtInicial)
+      .set('final', dtFinal);
+    if (colaborador) params = params.set('colaborador', colaborador.toString());
+    if (posto) params = params.set('posto', posto.toString());
+    return this.http.get<ListaDiariaRelatorio[]>(`${environment.apiBaseUrl}/Relatorio/lista-diaria-relatorio`, { params });
   }
 
   saveDailies(dailies: Daily[]): Observable<Daily[]> {
