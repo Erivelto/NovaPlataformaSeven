@@ -13,6 +13,7 @@ import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule, MAT_DATE_LOCALE, DateAdapter, MAT_DATE_FORMATS } from '@angular/material/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDialog, MatDialogModule, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { DailyService, ListaDiariaRelatorio, DiariaDetalheItem } from '../../services/daily.service';
 import { CollaboratorService, Collaborator } from '../../services/collaborator.service';
@@ -79,8 +80,8 @@ export const BRAZILIAN_DATE_FORMATS = {
           <tbody>
             @for (item of detalheItems; track $index) {
               <tr>
-                <td>{{ item.data | date:'dd/MM/yyyy' }}</td>
-                <td>{{ item.posto }}</td>
+                <td>{{ item.dataDiaria | date:'dd/MM/yyyy' }}</td>
+                <td>{{ item.nomePosto }}</td>
               </tr>
             }
             @if (detalheItems.length === 0) {
@@ -131,6 +132,7 @@ export class DetalheDiariaDialogComponent {
     MatButtonModule,
     MatProgressBarModule,
     MatDialogModule,
+    MatTooltipModule,
     CollaboratorSearchComponent,
   ],
   providers: [

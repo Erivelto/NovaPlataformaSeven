@@ -24,8 +24,8 @@ export interface PostoFuncaoSuper {
 }
 
 export interface DiariaDetalheItem {
-  data: string;
-  posto: string;
+  dataDiaria: string;
+  nomePosto: string;
 }
 
 export interface ListaDiariaRelatorio {
