@@ -77,11 +77,11 @@ export interface ContractDialogData {
           </mat-form-field>
 
           <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Supervisor *</mat-label>
-            <input matInput formControlName="supervisor" [matAutocomplete]="supervisorAuto" placeholder="Buscar supervisor...">
+            <mat-label>GC *</mat-label>
+            <input matInput formControlName="supervisor" [matAutocomplete]="supervisorAuto" placeholder="Buscar GC...">
             <mat-icon matPrefix>supervisor_account</mat-icon>
             @if (form.get('supervisor')?.hasError('required')) {
-              <mat-error>Supervisor é obrigatório</mat-error>
+              <mat-error>GC é obrigatório</mat-error>
             }
             <mat-autocomplete #supervisorAuto="matAutocomplete" [displayWith]="displaySupervisorName">
               @for (supervisor of filteredSupervisors$ | async; track supervisor.id) {

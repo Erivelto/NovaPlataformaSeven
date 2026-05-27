@@ -13,7 +13,7 @@
       <app-collaborator-search 
         [collaborators]="collaborators"
         label="Selecione o Colaborador *"
-        (collaboratorSelected)="onCollaboratorChange($event)">
+        (collaboratorSelected)="onCollaboratorChange($event || 0)">
       </app-collaborator-search>
     </div>
 

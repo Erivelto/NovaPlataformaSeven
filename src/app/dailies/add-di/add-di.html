@@ -13,7 +13,7 @@
       <app-collaborator-search 
         [collaborators]="collaborators"
         label="Selecione o Colaborador *"
-        (collaboratorSelected)="onCollaboratorChange($event)">
+        (collaboratorSelected)="onCollaboratorChange($event || 0)">
       </app-collaborator-search>
     </div>
 
@@ -49,7 +49,18 @@
         <ng-container matColumnDef="data">
           <th mat-header-cell *matHeaderCellDef mat-sort-header> Data </th>
           <td mat-cell *matCellDef="let row">
-            {{ formatDate(row.dataDiaria) }}
+            <mat-form-field appearance="fill" class="inline-edit">
+              <mat-label>Data</mat-label>
+              <input
+                matInput
+                type="date"
+                [(ngModel)]="row.dataDiaria"
+                [min]="minDateAdiantamentoStr"
+                [max]="maxDateAdiantamentoStr"
+                required
+                aria-label="Data da diária"
+              />
+            </mat-form-field>
           </td>
         </ng-container>
 
@@ -116,11 +127,15 @@
         <div class="footer-column">
           <mat-form-field appearance="outline">
             <mat-label>Data Adiantamento</mat-label>
-            <input matInput [matDatepicker]="picker" [(ngModel)]="dataAdiantamento"
-                   [min]="minDateAdiantamento" [max]="maxDateAdiantamento">
-            <mat-hint>DD/MM/AAAA</mat-hint>
-            <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
-            <mat-datepicker #picker></mat-datepicker>
+            <input
+              matInput
+              id="dataAdiantamentoInput"
+              type="date"
+              [(ngModel)]="dataAdiantamentoStr"
+              [min]="minDateAdiantamentoStr"
+              [max]="maxDateAdiantamentoStr"
+              required
+            />
           </mat-form-field>
         </div>
 

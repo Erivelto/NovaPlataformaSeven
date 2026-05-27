@@ -19,6 +19,8 @@
       </mat-form-field>
     </mat-option>
     
+    <mat-option [value]="null">Todos os colaboradores</mat-option>
+    
     @for (collaborator of filteredCollaborators | async; track collaborator.id) {
       <mat-option [value]="collaborator.id">
         {{ collaborator.nome }} - Cód: {{ collaborator.id }}

@@ -5,15 +5,17 @@ import { AuthService } from './auth.service';
 import { environment } from '../environments/environment';
 
 export interface Daily {
-  id?: number;
+  id: number;
+  quantidade: number;
+  nomeColaborador: string;
+  diasNoPeriodo: number;
+  funcao: string;
+  gc: string;
+  posto: string;
   idColaboradorDetalhe: number;
-  idPosto?: number;
+  idPosto: number;
   dataDiaria: string;
-  valor?: number;
-  dataCadastro?: string;
-  userCadastro?: string;
-  // Campos auxiliares para exibição (Join no frontend)
-  nomeColaborador?: string;
+  valor: number;
 }
 
 export interface PostoFuncaoSuper {

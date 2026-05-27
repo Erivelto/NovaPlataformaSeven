@@ -74,7 +74,7 @@ export class SupervisorRegistration implements OnInit, AfterViewInit {
       error: () => {
         this.loading = false;
         this.cdr.markForCheck();
-        this.notify.error('Erro ao carregar supervisores da API');
+        this.notify.error('Erro ao carregar GCs da API');
       }
     });
   }
@@ -91,7 +91,7 @@ export class SupervisorRegistration implements OnInit, AfterViewInit {
   addSupervisor() {
     // Validar campo vazio
     if (!this.novoSupervisor || this.novoSupervisor.trim() === '') {
-      this.notify.warn('O campo de supervisor não pode estar vazio');
+      this.notify.warn('O campo de GC não pode estar vazio');
       return;
     }
 
@@ -102,7 +102,7 @@ export class SupervisorRegistration implements OnInit, AfterViewInit {
     );
 
     if (supervisorExistente) {
-      this.notify.warn('Já existe um supervisor cadastrado com este nome');
+      this.notify.warn('Já existe um GC cadastrado com este nome');
       return;
     }
 
@@ -112,26 +112,26 @@ export class SupervisorRegistration implements OnInit, AfterViewInit {
     
     this.supervisorService.create(newSupervisor).subscribe({
       next: () => {
-        this.notify.success('Supervisor adicionado com sucesso!');
+        this.notify.success('GC adicionado com sucesso!');
         this.novoSupervisor = '';
         this.loadSupervisors();
       },
       error: () => {
-        this.notify.error('Erro ao cadastrar supervisor');
+        this.notify.error('Erro ao cadastrar GC');
       }
     });
   }
 
   deleteSupervisor(supervisor: Supervisor) {
-    this.confirmService.confirmDelete(`o supervisor ${supervisor.nome}`).pipe(takeUntilDestroyed(this.destroyRef)).subscribe(confirmed => {
+    this.confirmService.confirmDelete(`o GC ${supervisor.nome}`).pipe(takeUntilDestroyed(this.destroyRef)).subscribe(confirmed => {
       if (confirmed && supervisor.id) {
         this.supervisorService.delete(supervisor.id).subscribe({
           next: () => {
-            this.notify.success('Supervisor excluído com sucesso');
+            this.notify.success('GC excluído com sucesso');
             this.loadSupervisors();
           },
           error: () => {
-            this.notify.error('Erro ao excluir supervisor');
+            this.notify.error('Erro ao excluir GC');
           }
         });
       }

@@ -106,7 +106,7 @@ export interface DiariaDisponivelEditData {
           </mat-form-field>
 
           <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Supervisor *</mat-label>
+            <mat-label>GC *</mat-label>
             <mat-select formControlName="idSupervisor">
               @for (s of supervisores; track s.id) {
                 <mat-option [value]="s.id">{{ s.nome }}</mat-option>
@@ -114,7 +114,7 @@ export interface DiariaDisponivelEditData {
             </mat-select>
             <mat-icon matPrefix>supervisor_account</mat-icon>
             @if (form.get('idSupervisor')?.hasError('required')) {
-              <mat-error>Supervisor é obrigatório</mat-error>
+              <mat-error>GC é obrigatório</mat-error>
             }
           </mat-form-field>
 

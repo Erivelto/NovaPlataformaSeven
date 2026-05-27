@@ -177,13 +177,19 @@ export class AddSingleDi implements OnInit {
     const dateStr = this.formatDateForApi(formValue.dataDiaria);
 
     // Criar array de diárias baseado na quantidade
-    const dailies = [];
-    for (let i = 0; i < valor; i++) {
-      dailies.push({
-        idColaboradorDetalhe: formValue.idColaboradorDetalhe,
-        dataDiaria: dateStr
-      });
-    }
+    const dailies: Daily[] = this.detailOptions.map(row => ({
+      id: 0, // Placeholder para ID
+      quantidade: 1, // Quantidade padrão
+      nomeColaborador: '', // Nome vazio como padrão
+      diasNoPeriodo: 0, // Dias padrão
+      funcao: '', // Função padrão
+      gc: '', // GC padrão
+      posto: '', // Posto padrão
+      idColaboradorDetalhe: row.id || 0, // Corrigido para usar 'id'
+      idPosto: 0, // Posto padrão
+      dataDiaria: row.descricao || '', // Usar descricao como valor padrão
+      valor: 0, // Valor padrão
+    }));
 
     // Usar o método saveDailies do service que já trata o forkJoin
     this.dailyService.saveDailies(dailies).subscribe({

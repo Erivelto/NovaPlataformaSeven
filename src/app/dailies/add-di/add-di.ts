@@ -59,6 +59,7 @@ export interface DailyRow {
   styleUrl: './add-di.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
+
 export class AddDi implements OnInit, AfterViewInit {
   private collaboratorService = inject(CollaboratorService);
   private collaboratorDetailService = inject(CollaboratorDetailService);
@@ -79,7 +80,7 @@ export class AddDi implements OnInit, AfterViewInit {
 
   // Campos de adiantamento
   private _valorAdiantamento: number = 0;
-  dataAdiantamento: Date = new Date();
+  dataAdiantamentoStr: string = '';
   valorAdiantamentoStr: string = '';
   isSaving: boolean = false;
   isLoadingDailies: boolean = false;
@@ -87,6 +88,8 @@ export class AddDi implements OnInit, AfterViewInit {
   // Limites do datepicker de adiantamento (range da grid)
   minDateAdiantamento: Date = new Date();
   maxDateAdiantamento: Date = new Date();
+  minDateAdiantamentoStr: string = '';
+  maxDateAdiantamentoStr: string = '';
 
   formatarValorAdiantamento() {
     if (!this.valorAdiantamentoStr) {
@@ -164,12 +167,14 @@ export class AddDi implements OnInit, AfterViewInit {
       dates.push(this.formatDateForInput(date.toISOString()));
     }
 
-    // Atualiza limites do datepicker de adiantamento
+    // Atualiza limites do datepicker de adiantamento (e strings para input nativo)
     this.minDateAdiantamento = new Date(monday);
     const sunday = new Date(monday);
     sunday.setDate(monday.getDate() + 6);
     this.maxDateAdiantamento = sunday;
-    this.dataAdiantamento = new Date(monday);
+    this.minDateAdiantamentoStr = this.formatDateForInput(this.minDateAdiantamento.toISOString());
+    this.maxDateAdiantamentoStr = this.formatDateForInput(this.maxDateAdiantamento.toISOString());
+    this.dataAdiantamentoStr = this.minDateAdiantamentoStr;
 
     return dates;
   }
@@ -304,8 +309,17 @@ export class AddDi implements OnInit, AfterViewInit {
     for (const row of selectedRows) {
       for (let i = 0; i < row.valor; i++) {
         dailiesToSave.push({
+          id: 0, // Placeholder para ID
+          quantidade: 1, // Quantidade padrão
+          nomeColaborador: '', // Nome vazio como padrão
+          diasNoPeriodo: 0, // Dias padrão
+          funcao: '', // Função padrão
+          gc: '', // GC padrão
+          posto: '', // Posto padrão
           idColaboradorDetalhe: row.idColaboradorDetalhe!,
-          dataDiaria: row.dataDiaria
+          idPosto: 0, // Posto padrão
+          dataDiaria: row.dataDiaria,
+          valor: 0, // Valor padrão
         });
       }
     }
@@ -314,15 +328,16 @@ export class AddDi implements OnInit, AfterViewInit {
     this.dailyService.saveDailies(dailiesToSave).subscribe({
       next: () => {
         const total = dailiesToSave.length;
-        
         // Se houver adiantamento, salvar também
         if (this._valorAdiantamento > 0) {
+          // Converter dataAdiantamentoStr (YYYY-MM-DD) para Date local e serializar como ISO sem deslocamento de dia
+          const [year, month, day] = this.dataAdiantamentoStr.split('-').map(Number);
+          const adiantamentoDate = new Date(year, month - 1, day, 12, 0, 0); // 12h para evitar UTC shift
           const adiantamento: Adiantamento = {
             idColaborador: this.selectedCollaboratorId!,
             valor: this._valorAdiantamento,
-            data: this.dataAdiantamento.toISOString()
+            data: adiantamentoDate.toISOString().split('T')[0] // envia apenas a data
           };
-          
           this.adiantamentoService.create(adiantamento).subscribe({
             next: () => {
               this.notify.success(`${total} diária(s) e adiantamento salvo(s) com sucesso!`);
@@ -366,7 +381,7 @@ export class AddDi implements OnInit, AfterViewInit {
     this.detailOptions = [];
     this.valorAdiantamentoStr = '';
     this._valorAdiantamento = 0;
-    this.dataAdiantamento = new Date();
+    this.dataAdiantamentoStr = this.minDateAdiantamentoStr;
     this.isSaving = false;
     this.isLoadingDailies = false;
   }
