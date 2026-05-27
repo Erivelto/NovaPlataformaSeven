@@ -4,20 +4,13 @@ import {
   Input,
   Output,
   EventEmitter,
-  forwardRef,
   OnChanges,
   SimpleChanges,
 } from '@angular/core';
-import {
-  ControlValueAccessor,
-  NG_VALUE_ACCESSOR,
-  ReactiveFormsModule,
-  FormControl,
-} from '@angular/forms';
+import { FormsModule, ReactiveFormsModule, FormControl } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
-import { MatAutocompleteModule } from '@angular/material/autocomplete';
-import { MatChipsModule } from '@angular/material/chips';
+import { MatSelectModule } from '@angular/material/select';
 import { MatIconModule } from '@angular/material/icon';
 import { Station } from '../../services/station.service';
 import { Observable } from 'rxjs';
@@ -29,39 +22,25 @@ import { AsyncPipe } from '@angular/common';
   standalone: true,
   imports: [
     AsyncPipe,
+    FormsModule,
     ReactiveFormsModule,
     MatFormFieldModule,
     MatInputModule,
-    MatAutocompleteModule,
-    MatChipsModule,
+    MatSelectModule,
     MatIconModule,
   ],
   templateUrl: './station-select.html',
   styleUrl: './station-select.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  providers: [
-    {
-      provide: NG_VALUE_ACCESSOR,
-      useExisting: forwardRef(() => StationSelectComponent),
-      multi: true,
-    },
-  ],
 })
-export class StationSelectComponent implements ControlValueAccessor, OnChanges {
+export class StationSelectComponent implements OnChanges {
   @Input() stations: Station[] = [];
-  @Input() label = 'Postos *';
-  @Input() placeholder = 'Clique para adicionar postos';
-  @Input() errorMessage = 'Selecione pelo menos um posto';
-  @Output() selectionChange = new EventEmitter<number[]>();
+  @Input() label = 'Posto';
+  @Output() selectionChange = new EventEmitter<number | null>();
 
-  searchControl = new FormControl<string>('');
-  filteredStations$!: Observable<Station[]>;
-
-  selectedIds: number[] = [];
-  disabled = false;
-
-  private onChange: (value: number[]) => void = () => {};
-  private onTouched: () => void = () => {};
+  stationFilterControl = new FormControl<string>('');
+  filteredStations!: Observable<Station[]>;
+  selectedStationId: number | null = null;
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['stations']) {
@@ -69,69 +48,27 @@ export class StationSelectComponent implements ControlValueAccessor, OnChanges {
     }
   }
 
-  writeValue(value: number[] | null): void {
-    this.selectedIds = value ?? [];
-  }
-
-  registerOnChange(fn: (value: number[]) => void): void {
-    this.onChange = fn;
-  }
-
-  registerOnTouched(fn: () => void): void {
-    this.onTouched = fn;
-  }
-
-  setDisabledState(isDisabled: boolean): void {
-    this.disabled = isDisabled;
-    if (isDisabled) {
-      this.searchControl.disable();
-    } else {
-      this.searchControl.enable();
-    }
-  }
-
   setupFilter(): void {
-    this.filteredStations$ = this.searchControl.valueChanges.pipe(
+    this.filteredStations = this.stationFilterControl.valueChanges.pipe(
       startWith(''),
-      map(value => this.filterUnselected(value || '')),
+      map(value => this._filterStations(value || '')),
     );
   }
 
-  private filterUnselected(search: string): Station[] {
-    const term = search.toLowerCase();
-    return this.stations
-      .filter(s => !this.selectedIds.includes(s.id!))
-      .filter(s =>
-        term === '' ||
-        s.nome.toLowerCase().includes(term) ||
-        s.id?.toString().includes(term),
-      );
+  private _filterStations(value: string): Station[] {
+    const filterValue = value.toLowerCase();
+    return this.stations.filter(s =>
+      s.nome.toLowerCase().includes(filterValue) ||
+      s.id?.toString().includes(filterValue)
+    );
   }
 
-  getStationName(id: number): string {
-    return this.stations.find(s => s.id === id)?.nome ?? '';
+  getSelectedStationName(): string {
+    const station = this.stations.find(s => s.id === this.selectedStationId);
+    return station ? `${station.nome} - Cód: ${station.id}` : 'Selecione um posto';
   }
 
-  addStation(stationId: number): void {
-    if (this.selectedIds.includes(stationId)) return;
-    this.selectedIds = [...this.selectedIds, stationId];
-    this.searchControl.setValue('');
-    this.emitChange();
-  }
-
-  removeStation(stationId: number): void {
-    this.selectedIds = this.selectedIds.filter(id => id !== stationId);
-    this.emitChange();
-  }
-
-  onBlur(): void {
-    this.onTouched();
-  }
-
-  private emitChange(): void {
-    const value = [...this.selectedIds];
-    this.onChange(value);
-    this.selectionChange.emit(value);
-    this.setupFilter();
+  onStationSelected(): void {
+    this.selectionChange.emit(this.selectedStationId ?? null);
   }
 }

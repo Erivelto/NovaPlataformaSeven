@@ -87,7 +87,8 @@ export class AddSingleDi implements OnInit {
     });
   }
 
-  onCollaboratorChange(collaboratorId: number) {
+  onCollaboratorChange(collaboratorId: number | null) {
+    if (!collaboratorId) return;
     this.selectedCollaboratorId = collaboratorId;
     this.form.patchValue({
       colaboradorId: collaboratorId,

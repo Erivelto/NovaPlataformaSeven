@@ -1,4 +1,4 @@
-<section class="report-container" aria-labelledby="dailies-report-title">
+﻿<section class="report-container" aria-labelledby="dailies-report-title">
   <mat-card>
     <div class="header">
       <div class="title">
@@ -27,27 +27,19 @@
         </mat-form-field>
       </div>
 
-      <div class="filter-col filter-col-large">
+      <div class="filter-col">
         <app-collaborator-search 
           [collaborators]="colaboradores"
           label="Colaborador"
           (collaboratorSelected)="onCollaboratorChange($event)">
         </app-collaborator-search>
       </div>
-    </div>
 
-    <div class="filter-row">
       <div class="btn-col">
         <button mat-raised-button color="primary" class="add-btn" (click)="consultar()" [disabled]="isLoading">
           <mat-icon>search</mat-icon>
           {{ isLoading ? 'Consultando...' : 'Consultar' }}
         </button>
-        @if (showResults && dataSource.data.length > 0) {
-          <button mat-raised-button color="accent" class="add-btn" (click)="exportExcel()">
-            <mat-icon>file_download</mat-icon>
-            Exportar Excel
-          </button>
-        }
       </div>
     </div>
 
@@ -57,6 +49,12 @@
 
     @if (showResults) {
     <div class="table-section" aria-live="polite">
+      <div class="table-actions">
+        <button mat-stroked-button color="primary" (click)="exportToCsv()">
+          <mat-icon>download</mat-icon>
+          Exportar (CSV)
+        </button>
+      </div>
       <div class="table-container">
         <table aria-label="Relatório de diárias">
           <thead>
@@ -68,30 +66,33 @@
               <th scope="col">Função</th>
               <th scope="col">GC</th>
               <th scope="col">Posto</th>
-              <th scope="col">Visualizar</th>
+              <th scope="col">Ações</th>
             </tr>
           </thead>
           <tbody>
-            @for (row of getPaginatedData(); track row.codigo) {
+            @for (row of getPaginatedData(); track row.idColaboradorDetalhe) {
             <tr>
-              <td>{{row.codigo}}</td>
+              <td>{{row.idColaboradorDetalhe}}</td>
               <td>{{row.quantidade}}</td>
               <td>{{row.colaborador}}</td>
-              <td>{{row.diasNoPeriodo}}</td>
+              <td>{{row.periodo}}</td>
               <td>{{row.funcao}}</td>
-              <td>{{row.gc}}</td>
+              <td>{{row.supervisor}}</td>
               <td>{{row.posto}}</td>
-              <td><button mat-icon-button (click)="openDetail(row)"><mat-icon>visibility</mat-icon></button></td>
+              <td>
+                <button mat-icon-button color="primary" (click)="verDetalhe(row)" matTooltip="Ver detalhe">
+                  <mat-icon>visibility</mat-icon>
+                </button>
+              </td>
             </tr>
             }
           </tbody>
         </table>
-        <mat-paginator [pageSizeOptions]="[10, 25, 50, 100]" [length]="dataSource.data.length" 
+        <mat-paginator [pageSizeOptions]="[10, 25, 50, 100]" [length]="dataSource.data.length"
                        [pageSize]="pageSize" (page)="onPageChange($event)" showFirstLastButtons>
         </mat-paginator>
       </div>
 
-      <!-- Mensagem vazia -->
       @if (dataSource.data.length === 0) {
       <div style="padding: 40px 20px; text-align: center; color: #767676;" role="status">
         <p>Nenhum registro encontrado para o período selecionado.</p>

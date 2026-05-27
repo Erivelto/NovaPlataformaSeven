@@ -179,7 +179,8 @@ export class AddDi implements OnInit, AfterViewInit {
     return dates;
   }
 
-  onCollaboratorChange(collaboratorId: number) {
+  onCollaboratorChange(collaboratorId: number | null) {
+    if (!collaboratorId) return;
     this.selectedCollaboratorId = collaboratorId;
     this.selection.clear();
     this.detailOptions = [];

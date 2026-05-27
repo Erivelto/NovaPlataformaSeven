@@ -66,6 +66,6 @@ export class CollaboratorSearchComponent implements OnInit, OnChanges {
   }
 
   onCollaboratorSelected() {
-    this.collaboratorSelected.emit(this.selectedCollaboratorId);
+    this.collaboratorSelected.emit(this.selectedCollaboratorId ?? null);
   }
 }
