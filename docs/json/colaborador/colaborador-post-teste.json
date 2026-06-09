@@ -1,0 +1,18 @@
+{
+  "id": 0,
+  "nome": "João Teste Swagger",
+  "pix": "11988887777",
+  "referencia": "TESTE-SWAGGER-001",
+  "endereco": "Rua Dionísio Feijó",
+  "numero": "250",
+  "complemento": "Casa",
+  "bairro": "Jardim Cotinha",
+  "cidade": "São Paulo",
+  "uf": "SP",
+  "cep": "03883030",
+  "dataCadastro": "2026-06-09T12:00:00Z",
+  "dataAlteracao": "2026-06-09T12:00:00Z",
+  "userCad": "admin",
+  "userAlt": "admin",
+  "excluido": false
+}

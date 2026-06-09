@@ -1,0 +1,16 @@
+{
+  "id": 1973,
+  "idColaborador": 932,
+  "valorDiaria": 121.00,
+  "idFuncao": 7,
+  "idSupervisor": 15,
+  "idPosto": 56,
+  "periodo": null,
+  "cpf": null,
+  "endereco": null,
+  "bairro": null,
+  "cidade": null,
+  "uf": null,
+  "cep": null,
+  "excluido": false
+}

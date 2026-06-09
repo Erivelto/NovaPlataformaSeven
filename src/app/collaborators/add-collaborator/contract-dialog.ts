@@ -13,7 +13,7 @@ import { Role } from '../../services/role.service';
 import { Supervisor } from '../../services/supervisor.service';
 import { Station } from '../../services/station.service';
 import { CollaboratorDetail } from '../../services/collaborator-detail.service';
-import { formatNumberToCurrency } from '../../shared/utils/currency.utils';
+import { formatNumberToCurrency, parseCurrencyToNumber } from '../../shared/utils/currency.utils';
 
 export interface ContractDialogData {
   contract?: CollaboratorDetail;
@@ -267,10 +267,10 @@ export class ContractDialog implements OnInit {
 
     const result: Partial<CollaboratorDetail> = {
       idColaborador: this.data.collaboratorId,
-      valorDiaria: parseFloat(String(v.valorDiaria).replace(',', '.')),
-      idFuncao: v.funcao,
-      idSupervisor: v.supervisor,
-      idPosto: v.posto,
+      valorDiaria: parseCurrencyToNumber(String(v.valorDiaria)),
+      idFuncao: Number(v.funcao),
+      idSupervisor: Number(v.supervisor),
+      idPosto: Number(v.posto),
     };
 
     if (this.data.contract?.id) {

@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, ViewChild, computed, inject, signal
 import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatButtonModule } from '@angular/material/button';
-import { MatSidenavModule, MatSidenav } from '@angular/material/sidenav';
+import { MatSidenavModule, MatSidenav, MatSidenavContainer } from '@angular/material/sidenav';
 import { MatListModule } from '@angular/material/list';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
@@ -85,6 +85,7 @@ export class MainLayoutComponent {
   readonly userRole = computed(() => this.getTipoLabel(this.userType()) || 'Perfil');
 
   @ViewChild('drawer') drawer!: MatSidenav;
+  @ViewChild(MatSidenavContainer) sidenavContainer!: MatSidenavContainer;
 
   isHandset = toSignal(
     this.breakpointObserver.observe(Breakpoints.Handset).pipe(map(result => result.matches)),
@@ -92,6 +93,11 @@ export class MainLayoutComponent {
   );
 
   isCollapsed = signal(false);
+
+  readonly sidenavWidth = computed(() => {
+    if (this.isHandset()) return 250;
+    return this.isCollapsed() ? 80 : 250;
+  });
 
   /** Menus agrupados com submenus visíveis — alimenta o sidenav dinâmico */
   readonly menuGroups = computed(() => {
@@ -165,6 +171,25 @@ export class MainLayoutComponent {
 
   toggleCollapse() {
     this.isCollapsed.update(v => !v);
+    // Recalcula margem do conteúdo após a transição de largura
+    setTimeout(() => this.sidenavContainer?.updateContentMargins(), 320);
+  }
+
+  /** Submenus fechados por padrão; abertos no modo mini para exibir ícones */
+  private panelExpanded = signal<Record<number, boolean>>({});
+
+  menuPanelExpanded(codigo: number): boolean {
+    if (this.isCollapsed() && !this.isHandset()) {
+      return true;
+    }
+    return this.panelExpanded()[codigo] ?? false;
+  }
+
+  onMenuPanelExpandedChange(codigo: number, expanded: boolean): void {
+    if (this.isCollapsed() && !this.isHandset()) {
+      return;
+    }
+    this.panelExpanded.update(state => ({ ...state, [codigo]: expanded }));
   }
 
   logout() {

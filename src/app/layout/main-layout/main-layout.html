@@ -1,4 +1,6 @@
-<mat-sidenav-container class="sidenav-container" autosize [class.container-collapsed]="isCollapsed() && !isHandset()">
+<mat-sidenav-container class="sidenav-container"
+                       [class.is-desktop]="!isHandset()"
+                       [class.is-collapsed]="isCollapsed() && !isHandset()">
   <!-- Barra de Loading Global -->
   <div aria-live="polite">
     @if (loadingService.isLoading()) {
@@ -11,11 +13,12 @@
     }
   </div>
 
-  <mat-sidenav #drawer class="sidenav" fixedInViewport
+  <mat-sidenav #drawer class="sidenav"
+      [style.width.px]="sidenavWidth()"
+      [class.collapsed]="isCollapsed() && !isHandset()"
       [attr.role]="isHandset() ? 'dialog' : 'navigation'"
       [mode]="isHandset() ? 'over' : 'side'"
-      [opened]="isHandset() === false"
-      [class.collapsed]="isCollapsed() && !isHandset()">
+      [opened]="!isHandset()">
     
     <div class="sidenav-header" [class.collapsed-header]="isCollapsed() && !isHandset()">
       <div class="user-profile" (click)="isCollapsed() && !isHandset() ? toggleCollapse() : null" [style.cursor]="isCollapsed() && !isHandset() ? 'pointer' : 'default'">
@@ -29,34 +32,26 @@
           </div>
         }
       </div>
-      
-      <!-- Toggle Button (Desktop only, visible only when expanded) -->
-      @if (!isCollapsed() && !isHandset()) {
-        <button mat-icon-button class="toggle-btn" (click)="toggleCollapse()" aria-label="Recolher menu lateral">
-          <mat-icon>chevron_left</mat-icon>
+
+      @if (!isHandset()) {
+        <button mat-icon-button class="toggle-btn" (click)="toggleCollapse()"
+                [attr.aria-label]="isCollapsed() ? 'Expandir menu lateral' : 'Recolher menu lateral'">
+          <mat-icon>{{ isCollapsed() ? 'chevron_right' : 'chevron_left' }}</mat-icon>
         </button>
       }
     </div>
 
-    <mat-accordion [multi]="false" class="menu-accordion">
-      <!-- Nível 1: Operacional -->
-      <mat-expansion-panel [expanded]="!isCollapsed()" class="mat-elevation-z0">
-        <!-- <mat-expansion-panel-header>
-          <mat-panel-title>
-            <mat-icon class="menu-icon">settings</mat-icon>
-            @if (!isCollapsed() || isHandset()) {
-              <span>Operacional</span>
-            }
-          </mat-panel-title>
-        </mat-expansion-panel-header> -->
-
-        <!-- Nível 2: Menus dinâmicos do banco de dados -->
-        <mat-nav-list class="sub-menu-list">
+    <div class="menu-accordion">
+      <mat-nav-list class="sub-menu-list">
 
           @for (menu of menuGroups(); track menu.codigo) {
             @if (!menu.virtual) {
               <!-- Menu real — visibilidade controlada por permissões do banco -->
-              <mat-expansion-panel *appHasPermission="menu.subMenuCodes" class="mat-elevation-z0 nested-panel" [disabled]="isCollapsed() && !isHandset()">
+              <mat-expansion-panel *appHasPermission="menu.subMenuCodes" class="mat-elevation-z0 nested-panel"
+                                   [class.nested-panel--collapsed]="isCollapsed() && !isHandset()"
+                                   [hideToggle]="isCollapsed() && !isHandset()"
+                                   [expanded]="menuPanelExpanded(menu.codigo)"
+                                   (expandedChange)="onMenuPanelExpandedChange(menu.codigo, $event)">
                 <mat-expansion-panel-header class="nested-header">
                   <mat-panel-title>
                     <mat-icon matListItemIcon>{{menu.icone}}</mat-icon>
@@ -69,8 +64,8 @@
                 <mat-nav-list class="nested-list">
                   @for (sub of menu.subMenus; track sub.codigo) {
                     <a *appHasPermission="sub.codigo" mat-list-item [routerLink]="sub.url" routerLinkActive="active-link"
-                       (click)="drawer.mode === 'over' ? drawer.close() : null"
-                       [matTooltip]="isCollapsed() ? sub.descricao : ''" matTooltipPosition="right">
+                       (click)="isHandset() ? drawer.close() : null"
+                       [matTooltip]="(isCollapsed() && !isHandset()) ? sub.descricao : ''" matTooltipPosition="right">
                       <mat-icon matListItemIcon>{{sub.icone || 'arrow_right'}}</mat-icon>
                       @if (!isCollapsed() || isHandset()) {
                         <span matListItemTitle>{{sub.descricao}}</span>
@@ -81,7 +76,11 @@
               </mat-expansion-panel>
             } @else {
               <!-- Menu virtual (Liberação) — sem controle de permissão por SubMenu -->
-              <mat-expansion-panel class="mat-elevation-z0 nested-panel" [disabled]="isCollapsed() && !isHandset()">
+              <mat-expansion-panel class="mat-elevation-z0 nested-panel"
+                                   [class.nested-panel--collapsed]="isCollapsed() && !isHandset()"
+                                   [hideToggle]="isCollapsed() && !isHandset()"
+                                   [expanded]="menuPanelExpanded(menu.codigo)"
+                                   (expandedChange)="onMenuPanelExpandedChange(menu.codigo, $event)">
                 <mat-expansion-panel-header class="nested-header">
                   <mat-panel-title>
                     <mat-icon matListItemIcon>{{menu.icone}}</mat-icon>
@@ -94,8 +93,8 @@
                 <mat-nav-list class="nested-list">
                   @for (sub of menu.subMenus; track sub.codigo) {
                     <a mat-list-item [routerLink]="sub.url" routerLinkActive="active-link"
-                       (click)="drawer.mode === 'over' ? drawer.close() : null"
-                       [matTooltip]="isCollapsed() ? sub.descricao : ''" matTooltipPosition="right">
+                       (click)="isHandset() ? drawer.close() : null"
+                       [matTooltip]="(isCollapsed() && !isHandset()) ? sub.descricao : ''" matTooltipPosition="right">
                       <mat-icon matListItemIcon>{{sub.icone || 'arrow_right'}}</mat-icon>
                       @if (!isCollapsed() || isHandset()) {
                         <span matListItemTitle>{{sub.descricao}}</span>
@@ -108,8 +107,7 @@
           }
 
         </mat-nav-list>
-      </mat-expansion-panel>
-    </mat-accordion>
+    </div>
 
     <div class="sidenav-footer">
       @if (!isCollapsed() || isHandset()) {
@@ -125,7 +123,8 @@
     </div>
   </mat-sidenav>
 
-  <mat-sidenav-content>
+  <mat-sidenav-content class="main-content"
+                       [style.--sidebar-offset.px]="!isHandset() ? sidenavWidth() : 0">
     @if (isHandset()) {
       <mat-toolbar color="primary">
         <button

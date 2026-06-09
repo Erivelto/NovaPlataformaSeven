@@ -48,10 +48,19 @@
       <!-- Linha 1: CEP + Logradouro + Número -->
       <mat-form-field appearance="outline" class="quarter-width">
         <mat-label>CEP</mat-label>
-        <input matInput formControlName="cep" placeholder="12345-678">
+        <input matInput formControlName="cep" placeholder="03883-030" maxlength="9"
+               inputmode="numeric" autocomplete="postal-code"
+               (input)="onCepInput($event)"
+               (blur)="formatarCep(); buscarCep()">
         <mat-icon matPrefix>mail_outline</mat-icon>
+        @if (cepLoading) {
+          <mat-spinner matSuffix diameter="20"></mat-spinner>
+        }
         @if (form.get('cep')?.hasError('pattern')) {
-          <mat-error>CEP inválido (formato: 12345-678)</mat-error>
+          <mat-error>CEP inválido (use 8 dígitos)</mat-error>
+        }
+        @if (!form.get('cep')?.hasError('pattern') && !cepLoading) {
+          <mat-hint>Busca automática ao digitar 8 dígitos</mat-hint>
         }
       </mat-form-field>
 

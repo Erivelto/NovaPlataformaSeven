@@ -137,7 +137,7 @@ export class Dashboard implements OnInit, OnDestroy {
       dailies: this.dailyService.getByPeriod(startDate, endDate).pipe(catchError(() => of([] as any))),
       stations: this.stationService.getAll().pipe(catchError(() => of([] as any))),
       details: this.collaboratorDetailService.getAll().pipe(catchError(() => of([] as any))),
-      diariasPendentes: this.diariaDisponivelService.getLista().pipe(catchError(() => of([] as any))),
+      diariasPendentes: this.diariaDisponivelService.getAll().pipe(catchError(() => of([] as DiariaDisponivel[]))),
       aprovacoesPendentes: this.aprovacaoService.pendentes().pipe(catchError(() => of([] as AprovacaoStage[])))
     }).subscribe({
       next: (res: { collaborators: Collaborator[]; dailies: Daily[]; stations: Station[]; details: CollaboratorDetail[]; diariasPendentes: DiariaDisponivel[]; aprovacoesPendentes: AprovacaoStage[] }) => {

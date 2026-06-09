@@ -7,6 +7,18 @@ import { NotificationService } from './notification.service';
 import { environment } from '../environments/environment';
 import { finalize, catchError, throwError } from 'rxjs';
 
+function isApiRequest(url: string): boolean {
+  const base = environment.apiBaseUrl;
+  if (url.startsWith(base)) return true;
+
+  try {
+    const path = new URL(url, typeof window !== 'undefined' ? window.location.origin : 'http://localhost').pathname;
+    return path.startsWith(base);
+  } catch {
+    return false;
+  }
+}
+
 export const authInterceptor: HttpInterceptorFn = (req: HttpRequest<unknown>, next: HttpHandlerFn) => {
   const authService = inject(AuthService);
   const loadingService = inject(LoadingService);
@@ -17,7 +29,7 @@ export const authInterceptor: HttpInterceptorFn = (req: HttpRequest<unknown>, ne
   loadingService.show();
 
   let request = req;
-  if (token && req.url.startsWith(environment.apiBaseUrl)) {
+  if (token && isApiRequest(req.url)) {
     request = req.clone({
       setHeaders: { Authorization: `Bearer ${token}` }
     });
@@ -32,6 +44,9 @@ export const authInterceptor: HttpInterceptorFn = (req: HttpRequest<unknown>, ne
       } else if (error.status === 403) {
         notificationService.error('Acesso negado.');
       } else if (error.status >= 500) {
+        if (!environment.production) {
+          console.error('[API erro]', error.status, error.url, error.error);
+        }
         notificationService.error('Erro interno do servidor. Tente novamente.');
       }
       return throwError(() => error);

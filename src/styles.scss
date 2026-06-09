@@ -8,6 +8,7 @@
 
 html {
   height: 100%;
+  --app-font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   @include mat.theme((
     color: (
       primary: mat.$azure-palette,
@@ -18,11 +19,22 @@ html {
   ));
 }
 
+html, body {
+  height: 100%;
+  margin: 0;
+}
+
 body {
+  font-family: var(--app-font-family);
   background-color: var(--mat-sys-surface);
   color: var(--mat-sys-on-surface);
   font: var(--mat-sys-body-medium);
-  margin: 0;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+app-root {
+  display: block;
   height: 100%;
 }
 
@@ -238,15 +250,18 @@ mat-progress-bar {
 }
 
 // Global Clean: Padronização de Títulos do sistema
-h1, h2, h3, h4, h5, h6, 
-.mat-headline, .mat-title, 
-.mat-mdc-card-title, 
-.header h2, 
-.title h2 {
-  font-family: 'Roboto', sans-serif !important;
+h1, h2, h3, h4, h5, h6,
+.mat-headline, .mat-title,
+.mat-mdc-card-title,
+.header h2,
+.title h2,
+.dashboard-container h2,
+.dashboard-container h3,
+.dashboard-container h4 {
+  font-family: var(--app-font-family) !important;
   text-shadow: none !important;
   font-weight: 500 !important;
-  color: #333333 !important; // Cor padrão para títulos internos
+  color: #333333 !important;
   margin: 0 !important;
 }
 
@@ -257,6 +272,18 @@ h2, .mat-mdc-card-title, .header h2 {
 
 h1 { font-size: 24px !important; }
 h3 { font-size: 18px !important; }
+
+// Tipografia padrão em cards, tabelas e textos de páginas internas
+mat-card,
+.mat-mdc-card,
+.mat-mdc-card-content,
+.mat-mdc-table,
+.dashboard-container,
+.collaborators-container,
+.registration-form,
+.filter-row {
+  font-family: var(--app-font-family);
+}
 
 // Ajuste Global para Cabeçalhos e Separadores
 .header {

@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, OnInit, OnChanges, SimpleChanges, Output, EventEmitter, Input, inject, ChangeDetectorRef } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, OnChanges, SimpleChanges, Output, EventEmitter, Input, inject, ChangeDetectorRef, DestroyRef } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -10,6 +10,7 @@ import { MatTableModule, MatTableDataSource } from '@angular/material/table';
 import { MatPaginatorModule } from '@angular/material/paginator';
 import { MatSortModule } from '@angular/material/sort';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { AsyncPipe, CommonModule } from '@angular/common';
 import { CollaboratorService, Collaborator } from '../../services/collaborator.service';
 import { CollaboratorDetailService, CollaboratorDetail } from '../../services/collaborator-detail.service';
@@ -18,11 +19,12 @@ import { SupervisorService, Supervisor } from '../../services/supervisor.service
 import { StationService, Station } from '../../services/station.service';
 import { AuthService } from '../../services/auth.service';
 import { NotificationService } from '../../services/notification.service';
+import { CepService } from '../../services/cep.service';
 import { formatNumberToCurrency, parseCurrencyToNumber } from '../../shared/utils/currency.utils';
 import { ContractDialog, ContractDialogData } from './contract-dialog';
 import { ConfirmDialog } from '../../shared/confirm-dialog/confirm-dialog';
-import { forkJoin, switchMap, debounceTime, startWith, map, of } from 'rxjs';
-import { Observable } from 'rxjs';
+import { forkJoin, switchMap, debounceTime, startWith, map, of, distinctUntilChanged, filter } from 'rxjs';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'app-add-collaborator',
@@ -40,7 +42,8 @@ import { Observable } from 'rxjs';
     MatTableModule,
     MatPaginatorModule,
     MatSortModule,
-    MatDialogModule
+    MatDialogModule,
+    MatProgressSpinnerModule
   ],
   templateUrl: './add-collaborator.html',
   styleUrl: './add-collaborator.scss',
@@ -60,7 +63,9 @@ export class AddCollaborator implements OnInit, OnChanges {
   private stationService = inject(StationService);
   private authService = inject(AuthService);
   private notify = inject(NotificationService);
+  private cepService = inject(CepService);
   private cdr = inject(ChangeDetectorRef);
+  private destroyRef = inject(DestroyRef);
   private dialog = inject(MatDialog);
 
   form!: FormGroup;
@@ -68,6 +73,8 @@ export class AddCollaborator implements OnInit, OnChanges {
   supervisors: Supervisor[] = [];
   stations: Station[] = [];
   loading = false;
+  cepLoading = false;
+  private lastFetchedCep = '';
 
   filteredRoles$ = of<Role[]>([]);
   filteredSupervisors$ = of<Supervisor[]>([]);
@@ -83,6 +90,7 @@ export class AddCollaborator implements OnInit, OnChanges {
 
   ngOnInit() {
     this.initForm();
+    this.setupCepLookup();
     this.loadSelectData();
   }
 
@@ -103,7 +111,7 @@ export class AddCollaborator implements OnInit, OnChanges {
       referencia: [''],
 
       // Endereço (OPCIONAL)
-      cep: ['', [Validators.pattern(/^\d{5}-?\d{3}$/)]],
+      cep: ['', [Validators.pattern(/^(\d{5}-\d{3}|\d{8})$/)]],
       endereco: [''],
       numero: [''],
       complemento: [''],
@@ -244,18 +252,21 @@ export class AddCollaborator implements OnInit, OnChanges {
         // Carregar dados pessoais do primeiro detalhe (se existir)
         const detail = details.length > 0 ? details[0] : null;
         
+        const formattedCep = this.cepService.format(collaborator.cep || detail?.cep || '');
+        this.lastFetchedCep = this.cepService.normalize(formattedCep);
+
         this.form.patchValue({
           nome: collaborator.nome,
           pix: collaborator.pix || detail?.pix || '',
           referencia: collaborator.referencia || '',
-          cep: collaborator.cep || detail?.cep || '',
+          cep: formattedCep,
           endereco: collaborator.endereco || detail?.endereco || '',
           numero: collaborator.numero || '',
           complemento: collaborator.complemento || '',
           bairro: collaborator.bairro || detail?.bairro || '',
           cidade: collaborator.cidade || detail?.cidade || '',
           uf: collaborator.uf || detail?.uf || ''
-        });
+        }, { emitEvent: false });
 
         // Desabilitar campos de contratação (uses-se apenas a tabela)
         this.form.get('valorDiaria')?.disable();
@@ -386,21 +397,124 @@ export class AddCollaborator implements OnInit, OnChanges {
     return this.detailService.create(detailPayload);
   }
 
-  private extractErrorMessage(err: { error?: { errors?: Record<string, string[]>; title?: string; message?: string }; statusText?: string }, fallback: string): string {
-    if (err?.error?.errors) {
+  private extractErrorMessage(
+    err: { status?: number; error?: { errors?: Record<string, string[]>; title?: string; message?: string; detail?: string } | string; statusText?: string; message?: string },
+    fallback: string
+  ): string {
+    if (err?.status === 0) {
+      return 'Não foi possível salvar a contratação. O servidor da API retornou erro interno (500). Isso não é falta de permissão — o time responsável pela API precisa corrigir o endpoint PUT /ColaboradorDetalhe.';
+    }
+    if (err?.status === 500) {
+      const body = err.error;
+      if (typeof body === 'string' && body.trim()) return `Erro da API: ${body}`;
+      if (body && typeof body === 'object') {
+        const detail = body.title || body.message || body.detail;
+        if (detail) return `Erro da API: ${detail}`;
+      }
+      return 'Erro interno da API (500) ao atualizar contratação. Veja o console (F12) para detalhes.';
+    }
+    if (err?.error && typeof err.error === 'object' && err.error.errors) {
       const errors = err.error.errors;
       const messages = Object.keys(errors).map(key => `${key}: ${errors[key].join(', ')}`);
       return messages.join(' | ');
     }
-    return err?.error?.title || err?.error?.message || err?.statusText || fallback;
+    if (err?.error && typeof err.error === 'object') {
+      return err.error.title || err.error.message || err.statusText || fallback;
+    }
+    return err?.message || err?.statusText || fallback;
   }
 
   reset() {
     this.form.reset();
+    this.lastFetchedCep = '';
   }
 
   formatarValor(valor: string): string {
     return formatNumberToCurrency(valor);
+  }
+
+  onCepInput(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const digits = this.cepService.normalize(input.value).slice(0, 8);
+    const formatted = this.cepService.format(digits);
+
+    this.form.get('cep')?.setValue(formatted, { emitEvent: true });
+    input.value = formatted;
+
+    if (digits.length < 8) {
+      this.lastFetchedCep = '';
+    }
+  }
+
+  private setupCepLookup(): void {
+    this.form.get('cep')?.valueChanges.pipe(
+      debounceTime(350),
+      map(value => this.cepService.normalize(String(value ?? ''))),
+      distinctUntilChanged(),
+      filter(digits => digits.length === 8),
+      filter(digits => digits !== this.lastFetchedCep),
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(digits => this.fetchCepAddress(digits));
+  }
+
+  formatarCep(): void {
+    const control = this.form.get('cep');
+    if (!control) return;
+
+    const formatted = this.cepService.format(String(control.value || ''));
+    control.setValue(formatted, { emitEvent: false });
+  }
+
+  buscarCep(): void {
+    const cep = this.cepService.normalize(String(this.form.get('cep')?.value || ''));
+    if (!this.cepService.isValid(cep) || cep === this.lastFetchedCep || this.cepLoading) {
+      return;
+    }
+    this.fetchCepAddress(cep);
+  }
+
+  private fetchCepAddress(cep: string): void {
+    if (this.cepLoading) return;
+
+    this.cepLoading = true;
+    this.cdr.markForCheck();
+
+    this.cepService.lookup(cep).subscribe({
+      next: (address) => {
+        this.cepLoading = false;
+
+        if (!address) {
+          this.notify.warn('CEP não encontrado.');
+          this.cdr.markForCheck();
+          return;
+        }
+
+        this.lastFetchedCep = cep;
+        this.applyCepAddress(address);
+        this.cdr.markForCheck();
+      },
+      error: () => {
+        this.cepLoading = false;
+        this.notify.error('Erro ao consultar CEP. Tente novamente.');
+        this.cdr.markForCheck();
+      }
+    });
+  }
+
+  private applyCepAddress(address: { cep: string; endereco: string; complemento: string; bairro: string; cidade: string; uf: string }): void {
+    const patch: Record<string, string> = {
+      cep: address.cep,
+      endereco: address.endereco,
+      bairro: address.bairro,
+      cidade: address.cidade,
+      uf: address.uf
+    };
+
+    if (address.complemento && !this.form.get('complemento')?.value) {
+      patch['complemento'] = address.complemento;
+    }
+
+    this.form.patchValue(patch);
   }
 
   // ===== MÉTODOS DA TABELA DE CONTRATAÇÕES =====
@@ -428,10 +542,7 @@ export class AddCollaborator implements OnInit, OnChanges {
       this.loading = true;
 
       if (result.id) {
-        // Editar existente
-        const existing = this.contracts.find(c => c.id === result.id);
-        const updated: CollaboratorDetail = { ...existing!, ...result };
-        this.detailService.update(result.id, updated).subscribe({
+        this.detailService.update(result.id, result).subscribe({
           next: () => {
             this.loading = false;
             this.notify.success('Contratação atualizada com sucesso!');
@@ -443,9 +554,7 @@ export class AddCollaborator implements OnInit, OnChanges {
           }
         });
       } else {
-        // Adicionar nova
-        const payload: Partial<CollaboratorDetail> = { id: 0, ...result };
-        this.detailService.create(payload).subscribe({
+        this.detailService.create(result).subscribe({
           next: () => {
             this.loading = false;
             this.notify.success('Contratação adicionada com sucesso!');
