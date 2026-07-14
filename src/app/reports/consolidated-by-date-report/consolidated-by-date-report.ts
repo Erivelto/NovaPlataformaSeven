@@ -143,49 +143,66 @@ export class ConsolidatedByDateReport implements OnInit, AfterViewInit {
     });
   }
 
-  exportCsv() {
+  exportExcel() {
     const rows = this.dataSource.data;
     if (!rows || rows.length === 0) {
       this.notify.info('Nenhum registro para exportar');
       return;
     }
-    const sep = ';';
     const formatBRL = (value: number) =>
       new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value ?? 0);
-    const escapeCell = (val: string) => '"' + val.replace(/"/g, '""') + '"';
+    const cell = (val: string | number) =>
+      `<Cell><Data ss:Type="String">${String(val ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</Data></Cell>`;
 
     const headers = ['Código', 'Nome', 'Valor Total', 'Adiantamento', 'Valor Diária', 'Quantidade', 'Chave PIX'];
-    const csvLines = [headers.join(sep)];
+    const xmlRows: string[] = [];
+    xmlRows.push('<Row>' + headers.map(h => cell(h)).join('') + '</Row>');
+
     rows.forEach(r => {
-      csvLines.push([
-        r.codigo,
-        escapeCell(String(r.nome ?? '')),
-        escapeCell(formatBRL(r.valorTotal)),
-        escapeCell(formatBRL(r.adiantamento)),
-        escapeCell(formatBRL(r.valorDiaria)),
-        r.quantidade ?? 0,
-        escapeCell(String(r.pix || '-'))
-      ].join(sep));
+      xmlRows.push('<Row>' + [
+        cell(r.codigo),
+        cell(r.nome ?? ''),
+        cell(formatBRL(r.valorTotal)),
+        cell(formatBRL(r.adiantamento)),
+        cell(formatBRL(r.valorDiaria)),
+        cell(r.quantidade ?? 0),
+        cell(r.pix || '-')
+      ].join('') + '</Row>');
     });
+
     const totalValorTotal = rows.reduce((s, v) => s + (v.valorTotal ?? 0), 0);
     const totalAdiantamento = rows.reduce((s, v) => s + (v.adiantamento ?? 0), 0);
     const totalValorDiaria = rows.reduce((s, v) => s + (v.valorDiaria ?? 0), 0);
     const totalQuantidade = rows.reduce((s, v) => s + (v.quantidade ?? 0), 0);
-    csvLines.push([
-      escapeCell('TOTAL'),
-      escapeCell(''),
-      escapeCell(formatBRL(totalValorTotal)),
-      escapeCell(formatBRL(totalAdiantamento)),
-      escapeCell(formatBRL(totalValorDiaria)),
-      totalQuantidade,
-      escapeCell('')
-    ].join(sep));
-    const filename = `consolidado-por-data-${new Date().toISOString().slice(0, 10)}.csv`;
-    this.downloadFile('\ufeff' + csvLines.join('\r\n'), filename);
+    xmlRows.push('<Row>' + [
+      cell('TOTAL'),
+      cell(''),
+      cell(formatBRL(totalValorTotal)),
+      cell(formatBRL(totalAdiantamento)),
+      cell(formatBRL(totalValorDiaria)),
+      cell(totalQuantidade),
+      cell('')
+    ].join('') + '</Row>');
+
+    const xml = [
+      '<?xml version="1.0" encoding="UTF-8"?>',
+      '<?mso-application progid="Excel.Sheet"?>',
+      '<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"',
+      ' xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet">',
+      '<Worksheet ss:Name="Consolidado por Data">',
+      '<Table>',
+      xmlRows.join(''),
+      '</Table>',
+      '</Worksheet>',
+      '</Workbook>'
+    ].join('');
+
+    const filename = `consolidado-por-data-${new Date().toISOString().slice(0, 10)}.xls`;
+    this.downloadFile(xml, filename);
   }
 
   private downloadFile(content: string, filename: string) {
-    const blob = new Blob([content], { type: 'text/csv;charset=utf-8;' });
+    const blob = new Blob([content], { type: 'application/vnd.ms-excel;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;

@@ -245,31 +245,47 @@ export class DailiesReport implements OnInit, AfterViewInit {
     });
   }
 
-  exportToCsv(): void {
+  exportToExcel(): void {
     const data = this.dataSource.data;
     if (!data.length) return;
 
+    const cell = (val: string | number | null | undefined) =>
+      `<Cell><Data ss:Type="String">${String(val ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</Data></Cell>`;
+
     const headers = ['Código', 'Quantidade', 'Colaborador', 'Dias no Período', 'Função', 'GC', 'Posto'];
-    const rows = data.map(row => [
-      row.idColaboradorDetalhe,
-      row.quantidade,
-      row.colaborador,
-      row.periodo,
-      row.funcao,
-      row.supervisor,
-      row.posto,
-    ]);
+    const xmlRows: string[] = [];
+    xmlRows.push('<Row>' + headers.map(h => cell(h)).join('') + '</Row>');
 
-    const csvContent = [headers, ...rows]
-      .map(r => r.map(cell => `"${String(cell ?? '').replace(/"/g, '""')}"`).join(';'))
-      .join('\n');
+    data.forEach(row => {
+      xmlRows.push('<Row>' + [
+        cell(row.idColaboradorDetalhe),
+        cell(row.quantidade),
+        cell(row.colaborador),
+        cell(row.periodo),
+        cell(row.funcao),
+        cell(row.supervisor),
+        cell(row.posto),
+      ].join('') + '</Row>');
+    });
 
-    const bom = '\uFEFF';
-    const blob = new Blob([bom + csvContent], { type: 'text/csv;charset=utf-8;' });
+    const xml = [
+      '<?xml version="1.0" encoding="UTF-8"?>',
+      '<?mso-application progid="Excel.Sheet"?>',
+      '<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"',
+      ' xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet">',
+      '<Worksheet ss:Name="Relatório de Diárias">',
+      '<Table>',
+      xmlRows.join(''),
+      '</Table>',
+      '</Worksheet>',
+      '</Workbook>'
+    ].join('');
+
+    const blob = new Blob([xml], { type: 'application/vnd.ms-excel;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `relatorio-diarias-${new Date().toISOString().slice(0, 10)}.csv`;
+    link.download = `relatorio-diarias-${new Date().toISOString().slice(0, 10)}.xls`;
     link.click();
     URL.revokeObjectURL(url);
   }
