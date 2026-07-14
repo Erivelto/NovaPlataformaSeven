@@ -161,13 +161,12 @@ mat-progress-bar {
 .mat-mdc-form-field.mat-focused {
   .mat-mdc-floating-label { color: #850000 !important; }
   .mdc-line-ripple::after { border-bottom-color: #850000 !important; }
-  
-  // Reforçando para inputs outline (outra forma de seletor)
+
   .mdc-notched-outline__leading,
   .mdc-notched-outline__notch,
   .mdc-notched-outline__trailing {
     border-color: #850000 !important;
-    border-width: 2px !important; // Aumentando levemente a espessura no foco para dar o "efeito"
+    border-width: 1px !important;
   }
 }
 
